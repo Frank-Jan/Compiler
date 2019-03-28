@@ -1,8 +1,8 @@
 import sys
 from antlr4 import *
-from c_subsetLexer import c_subsetLexer
-from c_subsetParser import c_subsetParser
-from c_subsetListener import c_subsetListener
+from src.grammars.c_subsetLexer import c_subsetLexer
+from src.grammars.c_subsetParser import c_subsetParser
+from src.grammars.c_subsetListener import c_subsetListener
 
 def main(argv):
     input_stream = FileStream(argv[1])
