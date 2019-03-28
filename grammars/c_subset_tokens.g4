@@ -1,17 +1,20 @@
 grammar c_subset_tokens;
-
-// Mandatory
-//types
-Type
-    : Void ;
-    : Char ;
-    : Float ;
-    : Int ;
-
+tokens {Void, Char, Float, Int}
 Void : 'void';
 Char : 'char';
 Float : 'float';
 Int : 'int';
+
+// Mandatory
+//types
+typeSpec //typeSpecifier, type is reserved keyword!!!
+    : Void
+    | Char
+    | Float
+    | Int
+    ;
+
+
 
 //loops
 If : 'if';
@@ -19,8 +22,9 @@ Else : 'else';
 While : 'while';
 Return : 'return';
 
-//variable
-VAR : (a..z) | (A..Z)) ((a..z) | (A..Z) | (0..9))*
+Vari : ([a-z] | [A-Z]) ([a-z] | [A-Z] | [0-9])*;
+Funci : ([a-z] | [A-Z]) ([a-z] | [A-Z] | [0-9])* ('()' | '(' Args  ')');
+Args: Vari ( ',' Vari)*;
 
 //Optional
 For : 'for';
