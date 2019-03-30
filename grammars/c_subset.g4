@@ -27,8 +27,9 @@ ident : // id is a reserved keyword!!!
     Vari | Funci;
 
 
-funcDeclaration :
-    Vari ('()' | '(' (typeSpec | typeSpec Vari)(','(typeSpec Vari | typeSpec))* ')')
+funcDeclaration
+    : funcSubDecl
+    | Vari '(' (typeSpec | typeSpec Vari)(','(typeSpec Vari | typeSpec))* ')'
     ;
 
 WS
