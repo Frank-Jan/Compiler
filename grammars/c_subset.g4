@@ -1,8 +1,12 @@
 grammar c_subset;
 import c_subset_tokens, c_subset_parser_rules;
 
+file
+    : (expression ';')*
+    ;
+
 expression
-    : (declaration | definition| assignment) ';'
+    : (declaration | definition| assignment)
     ;
 
 declaration
