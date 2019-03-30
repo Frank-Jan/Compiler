@@ -23,6 +23,7 @@ While : 'while';
 Return : 'return';
 
 Vari : ([a-z] | [A-Z]) ([a-z] | [A-Z] | [0-9])*;
+FuncSubDecl : ([a-z] | [A-Z]) ([a-z] | [A-Z] | [0-9])* '(' ')';
 Funci : ([a-z] | [A-Z]) ([a-z] | [A-Z] | [0-9])* ('()' | '(' Args  ')');
 Args: Vari ( ',' Vari)*;
 

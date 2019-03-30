@@ -1,8 +1,12 @@
 grammar c_subset;
 import c_subset_tokens, c_subset_parser_rules;
 
+file
+    : (expression ';')*
+    ;
+
 expression
-    : (declaration | definition| assignment) ';'
+    : (declaration | definition| assignment)
     ;
 
 declaration
@@ -23,8 +27,9 @@ ident : // id is a reserved keyword!!!
     Vari | Funci;
 
 
-funcDeclaration :
-    Vari ('()' | '(' (typeSpec | typeSpec Vari)(','(typeSpec Vari | typeSpec))* ')')
+funcDeclaration
+    : FuncSubDecl
+    | Vari ('(' (typeSpec | typeSpec Vari)(','(typeSpec Vari | typeSpec))* ')')
     ;
 
 WS
