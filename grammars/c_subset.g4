@@ -1,37 +1,85 @@
 grammar c_subset;
-import c_subset_tokens, c_subset_parser_rules;
 
-file
-    : (expression ';')*
+import c_subset_tokens;
+
+cppSyntax
+    : (statement ';')*
     ;
 
-expression
-    : (declaration | definition| assignment)
+statement
+    : declaration
+    | definition
+    | assignment
     ;
 
 declaration
-    : typeSpec Vari
-    | typeSpec funcDeclaration
+    : typeSpec variable
+    | typeSpec functionSignature
     ;
 
 definition
-    : typeSpec Vari '=' ident
+    : typeSpec variable '=' (arithmicExpression | identifier)
     ;
 
 assignment
-    : Vari '=' ident
+    : variable '=' arithmicExpression
+    | variable '=' identifier
+    ;
+
+//arithmic expressions
+arithmicExpression
+    : prod '+' add
+    | prod
+    ;
+
+add
+    : prod ('+' add)
+    | prod ('-' add)
+    | prod
+    ;
+
+prod
+    : atom ('*' prod)
+    | atom ('/' prod)
+    | atom
+    ;
+
+atom
+    : identifier
+    | '(' arithmicExpression ')'
     ;
 
 //Identifier
-ident : // id is a reserved keyword!!!
-    Vari | Funci;
-
-
-funcDeclaration
-    : FuncSubDecl
-    | Vari ('(' (typeSpec | typeSpec Vari)(','(typeSpec Vari | typeSpec))* ')')
+identifier // id is a reserved keyword!!!
+    : variable
+    | function
     ;
 
+function
+    : NAME '(' ')'
+    | NAME ('(' (variable)(',' variable)* ')')
+    ;
+
+functionSignature
+    : NAME '(' ')'
+    | NAME ('(' (typeSpec | typeSpec variable)(','(typeSpec variable | typeSpec))* ')')
+    ;
+
+variable
+    : NAME
+    ;
+
+
+
+//Things to skip:
 WS
    : [ \t\r\n] -> skip
    ;
+
+MultiLineComment
+    : '/*' .*? '*/' -> skip
+    ;
+
+SingleLineComment
+    : '/''/' .*? '\n' -> skip
+    ;

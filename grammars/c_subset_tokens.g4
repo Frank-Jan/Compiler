@@ -1,41 +1,43 @@
 grammar c_subset_tokens;
-tokens {Void, Char, Float, Int}
-Void : 'void';
-Char : 'char';
-Float : 'float';
-Int : 'int';
+//
+//tokens {VOID, CHAR, FLOAT, INT}
 
-// Mandatory
-//types
-typeSpec //typeSpecifier, type is reserved keyword!!!
-    : Void
-    | Char
-    | Float
-    | Int
+VOID : 'void';
+CHAR : 'char';
+FLOAT : 'float';
+INT : 'int';
+
+pointer
+    : VOID '*'
+    | FLOAT '*'
+    | CHAR'*'
+    | INT '*'
     ;
 
+// Mandatory
+//Type specifiers
+typeSpec //typeSpecifier, type is reserved keyword!!!
+    : VOID
+    | CHAR
+    | FLOAT
+    | INT
+    | pointer
+    ;
 
-
-//loops
-If : 'if';
-Else : 'else';
-While : 'while';
-Return : 'return';
-
-Vari : ([a-z] | [A-Z]) ([a-z] | [A-Z] | [0-9])*;
-FuncSubDecl : ([a-z] | [A-Z]) ([a-z] | [A-Z] | [0-9])* '(' ')';
-Funci : ([a-z] | [A-Z]) ([a-z] | [A-Z] | [0-9])* ('()' | '(' Args  ')');
-Args: Vari ( ',' Vari)*;
+//Loops
+IF : 'if';
+ELSE : 'else';
+WHILE : 'while';
+RETURN : 'return';
 
 //Optional
-For : 'for';
-Const : 'const';
-Break : 'break';
-Continue : 'continue';
-Switch : 'switch';
-Case : 'case';
-Default : 'default';
+FOR : 'for';
+CONST : 'const';
+BREAK : 'break';
+CONTINUE : 'continue';
+SWITCH : 'switch';
+CASE : 'case';
+DEFAULT : 'default';
 
-
-
-
+//Viable name compositions
+NAME : ([a-z] | [A-Z] | '_')([a-z] | [A-Z] | '_' | [0-9])*;
