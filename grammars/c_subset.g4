@@ -22,13 +22,15 @@ functionStatement
     | returnStatement
     | variable
     | function
+    | literal
     ;
 
 returnStatement
     : RETURN    ( conditionalExpression
-                | arithmicExpression
+                | arithmicOperation
                 | function
                 | variable
+                | literal
                 )
     ;
 
@@ -46,11 +48,11 @@ generalDeclaration
     ;
 
 variableDefinition
-    : typeSpec variable '=' (arithmicExpression | identifier)
+    : typeSpec variable '=' (arithmicOperation | identifier)
     ;
 
 functionDefinition
-    : typeSpec functionSignature '{' functionSyntax '}'
+    : typeSpec functionSignature codeblock
     ;
 
 generalDefinition
@@ -59,12 +61,12 @@ generalDefinition
     ;
 
 assignment
-    : variable '=' arithmicExpression
+    : variable '=' arithmicOperation
     | variable '=' identifier
     ;
 
 //arithmic expressions
-arithmicExpression
+arithmicOperation
     : prod '+' add
     | prod
     ;
@@ -83,7 +85,7 @@ prod
 
 atom
     : identifier
-    | '(' arithmicExpression ')'
+    | '(' arithmicOperation ')'
     ;
 
 //conditional expressions
@@ -120,11 +122,12 @@ codeBlock
 identifier // id is a reserved keyword!!!
     : variable
     | function
+    | literal
     ;
 
 function
     : NAME '(' ')'
-    | NAME ('(' (variable)(',' variable)* ')')
+    | NAME ('(' (identifier)(',' identifier)* ')')
     ;
 
 functionSignature
@@ -135,7 +138,25 @@ functionSignature
 variable
     : NAME
     ;
+    
+literal
+    : integer
+    | float
+    | char
+    ;
 
+integer
+    : [0-9]+
+    ;
+
+float
+    : [0-9]+'.'[0-9]*
+    ;
+    
+char
+    : ('\'('[a-z] | ' ') '\'') 
+    | '\'\''
+    ; 
 
 //Things to skip:
 WS
