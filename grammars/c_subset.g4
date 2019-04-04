@@ -56,7 +56,7 @@ generalDeclaration
     ;
 
 variableDefinition
-    : typeSpec variable '=' (identifier | arithmicOperation) ';'
+    : typeSpec variable '=' (identifier | arithmicOperation)
     ;
 
 functionDefinition
@@ -159,9 +159,14 @@ variable
     ;
 
 literal
-    : Integer
+    : Char
+    | integer
     | Float
-    | Char
+    ;
+
+integer
+    : PosInteger
+    | NegInteger
     ;
 
 typeSpecPointer
