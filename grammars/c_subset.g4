@@ -128,11 +128,11 @@ identifier // id is a reserved keyword!!!
     ;
 
 dereference
-    : '*' (variable | function)
+    : '*' (variable | function | reference)
     ;
 
 reference
-    : '&' variable
+    : '&' (variable | dereference)
     ;
 
 function
@@ -142,7 +142,9 @@ function
 
 functionSignature
     : NAME '(' ')'
-    | NAME ('(' (typeSpec | typeSpec variable)(','(typeSpec variable | typeSpec))* ')')
+    | NAME ('(' (typeSpec | typeSpec variable | typeSpec '&' | typeSpec '&' variable)
+                (','(typeSpec | typeSpec variable | typeSpec '&' | typeSpec '&' variable) )*
+            ')')
     ;
 
 variable
