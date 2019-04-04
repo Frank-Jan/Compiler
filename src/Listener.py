@@ -23,9 +23,11 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#cppSyntax.
     def enterCppSyntax(self, ctx:c_subsetParser.CppSyntaxContext):
-        node = ASTNode("Root", len(ctx.children))# root node
+        getal = 0
+        if ctx.children != None:
+            getal = len(ctx.children)
+        node = ASTNode("Root", getal)
         self.AST.nodes.append(node)
-        pass
 
     # Exit a parse tree produced by c_subsetParser#cppSyntax.
     def exitCppSyntax(self, ctx:c_subsetParser.CppSyntaxContext):
@@ -269,7 +271,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#literal.
     def enterLiteral(self, ctx: c_subsetParser.LiteralContext):
-        self.AST.addNode(LitNode(ctx.getText()))
+        pass
 
     # Exit a parse tree produced by c_subsetParser#literal.
     def exitLiteral(self, ctx: c_subsetParser.LiteralContext):

@@ -102,11 +102,11 @@ class VarNode(ASTNode):
         ASTNode.__init__(self, value, 0)
         self.child = True
 
-class LitNode(ASTNode):
-
-    def __init__(self, value):
-        ASTNode.__init__(self, value, 0)
-        self.child = True
+# class LitNode(ASTNode):
+#
+#     def __init__(self, value):
+#         ASTNode.__init__(self, value, 0)
+#         self.child = True
 
 class TypeSpecBaseNode(ASTNode):
 
