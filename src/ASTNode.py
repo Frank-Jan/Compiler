@@ -74,6 +74,21 @@ class ProdNode(ASTNode):
     def __init__(self, size):
         ASTNode.__init__(self, 'Prod', size)
 
+class IdentNode(ASTNode):
+
+    def __init__(self, size):
+        ASTNode.__init__(self, 'Ident', size)
+
+class AtomNode(ASTNode):
+
+    def __init__(self, size):
+        ASTNode.__init__(self, 'Atom', size)
+
+class ReturnStatNode(ASTNode):
+
+    def __init__(self, size):
+        ASTNode.__init__(self, 'ReturnStat', size)
+
 #CHILDREN THAT ARE NOT PARENTS = LEAFS
 class TerNode(ASTNode):
 
@@ -94,6 +109,12 @@ class LitNode(ASTNode):
         self.child = True
 
 class TypeSpecBaseNode(ASTNode):
+
+    def __init__(self, value):
+        ASTNode.__init__(self, value, 0)
+        self.child = True
+
+class IntNode(ASTNode):
 
     def __init__(self, value):
         ASTNode.__init__(self, value, 0)
