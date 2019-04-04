@@ -13,6 +13,7 @@ functionSyntax
 generalStatement
     : generalDeclaration ';'
     | generalDefinition
+    | include
     ;
 
 functionStatement
@@ -35,8 +36,14 @@ returnStatement
                 )
     ;
 
+include
+    : INCLUDE (('<' LIBNAME '>') | ('"' LIBNAME '"') )
+    ;
+
+
 variableDeclaration
-    : typeSpec variable
+    : typeSpec variable //normal variables and pointers
+    | typeSpec variable '['PosInteger']'    //arrays
     ;
 
 functionDeclaration
@@ -128,7 +135,7 @@ identifier // id is a reserved keyword!!!
     ;
 
 dereference
-    : '*' (variable | function | reference)
+    : '*' (variable | function | reference | dereference)
     ;
 
 reference
@@ -157,6 +164,15 @@ literal
     | Char
     ;
 
+typeSpecPointer
+    : typeSpecBase '*'
+    | typeSpecPointer '*'
+    ;
+
+typeSpec
+    : typeSpecBase
+    | typeSpecPointer
+    ;
 //Things to skip:
 WS
    : [ \t\r\n] -> skip

@@ -14,7 +14,7 @@ int* pi;
 char* pc;
 float* pf;
 
-//test function declarations
+//function declarations
 //return types
 void function();
 int function();
@@ -38,5 +38,9 @@ void snake_case;
 void Capital;
 void _under_score;
 void numbers0123456789;
+void function();
+void camelCase();
+void snake_case();
+void Capital();
 
 
