@@ -7,21 +7,24 @@ CHAR : 'char';
 FLOAT : 'float';
 INT : 'int';
 
-pointer
-    : VOID '*'
-    | FLOAT '*'
-    | CHAR'*'
-    | INT '*'
-    ;
+
 
 // Mandatory
 //Type specifiers
-typeSpec //typeSpecifier, type is reserved keyword!!!
+typeSpecBase //typeSpecifier, type is reserved keyword!!!
     : VOID
     | CHAR
     | FLOAT
     | INT
-    | pointer
+    ;
+
+typeSpecPointer
+    : typeSpecBase '*'
+    ;
+
+typeSpec
+    : typeSpecBase
+    | typeSpecPointer
     ;
 
 //Loops

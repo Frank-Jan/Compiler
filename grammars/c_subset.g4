@@ -3,22 +3,59 @@ grammar c_subset;
 import c_subset_tokens;
 
 cppSyntax
-    : (statement ';')*
+    : (generalStatement | generalStatement ';')*
     ;
 
-statement
-    : declaration
-    | definition
+functionSyntax
+    : (functionStatement ';' | codeBlock | loop)*
+    ;
+
+generalStatement
+    : generalDeclaration
+    | generalDefinition
+    ;
+
+functionStatement
+    : variableDeclaration
+    | variableDefinition
     | assignment
+    | returnStatement
+    | variable
+    | function
     ;
 
-declaration
+returnStatement
+    : RETURN    ( conditionalExpression
+                | arithmicExpression
+                | function
+                | variable
+                )
+    ;
+
+variableDeclaration
     : typeSpec variable
-    | typeSpec functionSignature
     ;
 
-definition
+functionDeclaration
+    : typeSpec functionSignature
+    ;
+
+generalDeclaration
+    : variableDeclaration
+    | functionDeclaration
+    ;
+
+variableDefinition
     : typeSpec variable '=' (arithmicExpression | identifier)
+    ;
+
+functionDefinition
+    : typeSpec functionSignature '{' functionSyntax '}'
+    ;
+
+generalDefinition
+    : variableDefinition
+    | functionDefinition
     ;
 
 assignment
@@ -49,6 +86,36 @@ atom
     | '(' arithmicExpression ')'
     ;
 
+//conditional expressions
+conditionalExpression
+    :   identifier '>' identifier
+    |   identifier '<' identifier
+    |   identifier '==' identifier
+    ;
+
+//loops
+loop
+    : whileLoop
+    | ifelseLoop
+    ;
+
+whileLoop
+    : WHILE '(' conditionalExpression ')'   (functionStatement ';' | codeBlock)
+    ;
+
+ifelseLoop
+    : IF '('conditionalExpression')' (functionStatement ';' | codeBlock)
+     (ELSE IF '('conditionalExpression')' (functionStatement ';' | codeBlock))*
+      ELSE (functionStatement ';' | codeBlock)
+    ;
+
+
+//code block
+codeBlock
+    :   '{' functionSyntax '}'
+    ;
+
+
 //Identifier
 identifier // id is a reserved keyword!!!
     : variable
@@ -68,7 +135,6 @@ functionSignature
 variable
     : NAME
     ;
-
 
 
 //Things to skip:
