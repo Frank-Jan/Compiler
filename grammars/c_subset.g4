@@ -3,7 +3,7 @@ grammar c_subset;
 import c_subset_tokens;
 
 cppSyntax
-    : (generalStatement | generalStatement ';')*
+    : (generalStatement)*
     ;
 
 functionSyntax
@@ -11,7 +11,7 @@ functionSyntax
     ;
 
 generalStatement
-    : generalDeclaration
+    : generalDeclaration ';'
     | generalDefinition
     ;
 
@@ -27,10 +27,10 @@ functionStatement
 
 returnStatement
     : RETURN    ( conditionalExpression
-                | arithmicOperation
                 | function
-                | variable
                 | literal
+                | variable
+                | arithmicOperation
                 )
     ;
 
@@ -48,7 +48,7 @@ generalDeclaration
     ;
 
 variableDefinition
-    : typeSpec variable '=' (arithmicOperation | identifier)
+    : typeSpec variable '=' (identifier | arithmicOperation) ';'
     ;
 
 functionDefinition
@@ -61,8 +61,8 @@ generalDefinition
     ;
 
 assignment
-    : variable '=' arithmicOperation
-    | variable '=' identifier
+    : variable '=' identifier
+    | variable '=' arithmicOperation
     ;
 
 //arithmic expressions
