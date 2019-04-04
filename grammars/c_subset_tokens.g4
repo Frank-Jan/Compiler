@@ -56,3 +56,5 @@ NAME : ([a-z] | [A-Z] | '_')([a-z] | [A-Z] | '_' | [0-9])*;
 LIBNAME : ([a-z] | [A-Z]);
 //includes
 INCLUDE : '#include';
+C: '.c';
+H: '.h';
