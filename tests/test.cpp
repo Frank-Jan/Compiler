@@ -1,9 +1,14 @@
 char c;
-c = b;
-c = lala(c, b);
-b = lala();
-/*
-multi line comment
-*/
-// single line comment
-int lala(int i, char float); //comment
+int i = 5;
+int i = 5.5;
+float i = 5.;
+
+int main(){
+    char c;
+    c = lala();
+    /*
+    multi line comment
+    */
+    // single line comment
+}
+

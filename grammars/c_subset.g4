@@ -52,7 +52,7 @@ variableDefinition
     ;
 
 functionDefinition
-    : typeSpec functionSignature codeblock
+    : typeSpec functionSignature codeBlock
     ;
 
 generalDefinition
@@ -140,23 +140,10 @@ variable
     ;
     
 literal
-    : integer
-    | float
-    | char
+    : Integer
+    | Float
+    | Char
     ;
-
-integer
-    : [0-9]+
-    ;
-
-float
-    : [0-9]+'.'[0-9]*
-    ;
-    
-char
-    : ('\'('[a-z] | ' ') '\'') 
-    | '\'\''
-    ; 
 
 //Things to skip:
 WS

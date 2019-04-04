@@ -42,5 +42,21 @@ SWITCH : 'switch';
 CASE : 'case';
 DEFAULT : 'default';
 
+Integer
+    : [0-9]+
+    | '-'[0-9]+
+    ;
+
+Float
+    : [0-9]+'.'[0-9]*
+    | .[0-9]+
+    | '-'.[0-9]+
+    | '-'[0-9]+'.'[0-9]* 
+    ;
+    
+Char
+    : ('\'' ( [a-z] | [A-Z] | ' ') '\'')
+    ; 
+
 //Viable name compositions
 NAME : ([a-z] | [A-Z] | '_')([a-z] | [A-Z] | '_' | [0-9])*;
