@@ -7,7 +7,7 @@ cppSyntax
     ;
 
 functionSyntax
-    : (functionStatement ';' | codeBlock | loop)*
+    : (functionStatement | codeBlock | loop)*
     ;
 
 generalStatement
@@ -16,13 +16,14 @@ generalStatement
     ;
 
 functionStatement
-    : variableDeclaration
-    | variableDefinition
-    | assignment
-    | returnStatement
-    | variable
-    | function
-    | literal
+    : (variableDeclaration
+        | variableDefinition
+        | assignment
+        | returnStatement
+        | variable
+        | function
+        | literal )
+        ';'
     ;
 
 returnStatement
@@ -56,8 +57,7 @@ functionDefinition
     ;
 
 generalDefinition
-    : variableDefinition
-    | functionDefinition
+    : functionDefinition
     ;
 
 assignment
@@ -120,9 +120,19 @@ codeBlock
 
 //Identifier
 identifier // id is a reserved keyword!!!
-    : variable
+    : dereference
+    | reference
+    | variable
     | function
     | literal
+    ;
+
+dereference
+    : '*' (variable | function)
+    ;
+
+reference
+    : '&' variable
     ;
 
 function
@@ -138,7 +148,7 @@ functionSignature
 variable
     : NAME
     ;
-    
+
 literal
     : Integer
     | Float
