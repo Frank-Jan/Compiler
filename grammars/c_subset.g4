@@ -65,6 +65,7 @@ functionDefinition
 
 generalDefinition
     : functionDefinition
+    | variableDefinition
     ;
 
 assignment
