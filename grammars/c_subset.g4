@@ -34,6 +34,7 @@ returnStatement
                 | variable
                 | arithmicOperation
                 )
+    | RETURN
     ;
 
 include
@@ -43,7 +44,7 @@ include
 
 variableDeclaration
     : typeSpec variable //normal variables and pointers
-    | typeSpec variable '['PosInteger']'    //arrays
+    | typeSpec variable '['Digit+']'    //arrays
     ;
 
 functionDeclaration
@@ -161,13 +162,20 @@ variable
 literal
     : Char
     | integer
-    | Float
+    | float_
     ;
 
 integer
-    : PosInteger
-    | NegInteger
+    : Digit+
+    | '-'Digit+
     ;
+    
+float_  //'_'added because conflict with target language (python3) 
+    : (Digit+) '.' (Digit*)
+    | '-.' (Digit)
+    | '.' (Digit+)
+    | '-' (Digit+) '.' (Digit*)
+    ;    
 
 typeSpecPointer
     : typeSpecBase '*'

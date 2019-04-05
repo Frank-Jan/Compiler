@@ -33,20 +33,7 @@ SWITCH : 'switch';
 CASE : 'case';
 DEFAULT : 'default';
 
-PosInteger
-    : [0-9]+
-    ;
-
-NegInteger
-    : '-'[0-9]+
-    ;
-
-Float
-    : ([0-9]+) '.' ([0-9]*)
-    | '-.' ([0-9]+)
-    | '.' ([0-9]+)  //Doesn't accept .5?
-    | '-' ([0-9]+) '.' ([0-9]*)
-    ;
+Digit : [0-9] ;
     
 Char : ('\'' ( [a-z] | [A-Z] | [0-9] | ' ') '\'');
 
