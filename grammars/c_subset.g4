@@ -3,8 +3,7 @@ grammar c_subset;
 import c_subset_tokens;
 
 cppSyntax
-    : (generalStatement)*
-    ;
+    : (generalStatement)* EOF;
 
 functionSyntax
     : (functionStatement | codeBlock | loop)*
@@ -69,9 +68,7 @@ generalDefinition
     ;
 
 assignment
-    : variable '=' identifier
-    | variable '=' arithmicOperation
-    ;
+    : variable '=' (literal | identifier | arithmicOperation) ;
 
 //arithmic expressions
 arithmicOperation
@@ -186,6 +183,7 @@ typeSpec
     : typeSpecBase
     | typeSpecPointer
     ;
+
 //Things to skip:
 WS
    : [ \t\r\n] -> skip
