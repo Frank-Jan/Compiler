@@ -102,7 +102,8 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#generalDeclaration.
     def enterGeneralDeclaration(self, ctx: c_subsetParser.GeneralDeclarationContext):
-        pass
+        self.AST.addNode(GenDeclNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#generalDeclaration.
     def exitGeneralDeclaration(self, ctx: c_subsetParser.GeneralDeclarationContext):
@@ -276,7 +277,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#literal.
     def enterLiteral(self, ctx: c_subsetParser.LiteralContext):
-        pass
+        self.AST.addNode(LitNode(len(ctx.children), self.AST))
 
     # Exit a parse tree produced by c_subsetParser#literal.
     def exitLiteral(self, ctx: c_subsetParser.LiteralContext):
@@ -300,7 +301,8 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#typeSpec.
     def enterTypeSpec(self, ctx: c_subsetParser.TypeSpecContext):
-        pass
+        self.AST.addNode(TypeSpecNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#typeSpec.
     def exitTypeSpec(self, ctx: c_subsetParser.TypeSpecContext):
