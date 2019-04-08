@@ -23,8 +23,10 @@ def main(argv):
     listener = Listener()
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
-    AST = listener.getAST()
-    AST.printDot("AST.dot")
+    ast = listener.getAST()
+    ast.printDot("DT.dot")
+    ast.simplify()
+    ast.printDot("AST.dot")
     return 0
 
 

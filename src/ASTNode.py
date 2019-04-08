@@ -3,12 +3,13 @@
 
 class ASTNode:
 
-    def __init__(self, value, size):
+    def __init__(self, value, size, ast):
         self.value = value
         self.nextNodes = []
         self.size = size
-        self.child = False
+        self.AST = ast
         self.id = 0
+        self.simplified = False
         for i in range(self.size):
             self.nextNodes.append(None)
 
@@ -19,7 +20,7 @@ class ASTNode:
         return self.value == "Root"
 
     def isChild(self):
-        return self.child
+        return self.size == 0
 
     def hasMaxChildren(self):
         count = 0
@@ -28,79 +29,167 @@ class ASTNode:
                 count += 1
         return self.size == count
 
+    def simplify(self, prevNode, pos):
+        self.simplified = True
+
+        if self.size == 0:
+            return
+        elif self.size == 2:
+            self.AST.delNode(self.nextNodes[1])
+        elif self.size > 2:
+            print("Say whut?!")
+
+        prevNode.nextNodes[pos] = self.nextNodes[0]
+        self.AST.delNode(self)
+
+
 class GenStatNode(ASTNode):
 
-    def __init__(self, size):
-        ASTNode.__init__(self, 'GenStat', size)
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'GenStat', size, ast)
 
 
 class AssignNode(ASTNode):
 
-    def __init__(self, size):
-        ASTNode.__init__(self, 'Assign', size)
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'Assign', size, ast)
+
+    def simplify(self, prevNode, pos):
+        self.simplified = True
 
 class FuncDefNode(ASTNode):
 
-    def __init__(self, size):
-        ASTNode.__init__(self, 'FuncDef', size)
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'FuncDef', size, ast)
+
+    def simplify(self, prevNode, pos):
+        self.simplified = True
 
 class FuncSignNode(ASTNode):
 
-    def __init__(self, size):
-        ASTNode.__init__(self, 'FuncSign', size)
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'FuncSign', size, ast)
+
+    def simplify(self, prevNode, pos):
+        self.simplified = True
 
 class CodeBlockNode(ASTNode):
 
-    def __init__(self, size):
-        ASTNode.__init__(self, 'CodeBlock', size)
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'CodeBlock', size, ast)
+
+    def simplify(self, prevNode, pos):
+        self.simplified = True
 
 class FuncSyntaxNode(ASTNode):
 
-    def __init__(self, size):
-        ASTNode.__init__(self, 'FuncSyntax', size)
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'FuncSyntax', size, ast)
+
+    def simplify(self, prevNode, pos):
+        self.simplified = True
 
 class FuncStatNode(ASTNode):
 
-    def __init__(self, size):
-        ASTNode.__init__(self, 'FuncStat', size)
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'FuncStat', size, ast)
+
 
 class ArOpNode(ASTNode):
 
-    def __init__(self, size):
-        ASTNode.__init__(self, 'ArOp', size)
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'ArOp', size, ast)
+
+    def simplify(self, prevNode, pos):
+        self.simplified = True
 
 class ProdNode(ASTNode):
 
-    def __init__(self, size):
-        ASTNode.__init__(self, 'Prod', size)
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'Prod', size, ast)
+
+    def simplify(self, prevNode, pos):
+        self.simplified = True
 
 class IdentNode(ASTNode):
 
-    def __init__(self, size):
-        ASTNode.__init__(self, 'Ident', size)
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'Ident', size, ast)
+
 
 class AtomNode(ASTNode):
 
-    def __init__(self, size):
-        ASTNode.__init__(self, 'Atom', size)
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'Atom', size, ast)
+
+    def simplify(self, prevNode, pos):
+        self.simplified = True
 
 class ReturnStatNode(ASTNode):
 
-    def __init__(self, size):
-        ASTNode.__init__(self, 'ReturnStat', size)
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'ReturnStat', size, ast)
+
+    def simplify(self, prevNode, pos):
+        self.simplified = True
+
+class VarDefNode(ASTNode):
+
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'VarDef', size, ast)
+
+    def simplify(self, prevNode, pos):
+        self.simplified = True
+
+class GenDefNode(ASTNode):
+
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'GenDef', size, ast)
+
+
+class VarDeclNode(ASTNode):
+
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'VarDecl', size, ast)
+        self.type = ""
+        self.var = ""
+
+    def simplify(self, prevNode, pos):
+        val = ""
+        for node in self.nextNodes:
+            if isinstance(node, TypeSpecBaseNode):
+                self.type = node.value
+            elif isinstance(node, VarNode):
+                self.var = node.value
+            val += node.value + " "
+            self.AST.delNode(node)
+
+        self.nextNodes = []
+        self.size = 0
+        self.value = val
+        self.simplified = True
+
+class FuncNode(ASTNode):
+
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'Func', size, ast)
+
+    def simplify(self, prevNode, pos):
+        self.simplified = True
+
+
 
 #CHILDREN THAT ARE NOT PARENTS = LEAFS
 class TerNode(ASTNode):
 
-    def __init__(self, value):
-        ASTNode.__init__(self, value, 0)
+    def __init__(self, value, ast):
+        ASTNode.__init__(self, value, 0, ast)
         self.child = True
 
-class VarNode(ASTNode):
+class VarNode(TerNode):
 
-    def __init__(self, value):
-        ASTNode.__init__(self, value, 0)
-        self.child = True
+    def __init__(self, value, ast):
+        TerNode.__init__(self, value, ast)
 
 # class LitNode(ASTNode):
 #
@@ -108,14 +197,17 @@ class VarNode(ASTNode):
 #         ASTNode.__init__(self, value, 0)
 #         self.child = True
 
-class TypeSpecBaseNode(ASTNode):
+class TypeSpecBaseNode(TerNode):
 
-    def __init__(self, value):
-        ASTNode.__init__(self, value, 0)
-        self.child = True
+    def __init__(self, value, ast):
+        TerNode.__init__(self, value, ast)
 
-class IntNode(ASTNode):
+class IntNode(TerNode):
 
-    def __init__(self, value):
-        ASTNode.__init__(self, value, 0)
-        self.child = True
+    def __init__(self, value, ast):
+        TerNode.__init__(self, value, ast)
+
+class FloatNode(TerNode):
+
+    def __init__(self, value, ast):
+        TerNode.__init__(self, value, ast)

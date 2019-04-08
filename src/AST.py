@@ -9,6 +9,19 @@ class AST():
         self.nodes = []
         self.id = 0
 
+    def simplify(self):
+        # prevNode = None
+        nodes = [self.nodes[0]]
+        for node in nodes:
+            i = 0
+            while i < len(node.nextNodes):
+                node.nextNodes[i].simplify(node, i)
+                if not node.nextNodes[i].simplified:
+                    continue
+                else:
+                    nodes.append(node.nextNodes[i])
+                    i += 1
+
     def addNode(self, ASTnode, pos = None):
         prevNode = None
         for i in reversed(range(len(self.nodes))):
@@ -23,11 +36,22 @@ class AST():
                     break
 
         if pos == None:
-            raise Exception("POS IS NONE")
+            print("POS IS NONE")
+            return
+            #raise Exception("POS IS NONE")
 
         if not prevNode.isChild():
             prevNode.nextNodes[pos] = ASTnode
         self.nodes.append(ASTnode)
+
+    def delNode(self, ASTNode):
+        try:
+            nextNodes = ASTNode.nextNodes #check voor copy
+            self.nodes.remove(ASTNode)
+            return nextNodes
+        except:
+            return
+
 
     def printDot(self, filename):
         f = open(filename, "w")

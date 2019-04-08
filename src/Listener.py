@@ -19,15 +19,16 @@ class Listener(c_subsetListener):
 
         for i in range(len(children)):
             if isinstance(children[i], TerminalNode):
-                self.AST.addNode(TerNode(children[i].symbol.text), i)
+                self.AST.addNode(TerNode(children[i].symbol.text, self.AST), i)
 
     # Enter a parse tree produced by c_subsetParser#cppSyntax.
     def enterCppSyntax(self, ctx:c_subsetParser.CppSyntaxContext):
         getal = 0
         if ctx.children != None:
             getal = len(ctx.children)
-        node = ASTNode("Root", getal)
+        node = ASTNode("Root", getal, self.AST)
         self.AST.nodes.append(node)
+        self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#cppSyntax.
     def exitCppSyntax(self, ctx:c_subsetParser.CppSyntaxContext):
@@ -38,7 +39,7 @@ class Listener(c_subsetListener):
         getal = 0
         if ctx.children != None:
             getal = len(ctx.children)
-        self.AST.addNode(FuncSyntaxNode(getal))
+        self.AST.addNode(FuncSyntaxNode(getal, self.AST))
         self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#functionSyntax.
@@ -47,7 +48,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#generalStatement.
     def enterGeneralStatement(self, ctx: c_subsetParser.GeneralStatementContext):
-        self.AST.addNode(GenStatNode(len(ctx.children)))
+        self.AST.addNode(GenStatNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#generalStatement.
@@ -56,7 +57,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#functionStatement.
     def enterFunctionStatement(self, ctx: c_subsetParser.FunctionStatementContext):
-        self.AST.addNode(FuncStatNode(len(ctx.children)))
+        self.AST.addNode(FuncStatNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#functionStatement.
@@ -65,7 +66,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#returnStatement.
     def enterReturnStatement(self, ctx: c_subsetParser.ReturnStatementContext):
-        self.AST.addNode(ReturnStatNode(len(ctx.children)))
+        self.AST.addNode(ReturnStatNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#returnStatement.
@@ -84,7 +85,8 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#variableDeclaration.
     def enterVariableDeclaration(self, ctx: c_subsetParser.VariableDeclarationContext):
-        pass
+        self.AST.addNode(VarDeclNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#variableDeclaration.
     def exitVariableDeclaration(self, ctx: c_subsetParser.VariableDeclarationContext):
@@ -108,7 +110,8 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#variableDefinition.
     def enterVariableDefinition(self, ctx: c_subsetParser.VariableDefinitionContext):
-        pass
+        self.AST.addNode(VarDefNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#variableDefinition.
     def exitVariableDefinition(self, ctx: c_subsetParser.VariableDefinitionContext):
@@ -116,7 +119,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#functionDefinition.
     def enterFunctionDefinition(self, ctx: c_subsetParser.FunctionDefinitionContext):
-        self.AST.addNode(FuncDefNode(len(ctx.children)))
+        self.AST.addNode(FuncDefNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#functionDefinition.
@@ -125,7 +128,8 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#generalDefinition.
     def enterGeneralDefinition(self, ctx: c_subsetParser.GeneralDefinitionContext):
-        pass
+        self.AST.addNode(GenDefNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#generalDefinition.
     def exitGeneralDefinition(self, ctx: c_subsetParser.GeneralDefinitionContext):
@@ -133,7 +137,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#assignment.
     def enterAssignment(self, ctx: c_subsetParser.AssignmentContext):
-        self.AST.addNode(AssignNode(len(ctx.children)))
+        self.AST.addNode(AssignNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#assignment.
@@ -142,7 +146,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#arithmicOperation.
     def enterArithmicOperation(self, ctx: c_subsetParser.ArithmicOperationContext):
-        self.AST.addNode(ArOpNode(len(ctx.children)))
+        self.AST.addNode(ArOpNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#arithmicOperation.
@@ -159,7 +163,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#prod.
     def enterProd(self, ctx: c_subsetParser.ProdContext):
-        self.AST.addNode(ProdNode(len(ctx.children)))
+        self.AST.addNode(ProdNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#prod.
@@ -168,7 +172,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#atom.
     def enterAtom(self, ctx: c_subsetParser.AtomContext):
-        self.AST.addNode(AtomNode(len(ctx.children)))
+        self.AST.addNode(AtomNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#atom.
@@ -209,7 +213,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#codeBlock.
     def enterCodeBlock(self, ctx: c_subsetParser.CodeBlockContext):
-        self.AST.addNode(CodeBlockNode(len(ctx.children)))
+        self.AST.addNode(CodeBlockNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#codeBlock.
@@ -218,7 +222,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#identifier.
     def enterIdentifier(self, ctx: c_subsetParser.IdentifierContext):
-        self.AST.addNode(IdentNode(len(ctx.children)))
+        self.AST.addNode(IdentNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#identifier.
@@ -246,7 +250,8 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#function.
     def enterFunction(self, ctx: c_subsetParser.FunctionContext):
-        pass
+        self.AST.addNode(FuncNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#function.
     def exitFunction(self, ctx: c_subsetParser.FunctionContext):
@@ -254,7 +259,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#functionSignature.
     def enterFunctionSignature(self, ctx: c_subsetParser.FunctionSignatureContext):
-        self.AST.addNode(FuncSignNode(len(ctx.children)))
+        self.AST.addNode(FuncSignNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#functionSignature.
@@ -263,7 +268,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#variable.
     def enterVariable(self, ctx: c_subsetParser.VariableContext):
-        self.AST.addNode(VarNode(ctx.getText()))
+        self.AST.addNode(VarNode(ctx.getText(), self.AST))
 
     # Exit a parse tree produced by c_subsetParser#variable.
     def exitVariable(self, ctx: c_subsetParser.VariableContext):
@@ -279,7 +284,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#integer.
     def enterInteger(self, ctx:c_subsetParser.IntegerContext):
-        self.AST.addNode(IntNode(ctx.getText()))
+        self.AST.addNode(IntNode(ctx.getText(), self.AST))
 
     # Exit a parse tree produced by c_subsetParser#integer.
     def exitInteger(self, ctx:c_subsetParser.IntegerContext):
@@ -303,10 +308,16 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#typeSpecBase.
     def enterTypeSpecBase(self, ctx:c_subsetParser.TypeSpecBaseContext):
-        self.AST.addNode(TypeSpecBaseNode(ctx.getText()))
+        self.AST.addNode(TypeSpecBaseNode(ctx.getText(), self.AST))
 
     # Exit a parse tree produced by c_subsetParser#typeSpecBase.
     def exitTypeSpecBase(self, ctx:c_subsetParser.TypeSpecBaseContext):
         pass
 
+    # Enter a parse tree produced by c_subsetParser#float_.
+    def enterFloat_(self, ctx:c_subsetParser.Float_Context):
+        self.AST.addNode(FloatNode(ctx.getText(), self.AST))
 
+    # Exit a parse tree produced by c_subsetParser#float_.
+    def exitFloat_(self, ctx:c_subsetParser.Float_Context):
+        pass
