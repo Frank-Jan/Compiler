@@ -11,7 +11,7 @@ void* heyhey(int* , float* fl, int hey){ //hey= 0 lukt niet
 
 int main(){
     int j = 5;
-    j = 5;
+    j = 5+6*8;
     {
         int j = 8;
         printf(j); // Moet 8 zijn

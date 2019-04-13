@@ -94,8 +94,6 @@ class FuncDefNode(ASTNode):
         for node in self.nextNodes:
             if isinstance(node, TypeSpecBaseNode):
                 self.type = node
-            elif isinstance(node, VarNode):
-                self.var = node
             elif isinstance(node, CodeBlockNode):
                 self.block = node
                 continue
@@ -114,10 +112,12 @@ class FuncSignNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'FuncSign', size, ast)
+        self.name = None
 
     def simplify(self):
         self.simplified = True
         val = ""
+        getal = 0
         for node in self.nextNodes:
             if isinstance(node, TypeSpecBaseNode):
                 self.type = node
@@ -125,6 +125,12 @@ class FuncSignNode(ASTNode):
                 self.var = node
             elif isinstance(node, IdentNode):
                 self.id = node
+            elif isinstance(node, TerNode):
+                if getal == 0:
+                    getal += 1
+                    self.name = node
+                else:
+                    print("node ", node, " gedropped")
             else:
                 print("oei, iets vergeten")
             val += node.value + " "
@@ -141,6 +147,12 @@ class CodeBlockNode(ASTNode):
 
     def simplify(self):
         self.simplified = True
+        for node in self.nextNodes:
+            if isinstance(node, TerNode):
+                print("node ", node, " gedropped")
+                self.AST.delNode(node)
+                self.nextNodes.remove(node)
+                self.size -= 1
 
 class FuncSyntaxNode(ASTNode):
 
@@ -171,6 +183,29 @@ class ArOpNode(ASTNode):
 
     def simplify(self):
         self.simplified = True
+        val = ""
+        getal = 0
+        for node in self.nextNodes:
+            if isinstance(node, TypeSpecBaseNode):
+                self.type = node
+            elif isinstance(node, VarNode):
+                self.var = node
+            elif isinstance(node, IdentNode):
+                self.id = node
+            elif isinstance(node, TerNode):
+                if getal == 0:
+                    getal += 1
+                    self.name = node
+                else:
+                    print("node ", node, " gedropped")
+            else:
+                print("oei, iets vergeten")
+            val += node.value + " "
+            self.AST.delNode(node)
+
+        self.nextNodes = []
+        self.size = 0
+        self.value = val
 
 class ProdNode(ASTNode):
 

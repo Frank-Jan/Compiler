@@ -27,6 +27,9 @@ def main(argv):
     ast.printDot("DT.dot")
     ast.simplify()
     ast.printDot("AST.dot")
+
+    for node in ast:
+        print(node)
     return 0
 
 

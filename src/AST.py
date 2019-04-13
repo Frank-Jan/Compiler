@@ -7,19 +7,33 @@ class AST():
     def __init__(self):
         self.nodes = []
         self.id = 0
+        self.currentNode = 0
 
-    # def simplify(self):
-    #     # prevNode = None
-    #     nodes = [self.nodes[0]]
-    #     for node in nodes:
-    #         i = 0
-    #         while i < len(node.nextNodes):
-    #             node.nextNodes[i].simplify(node, i)
-    #             if not node.nextNodes[i].simplified:
-    #                 continue
-    #             else:
-    #                 nodes.append(node.nextNodes[i])
-    #                 i += 1
+    def __iter__(self):
+        nodes = [self.nodes[0]]  # python-list is a stack
+
+        leftnodes = []
+        node = self.nodes[0]  # append = push
+
+        while not len(nodes) == 0:  # while not all nodes are simplified
+            node = nodes.pop()  # take last node
+
+            leftnodes.append(node)
+
+            if node.isChild():  # if child
+                continue
+
+            for child in reversed(node.nextNodes):  # traverse childs in reversed order (left-derivation)_
+                nodes.append(child)
+        self.nodes = leftnodes
+        return self
+
+    def __next__(self):
+        self.currentNode += 1
+        if self.currentNode > len(self.nodes):
+            self.currentNode = 0
+            raise StopIteration
+        return self.nodes[self.currentNode-1]
 
     def simplify(self):
         nodes = []# python-list is a stack
