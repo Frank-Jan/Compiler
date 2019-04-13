@@ -1,4 +1,4 @@
-int i;
+int i = 3*8-3*8/1+0;
 float j = 0.01;
 
 void* heyhey(int* , float* fl, int hey){ //hey= 0 lukt niet
