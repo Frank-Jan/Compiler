@@ -28,12 +28,15 @@ def testFile(argv):
         listener = Listener()
         walker = ParseTreeWalker()
         walker.walk(listener, tree)
-        AST = listener.getAST()
+        ast = listener.getAST()
     except():
         print("Error creating AST:\n", sys.exc_info()[0])
         return 1
     print("3/3:\tWriting AST to AST.dot")
-    AST.printDot("AST.dot")
+    ast.printDot("AST.dot")
+    ast.simplify()
+    ast.printDot("AST.dot")    
+
     return 0
 
 
