@@ -333,7 +333,7 @@ class VarDefNode(ASTNode):
             val += node.value + " "
             self.AST.delNode(node)
             self.size -= 1
-            kopie.remove(node)
+            self.nextNodes.remove(node)
 
 
         self.value = val
