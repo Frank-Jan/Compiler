@@ -148,8 +148,8 @@ function
 
 functionSignature
     : NAME '(' ')'
-    | NAME ('(' (typeSpec | typeSpec variable | typeSpec '&' | typeSpec '&' variable)
-                (','(typeSpec | typeSpec variable | typeSpec '&' | typeSpec '&' variable) )*
+    | NAME ('(' (typeSpec '&'? variable?)
+                (','(typeSpec '&'? variable?) )*
             ')')
     ;
 

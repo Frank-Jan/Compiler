@@ -6,10 +6,20 @@ from src.grammars.c_subsetListener import c_subsetListener
 # from src.DebugListener import DebugListener
 
 def test(inputFile):
-    input_stream = FileStream(inputFile)
-    lexer = c_subsetLexer(input_stream)
-    stream = CommonTokenStream(lexer)
-    parser = c_subsetParser(stream)
+    try:
+        input_stream = FileStream(inputFile)
+    except():
+        #Error reading file
+        return 2
+    try:
+        lexer = c_subsetLexer(input_stream)
+        stream = CommonTokenStream(lexer)
+        parser = c_subsetParser(stream)
+    except():
+        #Error parsing syntax
+        return 1
+    #Syntax Accepted
+    return 0
 
 def test_accepted():
     try:
@@ -17,3 +27,14 @@ def test_accepted():
     except():
         return False
     return True
+
+def testAll():
+    print("Done...")
+    return 0
+
+
+def testDeclarations:
+    print("")
+
+if __name__ == "__main__":
+    testAll()
