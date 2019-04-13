@@ -33,9 +33,9 @@ def testFile(argv):
         print("Error creating AST:\n", sys.exc_info()[0])
         return 1
     print("3/3:\tWriting AST to AST.dot")
-    ast.printDot("DT.dot")
+    ast.printDot("derivationTree.dot")
     ast.simplify()
-    ast.printDot("AST.dot")
+    ast.printDot("AST.dot")    
 
     for node in ast:
         print(node)

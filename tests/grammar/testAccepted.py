@@ -29,12 +29,15 @@ def test_accepted():
     return True
 
 def testAll():
+    print("Testing grammar")
+    testDeclarations()
+
     print("Done...")
     return 0
 
 
-def testDeclarations:
-    print("")
+def testDeclarations():
+    print("testDeclarations")
 
 if __name__ == "__main__":
     testAll()

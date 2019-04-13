@@ -73,7 +73,8 @@ assignment
 
 //arithmic expressions
 arithmicOperation
-    : prod '+' add
+    : (atom | prod) '+' add
+    | atom
     | prod
     ;
 
