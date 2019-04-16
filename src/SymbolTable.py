@@ -56,6 +56,7 @@ class SymbolTable:
         self.parent = parent    #parent symbol table
         self.table = dict()
 
+
     # add new variable/function
     # returns False if variable already exists in scope
     def insertVariable(self, name, _type):

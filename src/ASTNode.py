@@ -148,8 +148,9 @@ class FuncSignNode(ASTNode):
 
 class CodeBlockNode(ASTNode):
 
-    def __init__(self, size, ast):
+    def __init__(self, size, ast, symboltable = None):
         ASTNode.__init__(self, 'CodeBlock', size, ast)
+        self.symboltable = symboltable
 
     def simplify(self):
         self.simplified = True
@@ -159,6 +160,9 @@ class CodeBlockNode(ASTNode):
                 self.AST.delNode(node)
                 self.nextNodes.remove(node)
                 self.size -= 1
+
+    def getSymbolTable(self):
+        return self.symboltable
 
 
 class FuncSyntaxNode(ASTNode):

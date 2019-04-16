@@ -7,8 +7,6 @@ def testAccepted():
     assert(table.insertVariable("i", ["int"]))
 
     value = table.search("i")
-    print(value)
-    print(Record("i", ["int"]))
     assert(value == Record("i", ["int"]))
     assert(not table.insertVariable("i", "float"))
     assert(table.insertVariable("variable", "int"))
@@ -23,10 +21,12 @@ def testAccepted():
     value = subTable.search("i")
     assert(not subTable.existLocal("i"))
     assert(table.existLocal("i"))
-    assert(subTable.insertFunction("i", "float" ,["float"]))
-    assert(subTable.existLocal("i"))
-    assert(table.isRoot())
-    assert(not subTable.isRoot())
+    assert(subTable.insertFunction("nameFunc", "returnType" ,["argument"]))
+    subTable.insertVariable("variableName", "returnType")
+    #assert(subTable.existLocal("i"))
+    #assert(table.isRoot())
+    #assert(not subTable.isRoot())
+    print(subTable)
 
 
 def testAll():
