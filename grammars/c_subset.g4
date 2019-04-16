@@ -45,8 +45,8 @@ variableDefinition
     ;
 
 functionDefinition
-    : typeSpec NAME '(' ')' codeBlock
-    | typeSpec NAME ('(' (typeSpec '&'? variable)
+    : (typeSpec | VOID) NAME '(' ')' codeBlock
+    | (typeSpec | VOID) NAME ('(' (typeSpec '&'? variable)
                 (','(typeSpec '&'? variable) )*
             ')') codeBlock
     ;
@@ -62,7 +62,7 @@ variableDeclaration
     ;
 
 functionDeclaration
-    : typeSpec functionSignature
+    : (typeSpec | VOID) functionSignature
     ;
 
 generalDeclaration
