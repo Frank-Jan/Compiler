@@ -25,8 +25,14 @@ class Record:
     def getType(self):
         return self.type
 
+    def __eq__(self, other):
+        other.name == self.name
+        self.type == other.type
+        self.isVar == other.isVar
+        return True
+
     def __str__(self):
-        return "Variable name: " + str(self.name) + "\t| Type: " + str(self.type)
+        return "Variable: name: " + str(self.name) + "\t| Type: " + str(self.type)
 
 
 # functionRecord holds functions with the same name i.e. both "int function()" and "int function(int)"
@@ -64,7 +70,7 @@ class SymbolTable:
     def insertFunction(self, name, returnType, argumentList):
         value = self.getLocal(name)
         if value is None:
-            self.table[id(name)] = FunctionRecord(returnType, argumentList)
+            self.table[id(name)] = FunctionRecord(returnType, returnType, argumentList)
             return True
         else:
             if value.isVar():

@@ -15,3 +15,7 @@ void function(){
     char c;
     int* i = 4;
 }
+
+void* function(){}
+
+void function(void*){}
