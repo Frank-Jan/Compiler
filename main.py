@@ -5,6 +5,7 @@ from src.grammars.c_subsetParser import c_subsetParser
 # from src.grammars.c_subsetListener import c_subsetListener
 from src.Listener import Listener
 # from src.DebugListener import DebugListener
+from src.SymbolTable import *
 from src.ASTNode import *
 
 
@@ -38,8 +39,36 @@ def testFile(argv):
     ast.simplify()
     ast.printDot("AST.dot")
 
+    scope = SymbolTable(None)
+    scopeCounter = float("inf")
+    function = None
+
     for node in ast:
-        print(node)
+        # print(node)
+        scopeCounter -= 1
+        if isinstance(node, CodeBlockNode):
+            scope = scope.openScope(function)
+            function = None
+            node.symboltable = scope
+            scopeCounter = node.size
+        elif scopeCounter == 0:
+            scope = scope.closeScope()
+            scopeCounter = float("inf")
+        elif isinstance(node, VarDefNode):
+            print(node.type.value)
+            print(node.var.value)
+            scope.insertVariable(node.var.value, node.type.value)
+        elif isinstance(node, FuncDefNode):
+            print(node.name.value)
+            print(node.args)
+            function = node.args
+            scope.insertFunction(node.name.value, node.returnType, node.types)
+        elif isinstance(node, FuncDeclNode):
+            print(node.fsign.name.value)
+            print(node.fsign.types)
+            scope.insertFunction(node.fsign.name.value, node.returnType, node.fsign.types)
+
+    print(scope)
     return 0
 
 

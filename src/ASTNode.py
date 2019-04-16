@@ -88,23 +88,38 @@ class FuncDefNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'FuncDef', size, ast)
-        self.type = None
-        self.fsign = None
+        self.returnType = None
+        self.types = []
+        self.vars = []
+        self.args = []
         self.block = None
+        self.name = None
 
     def simplify(self):
         self.simplified = True
         val = ""
+        getal = 0
         for node in self.nextNodes:
-            if isinstance(node, TypeSpecBaseNode):
-                self.type = node
+            if isinstance(node, TypeSpecBaseNode) or isinstance(node, TypeSpecPtrNode):
+                if getal == 0:
+                    self.returnType = node
+                else:
+                    self.types.append(node.value)
+                    self.args.append([node.value, None])
+            elif isinstance(node, VarNode):
+                self.vars.append(node.value)
+                self.args[-1][1] = node.value
             elif isinstance(node, CodeBlockNode):
                 self.block = node
                 continue
-            elif isinstance(node, FuncSignNode):
-                self.fsign = node
+            elif isinstance(node, TerNode):
+                if getal == 1:
+                    self.name = node
+                else:
+                    print("node ", node, " gedropped")
             else:
                 print("oei, iets vergeten")
+            getal += 1
             val += node.value + " "
             self.AST.delNode(node)
 
@@ -118,16 +133,18 @@ class FuncSignNode(ASTNode):
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'FuncSign', size, ast)
         self.name = None
+        self.types = []
+        self.vars = []
 
     def simplify(self):
         self.simplified = True
         val = ""
         getal = 0
         for node in self.nextNodes:
-            if isinstance(node, TypeSpecBaseNode):
-                self.type = node
+            if isinstance(node, TypeSpecBaseNode) or isinstance(node, TypeSpecPtrNode):
+                self.types.append(node.value)
             elif isinstance(node, VarNode):
-                self.var = node
+                self.vars.append(node.value)
             elif isinstance(node, IdentNode):
                 self.id = node
             elif isinstance(node, TerNode):
@@ -363,7 +380,7 @@ class VarDefNode(ASTNode):
         val = ""
         kopie = copy.copy(self.nextNodes)
         for node in kopie:
-            if isinstance(node, TypeSpecBaseNode):
+            if isinstance(node, TypeSpecBaseNode) or isinstance(node, TypeSpecPtrNode):
                 self.type = node
             elif isinstance(node, VarNode):
                 self.var = node
@@ -403,7 +420,7 @@ class VarDeclNode(ASTNode):
         self.simplified = True
         val = ""
         for node in self.nextNodes:
-            if isinstance(node, TypeSpecBaseNode):
+            if isinstance(node, TypeSpecBaseNode) or isinstance(node, TypeSpecPtrNode):
                 self.type = node.value
             elif isinstance(node, VarNode):
                 self.var = node.value
@@ -481,7 +498,7 @@ class FuncDeclNode(ASTNode):
             self.AST.delNode(node)
 
         self.nextNodes = []
-        self.size = 1
+        self.size = 0
         self.value = val
 
 class CondExpNode(ASTNode):
