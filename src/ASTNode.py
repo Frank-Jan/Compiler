@@ -323,9 +323,25 @@ class ReturnStatNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'ReturnStat', size, ast)
+        self.returnVal = None
 
     def simplify(self):
         self.simplified = True
+        val = ""
+        getal = 0
+        for node in self.nextNodes:
+            if isinstance(node, TerNode):
+                if getal == 1:
+                    self.returnVal = node
+            else:
+                print("oei, iets vergeten")
+            getal += 1
+            val += node.value + " "
+            self.AST.delNode(node)
+
+        self.nextNodes = []
+        self.size = 0
+        self.value = val
 
 
 class VarDefNode(ASTNode):
@@ -337,7 +353,6 @@ class VarDefNode(ASTNode):
         self.id = None
         self.ter = None
         self.arop = None
-        self.ref = None
 
     def simplify(self):
         self.simplified = True
@@ -356,8 +371,7 @@ class VarDefNode(ASTNode):
                 self.arop = node
                 continue
             elif isinstance(node, RefNode):
-                self.ref = node
-                continue
+                self.id = node
             else:
                 print("oei, iets vergeten")
             val += node.value + " "
@@ -442,17 +456,29 @@ class TypeSpecNode(ASTNode):
         ASTNode.__init__(self, 'TypeSpec', size, ast)
 
 
-class InclNode(ASTNode):
-
-    def __init__(self, size, ast):
-        ASTNode.__init__(self, 'Include', size, ast)
-
-
 class FuncDeclNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'FuncDecl', size, ast)
+        self.returnType = None
+        self.fsign = None
 
+    def simplify(self):
+        self.simplified = True
+        val = ""
+        for node in self.nextNodes:
+            if isinstance(node, TypeSpecPtrNode):
+                self.returnType = node
+            elif isinstance(node, FuncSignNode):
+                self.fsign = node
+            else:
+                print("oei, iets vergeten")
+            val += node.value + " "
+            self.AST.delNode(node)
+
+        self.nextNodes = []
+        self.size = 1
+        self.value = val
 
 class CondExpNode(ASTNode):
 
@@ -488,14 +514,13 @@ class RefNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'Ref', size, ast)
-        self.var = None
 
     def simplify(self):
         self.simplified = True
         val = ""
         for node in self.nextNodes:
             if isinstance(node, TerNode):
-                self.var = node
+                pass
             else:
                 print("oei, iets vergeten")
             val += node.value + " "
@@ -510,6 +535,21 @@ class TypeSpecPtrNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'TypeSpecPtr', size, ast)
+
+    def simplify(self):
+        self.simplified = True
+        val = ""
+        for node in self.nextNodes:
+            if isinstance(node, TerNode):
+                pass
+            else:
+                print("oei, iets vergeten")
+            val += node.value + " "
+            self.AST.delNode(node)
+
+        self.nextNodes = []
+        self.size = 0
+        self.value = val
 
 
 # CHILDREN THAT ARE NOT PARENTS = LEAFS
