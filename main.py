@@ -2,10 +2,11 @@ import sys
 from antlr4 import *
 from src.grammars.c_subsetLexer import c_subsetLexer
 from src.grammars.c_subsetParser import c_subsetParser
-#from src.grammars.c_subsetListener import c_subsetListener
+# from src.grammars.c_subsetListener import c_subsetListener
 from src.Listener import Listener
 # from src.DebugListener import DebugListener
 from src.ASTNode import *
+
 
 def testFile(argv):
     print("1/3:\tLoading file")
@@ -35,7 +36,7 @@ def testFile(argv):
     print("3/3:\tWriting AST to AST.dot")
     ast.printDot("derivationTree.dot")
     ast.simplify()
-    ast.printDot("AST.dot")    
+    ast.printDot("AST.dot")
 
     for node in ast:
         print(node)

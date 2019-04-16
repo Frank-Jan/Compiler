@@ -1,4 +1,3 @@
-
 from src.ASTNode import *
 
 
@@ -33,28 +32,27 @@ class AST():
         if self.currentNode > len(self.nodes):
             self.currentNode = 0
             raise StopIteration
-        return self.nodes[self.currentNode-1]
+        return self.nodes[self.currentNode - 1]
 
     def simplify(self):
-        nodes = []# python-list is a stack
+        nodes = []  # python-list is a stack
 
-        nodes.append(self.nodes[0])# append = push
+        nodes.append(self.nodes[0])  # append = push
 
-        while not len(nodes) == 0:# while not all nodes are simplified
-            node = nodes[-1] # take last node
+        while not len(nodes) == 0:  # while not all nodes are simplified
+            node = nodes[-1]  # take last node
 
-            if node.simplified:# if node is simplified: skip this one
+            if node.simplified:  # if node is simplified: skip this one
                 nodes.pop()
                 continue
-            elif node.isChild() or node.timeToSimplify():# if childs are simplified parent may be simplified
-                node.simplify()# child node is already simplified
+            elif node.isChild() or node.timeToSimplify():  # if childs are simplified parent may be simplified
+                node.simplify()  # child node is already simplified
                 nodes.pop()
 
-            for child in reversed(node.nextNodes):# traverse childs in reversed order (left-derivation)_
+            for child in reversed(node.nextNodes):  # traverse childs in reversed order (left-derivation)_
                 nodes.append(child)
 
-
-    def addNode(self, ASTnode, pos = None):
+    def addNode(self, ASTnode, pos=None):
         prevNode = None
         for i in reversed(range(len(self.nodes))):
             prevNode = self.nodes[i]
@@ -72,7 +70,7 @@ class AST():
             for node in self:
                 print(node)
             return
-            #raise Exception("POS IS NONE")
+            # raise Exception("POS IS NONE")
 
         if not prevNode.isChild():
             prevNode.nextNodes[pos] = ASTnode
@@ -81,12 +79,11 @@ class AST():
 
     def delNode(self, ASTNode):
         try:
-            nextNodes = ASTNode.nextNodes #check voor copy
+            nextNodes = ASTNode.nextNodes  # check voor copy
             self.nodes.remove(ASTNode)
             return nextNodes
         except:
             return
-
 
     def printDot(self, filename):
         f = open(filename, "w")
@@ -101,13 +98,12 @@ class AST():
 
         for node in self.nodes:
             if node.isChild():
-                states += "\"" + str(node) + "\" " + "[color = \"red\"]\n"
+                states += "\"" + str(node) + "\" " + "[color = \"red\"]\n" + "[label=\"" + str(node.value) + "\"]"
             else:
-                states += "\"" + str(node) + "\"\n"
+                states += "\"" + str(node) + "\"\n" + "[label=\"" + str(node.value) + "\"]"
 
             for subnode in node.nextNodes:
                 graph += "\"" + str(node) + "\" -> \"" + str(subnode) + "\"\n"
-
 
         graph += states + '}'
         f.write(graph)
