@@ -93,7 +93,12 @@ class SymbolTable:
         return self.parent
 
     # return new symbol table with parent self
-    def openScope(self):
+    def openScope(self, listVariables = None):
+        s = SymbolTable(self)
+        if listVariables is None:
+            return s
+        for varTuple in listVariables:
+            s.insertVariable(varTuple[1], varTuple[0])
         return SymbolTable(self)
 
     def closeScope(self):
