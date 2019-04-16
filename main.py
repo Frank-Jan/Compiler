@@ -62,11 +62,11 @@ def testFile(argv):
             print(node.name.value)
             print(node.args)
             function = node.args
-            scope.insertFunction(node.name.value, node.returnType, node.types)
+            scope.insertFunction(node.name.value, node.returnType.value, node.types)
         elif isinstance(node, FuncDeclNode):
             print(node.fsign.name.value)
             print(node.fsign.types)
-            scope.insertFunction(node.fsign.name.value, node.returnType, node.fsign.types)
+            scope.insertFunction(node.fsign.name.value, node.returnType.value, node.fsign.types)
 
     print(scope)
     return 0
