@@ -21,14 +21,13 @@ def testAccepted():
     value = subTable.search("i")
     assert(not subTable.existLocal("i"))
     assert(table.existLocal("i"))
-    assert(subTable.insertFunction("nameFunc", "returnType" ,["argument"]))
-    subTable.insertVariable("variableName", "returnType")
-    #assert(subTable.existLocal("i"))
-    #assert(table.isRoot())
-    #assert(not subTable.isRoot())
-    print(subTable)
-
-
+    assert(subTable.insertFunction("i", "type_i" ,["arg_i"]))
+    assert(subTable.insertVariable("v", "type_v"))
+    assert(subTable.existLocal("i"))
+    assert(subTable.existLocal("v"))
+    assert(table.isRoot())
+    assert(not subTable.isRoot())
+    
 def testAll():
     print("Testing symboltable...")
     testAccepted()
