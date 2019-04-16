@@ -48,8 +48,6 @@ class FunctionRecord(Record):
         return "Function name: " + self.name + "\t| Return Type: " + self.type
 
 class SymbolTable:
-
-
     def __init__(self, parent = None):
         self.parent = parent    #parent symbol table
         self.table = dict()

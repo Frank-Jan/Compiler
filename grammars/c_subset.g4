@@ -10,8 +10,8 @@ functionSyntax
     ;
 
 generalStatement
-    : generalDeclaration ';'
-    | generalDefinition
+    : generalDefinition
+    | generalDeclaration ';'
     | INCLUDESTDIO
     ;
 
@@ -36,6 +36,23 @@ returnStatement
     | RETURN
     ;
 
+
+variableDefinition
+    : typeSpec variable '=' (identifier | arithmicOperation)
+    ;
+
+functionDefinition
+    : typeSpec NAME '(' ')' codeBlock
+    | typeSpec NAME ('(' (typeSpec '&'? variable)
+                (','(typeSpec '&'? variable) )*
+            ')') codeBlock
+    ;
+
+generalDefinition
+    : functionDefinition
+    | variableDefinition ';'
+    ;
+
 variableDeclaration
     : typeSpec variable //normal variables and pointers
     | typeSpec variable '['Digit+']'    //arrays
@@ -48,21 +65,6 @@ functionDeclaration
 generalDeclaration
     : variableDeclaration
     | functionDeclaration
-    ;
-
-variableDefinition
-    : typeSpec variable '=' (identifier | arithmicOperation)
-    ;
-
-functionDefinition
-    : typeSpec NAME ('(' (typeSpec '&'? variable)
-                (','(typeSpec '&'? variable) )*
-            ')') codeBlock
-    ;
-
-generalDefinition
-    : functionDefinition
-    | variableDefinition ';'
     ;
 
 assignment
