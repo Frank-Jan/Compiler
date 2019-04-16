@@ -27,7 +27,7 @@ def testAccepted():
     assert(subTable.existLocal("v"))
     assert(table.isRoot())
     assert(not subTable.isRoot())
-    
+
 def testAll():
     print("Testing symboltable...")
     testAccepted()

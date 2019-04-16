@@ -14,10 +14,9 @@ class Record:
     def __init__(self, name, _type):
         self.name = name
         self.type = _type
-        self.isVar = True
 
     def isVar(self):
-        return self.isVar
+        return True
 
     def getName(self):
         return self.name
@@ -37,7 +36,9 @@ class FunctionRecord(Record):
     def __init__(self, name, returnType, argumentList):
         super().__init__(name, returnType)
         self.argumentLists = [argumentList]  # holds all argument lists
-        self.isVar = False
+
+    def isVar(self):
+        return False
 
     def insert(self, _type, argumentList):
         if super().getType() == _type:
@@ -49,7 +50,7 @@ class FunctionRecord(Record):
         return True
 
     def __str__(self):
-        return "Function name: " + self.name + "\t| Return Type: " + self.type
+        return "Function name: " + self.name + "\t| Return Type: " + self.type + "\t| Arguments: \t" + str(self.argumentLists)
 
 class SymbolTable:
     def __init__(self, parent = None):
@@ -61,21 +62,21 @@ class SymbolTable:
     # returns False if variable already exists in scope
     def insertVariable(self, name, _type):
         if not self.existLocal(name):
-            self.table[id(name)] = Record(name, _type)
+            self.table[name] = Record(name, _type)
             return True
         return False #name already exists
 
     # argumentList contains only types i.e. ["int", "float"]
     def insertFunction(self, name, returnType, argumentList):
         value = self.getLocal(name)
+        print("VALUE: ", value)
         if value is None:
-            self.table[id(name)] = FunctionRecord(name, returnType, argumentList)
+            self.table[name] = FunctionRecord(name, returnType, argumentList)
             return True
+        elif value.isVar():
+            return False # name already taken by a variable
         else:
-            if value.isVar():
-                return False    # name already taken by a variable
-            else:
-                return value.insert(returnType, argumentList)
+            return value.insert(returnType, argumentList)
 
     # searches for symbol with the correct name
     def search(self, name):
@@ -109,11 +110,11 @@ class SymbolTable:
 
     # checks if name already exists in local scope
     def existLocal(self, name):
-        return self.table.get(id(name)) is not None
+        return self.table.get(name) is not None
 
     # returns key, value of a given name. returns None if it doesn't exists in local scope
     def getLocal(self, name):
-        return self.table.get(id(name))
+        return self.table.get(name)
 
     def __str__(self):
         string = "SYMBOLTABLE:\t" + str(id(self))
