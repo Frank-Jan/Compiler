@@ -1,11 +1,11 @@
-
 import copy
+
 
 class ASTNode:
 
     def __init__(self, value, size, ast):
         self.value = value
-        self.parent = None# tupel of parent node and position
+        self.parent = None  # tupel of parent node and position
         self.nextNodes = []
         self.size = size
         self.AST = ast
@@ -15,7 +15,7 @@ class ASTNode:
             self.nextNodes.append(None)
 
     def __str__(self):
-        return str(self.value) + "  [" + str(self.id) + "]" #\nNrChildren: " + str(self.size)
+        return str(self.value) + "  [" + str(self.id) + "]"  # \nNrChildren: " + str(self.size)
 
     def isRoot(self):
         return self.value == "Root"
@@ -112,6 +112,7 @@ class FuncDefNode(ASTNode):
         self.size = 1
         self.value = val
 
+
 class FuncSignNode(ASTNode):
 
     def __init__(self, size, ast):
@@ -144,6 +145,7 @@ class FuncSignNode(ASTNode):
         self.size = 0
         self.value = val
 
+
 class CodeBlockNode(ASTNode):
 
     def __init__(self, size, ast):
@@ -158,6 +160,7 @@ class CodeBlockNode(ASTNode):
                 self.nextNodes.remove(node)
                 self.size -= 1
 
+
 class FuncSyntaxNode(ASTNode):
 
     def __init__(self, size, ast):
@@ -171,8 +174,9 @@ class FuncSyntaxNode(ASTNode):
             if i == 0:
                 self.parent[0].nextNodes[self.parent[1]] = self.nextNodes[i]
             else:
-                self.parent[0].nextNodes.insert(self.parent[1]+i, self.nextNodes[i])
+                self.parent[0].nextNodes.insert(self.parent[1] + i, self.nextNodes[i])
         self.AST.delNode(self)
+
 
 class FuncStatNode(ASTNode):
 
@@ -214,6 +218,7 @@ class ArOpNode(ASTNode):
         # self.size = 0
         # self.value = val
 
+
 class ProdNode(ASTNode):
 
     def __init__(self, size, ast):
@@ -246,6 +251,7 @@ class ProdNode(ASTNode):
                 getal += 1
 
             self.value = val
+
 
 class AddNode(ASTNode):
 
@@ -283,6 +289,7 @@ class AddNode(ASTNode):
 
             self.value = val
 
+
 class IdentNode(ASTNode):
 
     def __init__(self, size, ast):
@@ -294,6 +301,24 @@ class AtomNode(ASTNode):
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'Atom', size, ast)
 
+    def simplify(self):
+        self.simplified = True
+        if self.size == 1:
+            ASTNode.simplify(self)
+        elif self.size == 3:
+            haakje1 = self.nextNodes[0]
+            haakje2 = self.nextNodes[2]
+            self.nextNodes.remove(haakje1)
+            self.nextNodes.remove(haakje2)
+            self.AST.delNode(haakje1)
+            self.AST.delNode(haakje2)
+            self.size = 1
+            ASTNode.simplify(self)
+        else:
+            print("oei, iets vergeten bij AtomNode")
+
+
+
 class ReturnStatNode(ASTNode):
 
     def __init__(self, size, ast):
@@ -301,6 +326,7 @@ class ReturnStatNode(ASTNode):
 
     def simplify(self):
         self.simplified = True
+
 
 class VarDefNode(ASTNode):
 
@@ -311,6 +337,7 @@ class VarDefNode(ASTNode):
         self.id = None
         self.ter = None
         self.arop = None
+        self.ref = None
 
     def simplify(self):
         self.simplified = True
@@ -328,6 +355,9 @@ class VarDefNode(ASTNode):
             elif isinstance(node, AddNode):
                 self.arop = node
                 continue
+            elif isinstance(node, RefNode):
+                self.ref = node
+                continue
             else:
                 print("oei, iets vergeten")
             val += node.value + " "
@@ -335,8 +365,8 @@ class VarDefNode(ASTNode):
             self.size -= 1
             self.nextNodes.remove(node)
 
-
         self.value = val
+
 
 class GenDefNode(ASTNode):
 
@@ -368,6 +398,7 @@ class VarDeclNode(ASTNode):
         self.size = 0
         self.value = val
 
+
 class FuncNode(ASTNode):
 
     def __init__(self, size, ast):
@@ -392,10 +423,12 @@ class FuncNode(ASTNode):
         self.size = 0
         self.value = val
 
+
 class LitNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'Lit', size, ast)
+
 
 class GenDeclNode(ASTNode):
 
@@ -409,7 +442,77 @@ class TypeSpecNode(ASTNode):
         ASTNode.__init__(self, 'TypeSpec', size, ast)
 
 
-#CHILDREN THAT ARE NOT PARENTS = LEAFS
+class InclNode(ASTNode):
+
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'Include', size, ast)
+
+
+class FuncDeclNode(ASTNode):
+
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'FuncDecl', size, ast)
+
+
+class CondExpNode(ASTNode):
+
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'CondExp', size, ast)
+
+
+class LoopNode(ASTNode):
+
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'LoopNode', size, ast)
+
+
+class WhileNode(ASTNode):
+
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'While', size, ast)
+
+
+class IfElseNode(ASTNode):
+
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'IfElse', size, ast)
+
+
+class DeRefNode(ASTNode):
+
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'DeRef', size, ast)
+
+
+class RefNode(ASTNode):
+
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'Ref', size, ast)
+        self.var = None
+
+    def simplify(self):
+        self.simplified = True
+        val = ""
+        for node in self.nextNodes:
+            if isinstance(node, TerNode):
+                self.var = node
+            else:
+                print("oei, iets vergeten")
+            val += node.value + " "
+            self.AST.delNode(node)
+
+        self.nextNodes = []
+        self.size = 0
+        self.value = val
+
+
+class TypeSpecPtrNode(ASTNode):
+
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'TypeSpecPtr', size, ast)
+
+
+# CHILDREN THAT ARE NOT PARENTS = LEAFS
 class TerNode(ASTNode):
 
     def __init__(self, value, ast):
@@ -417,20 +520,24 @@ class TerNode(ASTNode):
         self.child = True
         self.simplified = True
 
+
 class VarNode(TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
+
 
 class TypeSpecBaseNode(TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
 
+
 class IntNode(TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
+
 
 class FloatNode(TerNode):
 
