@@ -19,9 +19,9 @@ int main(){
     j = 5+6*8;
     {
         int j = 8;
-        printf(j); // Moet 8 zijn
+        printf("%i", j); // Moet 8 zijn
     }
-    printf(j,j); // Moet 55 zijn
+    printf("%i", j); // Moet 5 zijn
     j = j * (j + j) * (j + j) - (2- 3)*3; //haakjes
 
 }
