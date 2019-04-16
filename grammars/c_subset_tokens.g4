@@ -32,8 +32,6 @@ Char : ('\'' ( [a-z] | [A-Z] | [0-9] | ' ') '\'');
 
 //Viable name compositions
 NAME : ([a-z] | [A-Z] | '_')([a-z] | [A-Z] | '_' | [0-9])*;
-LIBNAME : ([a-z] | [A-Z]);
+
 //includes
 INCLUDESTDIO : '#include <stdio.h>';
-C: '.c';
-H: '.h';

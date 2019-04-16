@@ -26,10 +26,7 @@ class Record:
         return self.type
 
     def __eq__(self, other):
-        other.name == self.name
-        self.type == other.type
-        self.isVar == other.isVar
-        return True
+        return (other.name == self.name and self.type == other.type and self.isVar == other.isVar)
 
     def __str__(self):
         return "Variable: name: " + str(self.name) + "\t| Type: " + str(self.type)
@@ -49,6 +46,7 @@ class FunctionRecord(Record):
             if aList == argumentList:
                 return False  # already declared
         self.argumentLists.append(argumentList)
+        return True
 
     def __str__(self):
         return "Function name: " + self.name + "\t| Return Type: " + self.type
@@ -70,7 +68,7 @@ class SymbolTable:
     def insertFunction(self, name, returnType, argumentList):
         value = self.getLocal(name)
         if value is None:
-            self.table[id(name)] = FunctionRecord(returnType, returnType, argumentList)
+            self.table[id(name)] = FunctionRecord(name, returnType, argumentList)
             return True
         else:
             if value.isVar():
@@ -110,3 +108,10 @@ class SymbolTable:
     # returns key, value of a given name. returns None if it doesn't exists in local scope
     def getLocal(self, name):
         return self.table.get(id(name))
+
+    def __str__(self):
+        string = "SYMBOLTABLE:\t" + str(id(self))
+        string += "\nPARENT:\t\t\t" + str(id(self.parent))
+        for key, value in self.table.items():
+            string += "\n" + str(key) + "\t|" + str(value)
+        return string
