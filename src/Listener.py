@@ -74,14 +74,14 @@ class Listener(c_subsetListener):
     def exitReturnStatement(self, ctx: c_subsetParser.ReturnStatementContext):
         pass
 
-    # Enter a parse tree produced by c_subsetParser#include.
-    def enterInclude(self, ctx: c_subsetParser.IncludeContext):
-        self.AST.addNode(InclNode(len(ctx.children), self.AST))
-        self.addTerminals(ctx.children)
-
-    # Exit a parse tree produced by c_subsetParser#include.
-    def exitInclude(self, ctx: c_subsetParser.IncludeContext):
-        pass
+    # # Enter a parse tree produced by c_subsetParser#include.
+    # def enterInclude(self, ctx: c_subsetParser.IncludeContext):
+    #     self.AST.addNode(InclNode(len(ctx.children), self.AST))
+    #     self.addTerminals(ctx.children)
+    #
+    # # Exit a parse tree produced by c_subsetParser#include.
+    # def exitInclude(self, ctx: c_subsetParser.IncludeContext):
+    #     pass
 
     # Enter a parse tree produced by c_subsetParser#variableDeclaration.
     def enterVariableDeclaration(self, ctx: c_subsetParser.VariableDeclarationContext):
