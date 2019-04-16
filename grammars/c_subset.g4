@@ -2,6 +2,7 @@ grammar c_subset;
 
 import c_subset_tokens;
 
+//woops: should be cSynthax
 cppSyntax
     : (generalStatement)* EOF;
 
@@ -10,7 +11,7 @@ functionSyntax
     ;
 
 generalStatement
-    : generalDefinition
+    : generalDefinition ';'?
     | generalDeclaration ';'
     | INCLUDESTDIO
     ;
@@ -18,6 +19,8 @@ generalStatement
 functionStatement
     : (variableDeclaration
         | variableDefinition
+        | functionDeclaration
+        | functionDefinition
         | assignment
         | returnStatement
         | variable

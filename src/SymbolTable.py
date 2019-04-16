@@ -11,52 +11,46 @@ call parent
 
 
 class Record:
-    def __init__(self, name, _type):
-        self.name = name
+    def __init__(self, _type):
         self.type = _type
 
     def isVar(self):
         return True
 
-    def getName(self):
-        return self.name
-
     def getType(self):
         return self.type
 
     def __eq__(self, other):
-        return (other.name == self.name and self.type == other.type and self.isVar == other.isVar)
+        if(other.isVar):
+            return self.type == other.type
+        return False
 
     def __str__(self):
-        return "Variable: name: " + str(self.name) + "\t| Type: " + str(self.type)
+        return "Var Type: " + str(self.type)
 
 
 # functionRecord holds functions with the same name i.e. both "int function()" and "int function(int)"
 class FunctionRecord(Record):
-    def __init__(self, name, returnType, argumentList):
-        super().__init__(name, returnType)
-        self.argumentLists = [argumentList]  # holds all argument lists
+    def __init__(self, returnType, argumentList):
+        super().__init__(returnType)
+        self.argumentList = argumentList  # holds all argument lists
 
     def isVar(self):
         return False
 
-    def insert(self, _type, argumentList):
-        if super().getType() == _type:
-            return False  # wrong type
-        for aList in self.argumentLists:
-            if aList == argumentList:
-                return False  # already declared
-        self.argumentLists.append(argumentList)
-        return True
+    def __eq__(self, other):
+        if not other.isVar:
+            if other.type == self.type:
+                return self.argumentList == other.argumentList
+        return False
 
     def __str__(self):
-        return "Function name: " + self.name + "\t| Return Type: " + self.type + "\t| Arguments: \t" + str(self.argumentLists)
+        return "Fun Type: " + self.type + "\t| Arguments: \t" + str(self.argumentList)
 
 class SymbolTable:
     def __init__(self, parent = None):
         self.parent = parent    #parent symbol table
         self.table = dict()
-
 
     # add new variable/function
     # returns False if variable already exists in scope
@@ -74,7 +68,7 @@ class SymbolTable:
             self.table[name] = FunctionRecord(name, returnType, argumentList)
             return True
         elif value.isVar():
-            return False # name already taken by a variable
+            return False  # name already taken by a variable
         else:
             return value.insert(returnType, argumentList)
 
