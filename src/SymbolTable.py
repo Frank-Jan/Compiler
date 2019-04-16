@@ -56,16 +56,15 @@ class SymbolTable:
     # returns False if variable already exists in scope
     def insertVariable(self, name, _type):
         if not self.existLocal(name):
-            self.table[name] = Record(name, _type)
+            self.table[name] = Record(_type)
             return True
         return False #name already exists
 
     # argumentList contains only types i.e. ["int", "float"]
     def insertFunction(self, name, returnType, argumentList):
         value = self.getLocal(name)
-        print("VALUE: ", value)
         if value is None:
-            self.table[name] = FunctionRecord(name, returnType, argumentList)
+            self.table[name] = FunctionRecord(returnType, argumentList)
             return True
         elif value.isVar():
             return False  # name already taken by a variable

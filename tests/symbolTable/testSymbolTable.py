@@ -7,7 +7,7 @@ def testAccepted():
     assert(table.insertVariable("i", ["int"]))
 
     value = table.search("i")
-    assert(value == Record("i", ["int"]))
+    assert(value == Record(["int"]))
     assert(not table.insertVariable("i", "float"))
     assert(table.insertVariable("variable", "int"))
     value = table.search("not in table")
@@ -23,6 +23,7 @@ def testAccepted():
     assert(table.existLocal("i"))
     assert(subTable.insertFunction("i", "type_i" ,["arg_i"]))
     assert(subTable.insertVariable("v", "type_v"))
+    assert(not subTable.insertVariable("v", "type_v"))
     assert(subTable.existLocal("i"))
     assert(subTable.existLocal("v"))
     assert(table.isRoot())
