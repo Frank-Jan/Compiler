@@ -10,13 +10,6 @@ INT : 'int';
 
 
 // Mandatory
-//Type specifiers
-typeSpecBase //typeSpecifier, type is reserved keyword!!!
-    : VOID
-    | CHAR
-    | FLOAT
-    | INT
-    ;
 
 //Loops
 IF : 'if';
@@ -41,6 +34,6 @@ Char : ('\'' ( [a-z] | [A-Z] | [0-9] | ' ') '\'');
 NAME : ([a-z] | [A-Z] | '_')([a-z] | [A-Z] | '_' | [0-9])*;
 LIBNAME : ([a-z] | [A-Z]);
 //includes
-INCLUDE : '#include';
+INCLUDESTDIO : '#include <stdio.h>';
 C: '.c';
 H: '.h';

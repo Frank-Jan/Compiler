@@ -12,7 +12,7 @@ functionSyntax
 generalStatement
     : generalDeclaration ';'
     | generalDefinition
-    | include
+    | INCLUDESTDIO
     ;
 
 functionStatement
@@ -36,11 +36,6 @@ returnStatement
     | RETURN
     ;
 
-include
-    : INCLUDE (('<' LIBNAME '>') | ('"' LIBNAME '"') )
-    ;
-
-
 variableDeclaration
     : typeSpec variable //normal variables and pointers
     | typeSpec variable '['Digit+']'    //arrays
@@ -60,7 +55,9 @@ variableDefinition
     ;
 
 functionDefinition
-    : typeSpec functionSignature codeBlock
+    : typeSpec NAME ('(' (typeSpec '&'? variable)
+                (','(typeSpec '&'? variable) )*
+            ')') codeBlock
     ;
 
 generalDefinition
@@ -176,9 +173,17 @@ float_  //'_'added because conflict with target language (python3)
     | '-' (Digit+) '.' (Digit*)
     ;    
 
+//Type specifiers
+typeSpecBase //typeSpecifier, type is reserved keyword!!!
+    : CHAR
+    | FLOAT
+    | INT
+    ;
+
 typeSpecPointer
     : typeSpecBase '*'
     | typeSpecPointer '*'
+    | VOID '*'
     ;
 
 typeSpec
