@@ -69,6 +69,8 @@ class AST():
 
         if pos == None:
             print("POS IS NONE")
+            for node in self:
+                print(node)
             return
             #raise Exception("POS IS NONE")
 

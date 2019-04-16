@@ -1,5 +1,5 @@
 
-
+import copy
 
 class ASTNode:
 
@@ -72,11 +72,15 @@ class AssignNode(ASTNode):
                 self.var = node
             elif isinstance(node, TerNode):
                 self.ter = node
-            val += node.value + " "
-            self.AST.delNode(node)
+                val += node.value + " "
+                self.AST.delNode(node)
+                self.size -= 1
+                self.nextNodes.remove(node)
+            elif isinstance(node, ArOpNode):
+                pass
+            else:
+                print("oei, iets vergeten bij AssignNode")
 
-        self.nextNodes = []
-        self.size = 0
         self.value = val
 
 
@@ -182,38 +186,102 @@ class ArOpNode(ASTNode):
         ASTNode.__init__(self, 'ArOp', size, ast)
 
     def simplify(self):
-        self.simplified = True
-        val = ""
-        getal = 0
-        for node in self.nextNodes:
-            if isinstance(node, TypeSpecBaseNode):
-                self.type = node
-            elif isinstance(node, VarNode):
-                self.var = node
-            elif isinstance(node, IdentNode):
-                self.id = node
-            elif isinstance(node, TerNode):
-                if getal == 0:
-                    getal += 1
-                    self.name = node
-                else:
-                    print("node ", node, " gedropped")
-            else:
-                print("oei, iets vergeten")
-            val += node.value + " "
-            self.AST.delNode(node)
-
-        self.nextNodes = []
-        self.size = 0
-        self.value = val
+        ASTNode.simplify(self)
+        # self.simplified = True
+        # val = ""
+        # getal = 0
+        # for node in self.nextNodes:
+        #     if isinstance(node, TypeSpecBaseNode):
+        #         self.type = node
+        #     elif isinstance(node, VarNode):
+        #         self.var = node
+        #     elif isinstance(node, IdentNode):
+        #         self.id = node
+        #     elif isinstance(node, AddNode):
+        #         self.
+        #     elif isinstance(node, TerNode):
+        #         if getal == 0:
+        #             getal += 1
+        #             self.name = node
+        #         else:
+        #             print("node ", node, " gedropped")
+        #     else:
+        #         print("oei, iets vergeten")
+        #     val += node.value + " "
+        #     self.AST.delNode(node)
+        #
+        # self.nextNodes = []
+        # self.size = 0
+        # self.value = val
 
 class ProdNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'Prod', size, ast)
+        self.left = None
+        self.right = None
 
     def simplify(self):
         self.simplified = True
+        if self.size == 1:
+            ASTNode.simplify(self)
+        else:
+            val = ""
+            getal = 0
+            for node in self.nextNodes:
+                if getal == 0:
+                    if isinstance(node, IntNode):
+                        self.left = node
+                elif getal == 2:
+                    if isinstance(node, IntNode):
+                        self.right = node
+                elif getal == 1:
+                    if isinstance(node, TerNode):
+                        val += node.value + " "
+                        self.AST.delNode(node)
+                        self.size -= 1
+                        self.nextNodes.remove(node)
+                else:
+                    print("oei, iets vergeten bij ProdNode")
+                getal += 1
+
+            self.value = val
+
+class AddNode(ASTNode):
+
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, 'Add', size, ast)
+        self.left = None
+        self.right = None
+
+    def simplify(self):
+        self.simplified = True
+        if self.size == 1:
+            ASTNode.simplify(self)
+        else:
+            val = ""
+            getal = 0
+            kopie = copy.copy(self.nextNodes)
+            for node in kopie:
+                if getal == 0:
+                    if isinstance(node, IntNode):
+                        self.left = node
+                elif getal == 2:
+                    if isinstance(node, IntNode):
+                        self.right = node
+                    elif isinstance(node, ProdNode):
+                        self.right = node
+                elif getal == 1:
+                    if isinstance(node, TerNode):
+                        val += node.value + " "
+                        self.AST.delNode(node)
+                        self.size -= 1
+                        self.nextNodes.remove(node)
+                else:
+                    print("oei, iets vergeten bij AddNode")
+                getal += 1
+
+            self.value = val
 
 class IdentNode(ASTNode):
 
@@ -225,9 +293,6 @@ class AtomNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'Atom', size, ast)
-
-    def simplify(self):
-        self.simplified = True
 
 class ReturnStatNode(ASTNode):
 
@@ -245,11 +310,13 @@ class VarDefNode(ASTNode):
         self.var = None
         self.id = None
         self.ter = None
+        self.arop = None
 
     def simplify(self):
         self.simplified = True
         val = ""
-        for node in self.nextNodes:
+        kopie = copy.copy(self.nextNodes)
+        for node in kopie:
             if isinstance(node, TypeSpecBaseNode):
                 self.type = node
             elif isinstance(node, VarNode):
@@ -258,13 +325,17 @@ class VarDefNode(ASTNode):
                 self.id = node
             elif isinstance(node, TerNode):
                 self.ter = node
+            elif isinstance(node, AddNode):
+                self.arop = node
+                continue
             else:
                 print("oei, iets vergeten")
             val += node.value + " "
             self.AST.delNode(node)
+            self.size -= 1
+            self.nextNodes.remove(node)
 
-        self.nextNodes = []
-        self.size = 0
+
         self.value = val
 
 class GenDefNode(ASTNode):

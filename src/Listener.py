@@ -156,7 +156,8 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#add.
     def enterAdd(self, ctx: c_subsetParser.AddContext):
-        pass
+        self.AST.addNode(AddNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#add.
     def exitAdd(self, ctx: c_subsetParser.AddContext):
