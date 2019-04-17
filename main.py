@@ -26,17 +26,17 @@ def testFile(argv):
         return 1
 
     print("2/3:\tSyntax accepted")
-    try:
-        listener = Listener()
-        walker = ParseTreeWalker()
-        walker.walk(listener, tree)
-        ast = listener.getAST()
-        ast.printDot("derivationTree.dot")
-        ast.simplify()
-        ast.printDot("AST.dot")
-    except:
-        print("Error creating AST:\n", sys.exc_info()[0])
-        return 1
+# try:
+    listener = Listener()
+    walker = ParseTreeWalker()
+    walker.walk(listener, tree)
+    ast = listener.getAST()
+    ast.printDot("derivationTree.dot")
+    ast.simplify()
+    ast.printDot("AST.dot")
+# except:
+#     print("Error creating AST:\n", sys.exc_info()[0])
+#     return 1
     print("3/3:\tWriting AST to AST.dot")
 
 
