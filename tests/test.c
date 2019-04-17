@@ -1,6 +1,6 @@
+
 int main(){
-    int i = a;
-    int i = 1;
-    char c = 'c';
-    int i = function();
+    int i = 4;
+    char c = i;
+    //int o = function();
 }
