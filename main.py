@@ -85,7 +85,7 @@ def testFile(argv):
         return 1
 
     print("2/3:\tSyntax accepted")
-# try:
+    # try:
     listener = Listener()
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
@@ -93,19 +93,17 @@ def testFile(argv):
     ast.printDot("derivationTree.dot")
     ast.simplify()
     ast.printDot("AST.dot")
-# except:
-#     print("Error creating AST:\n", sys.exc_info()[0])
-#     return 1
+    # except:
+    #     print("Error creating AST:\n", sys.exc_info()[0])
+    #     return 1
     print("3/3:\tWriting AST to AST.dot")
-
-
 
     scope = SymbolTable(None)
     function = None
     codeBlocks = []
 
     for node in ast:
-        #check scopes
+        # check scopes
         if len(codeBlocks) != 0:
             codeblokje = codeBlocks[-1]
             codeblokje.scopeCounter -= 1
@@ -139,7 +137,6 @@ def testFile(argv):
             print("TODO: ", node)
     print(scope)
     return 0
-
 
 
 if __name__ == '__main__':

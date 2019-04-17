@@ -1,4 +1,5 @@
 import copy
+from src.types import *
 
 
 class ASTNode:
@@ -341,7 +342,7 @@ class AtomNode(ASTNode):
             self.size = 1
             ASTNode.simplify(self)
         else:
-            print("oei, iets vergeten: ", type(node))
+            print("oei, iets vergeten bij AtomNode")
 
 
 class ReturnStatNode(ASTNode):
@@ -395,8 +396,8 @@ class VarDefNode(ASTNode):
                     self.right = node
             elif isinstance(node, IdentNode):
                 self.id = node
-            elif isinstance(node, TerNode) or isinstance(node, FuncNode) or isinstance(node, RefNode) \
-                    or isinstance(node, DeRefNode):
+            elif isinstance(node, FuncNode) or isinstance(node, RefNode) \
+                    or isinstance(node, DeRefNode) or isinstance(node, TerNode):
                 self.right = node
             elif isinstance(node, AddNode):
                 self.arop = node
@@ -551,7 +552,7 @@ class DeRefNode(ASTNode):
                 pass
             else:
                 print("oei, iets vergeten: ", type(node))
-            val += node.value + " "
+            val += node.value
             self.AST.delNode(node)
 
         self.nextNodes = []
@@ -575,7 +576,7 @@ class RefNode(ASTNode):
                 pass
             else:
                 print("oei, iets vergeten: ", type(node))
-            val += node.value + " "
+            val += node.value
             self.AST.delNode(node)
 
         self.nextNodes = []
@@ -596,7 +597,7 @@ class TypeSpecPtrNode(ASTNode):
                 pass
             else:
                 print("oei, iets vergeten")
-            val += node.value + " "
+            val += node.value
             self.AST.delNode(node)
 
         self.nextNodes = []
@@ -631,21 +632,21 @@ class IntNode(TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
-        self.type = "int"
+        self.type = INT()
 
 
 class FloatNode(TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
-        self.type = "float"
+        self.type = FLOAT()
 
 
 class CharNode(TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
-        self.type = "char"
+        self.type = CHAR()
 
 # # for symbols as: "=", ";"
 # class SymbolNode(ASTNode):

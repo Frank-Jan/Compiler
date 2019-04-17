@@ -7,6 +7,7 @@ int main(){
     int l = i;
     int j = &i;
     int* k = &i;
+    int   *   *    * q = &i;
     int l = (*k);
     //int o = function();
 }
