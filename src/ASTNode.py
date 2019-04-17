@@ -378,7 +378,7 @@ class VarDefNode(ASTNode):
         self.var = None
         self.id = None
         self.ter = None
-        self.arop = None
+        self.arop = None    #arithmic operation
 
     def simplify(self):
         self.simplified = True
