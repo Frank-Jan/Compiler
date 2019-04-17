@@ -9,6 +9,37 @@ from src.SymbolTable import *
 from src.ASTNode import *
 
 
+def checkvardef(node, scope):
+    print(node.type.value)
+    print(node.var.value)
+    # insert new variable
+    scope.insertVariable(node.var.value, node.type.value)
+
+    typeRight = None
+    #check if right side of definition is declared
+    if isinstance(node.ter, VarNode):
+        print("Var node value: ", node.ter.value)
+        print("Var node type:  ", node.ter.type)
+        #other side is variable; check if variable exists:
+        value = scope.search(node.ter.value)
+        if value is None:
+            #variable not yet declared
+            return -1
+        typeRight = value.getType()  #remember type of variable
+
+
+    print("Print Node: ", node)
+    print("Print type: ", node.type)
+    print("Print var", node.var)
+    print("Print id", node.id)
+    if(isinstance(node, VarDefNode)):
+        print("Print ter", node.ter, " ", type(node.ter))
+        print("Print arop", node.arop)
+    #check if types match
+    if typeRight != node.type.value:
+        print("Types don't match: ", node.type.value, "|", typeRight)
+
+
 def testFile(argv):
     print("1/3:\tLoading file")
     try:
@@ -60,9 +91,9 @@ def testFile(argv):
             function = None
             node.symboltable = scope
             codeBlocks.append(node)
-        elif isinstance(node, VarDefNode) or isinstance(node, VarDeclNode):
-            print(node.type.value)
-            print(node.var.value)
+        elif isinstance(node, VarDefNode):
+            checkvardef(node, scope)
+        elif isinstance(node, VarDeclNode):
             scope.insertVariable(node.var.value, node.type.value)
         elif isinstance(node, FuncDefNode):
             print(node.name.value)
@@ -73,9 +104,11 @@ def testFile(argv):
             print(node.fsign.name.value)
             print(node.fsign.types)
             scope.insertFunction(node.fsign.name.value, node.returnType.value, node.fsign.types)
-
+        else:
+            print("TODO: ", node)
     print(scope)
     return 0
+
 
 
 if __name__ == '__main__':

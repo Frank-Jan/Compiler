@@ -447,7 +447,7 @@ class FuncNode(ASTNode):
         self.idents = []
 
     def simplify(self):
-        self.simplified = True
+        self.simplified = TrueIntNode
         val = ""
         for node in self.nextNodes:
             if isinstance(node, TerNode):
