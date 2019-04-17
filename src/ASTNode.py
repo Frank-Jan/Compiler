@@ -79,7 +79,7 @@ class AssignNode(ASTNode):
             elif isinstance(node, ArOpNode):
                 pass
             else:
-                print("oei, iets vergeten bij AssignNode")
+                print("oei, iets vergeten: ", type(node))
 
         self.value = val
 
@@ -120,7 +120,7 @@ class FuncDefNode(ASTNode):
                 else:
                     print("node ", node, " gedropped")
             else:
-                print("oei, iets vergeten")
+                print("oei, iets vergeten: ", type(node))
             getal += 1
             val += node.value + " "
             self.AST.delNode(node)
@@ -156,7 +156,7 @@ class FuncSignNode(ASTNode):
                 else:
                     print("node ", node, " gedropped")
             else:
-                print("oei, iets vergeten")
+                print("oei, iets vergeten: ", type(node))
             val += node.value + " "
             self.AST.delNode(node)
 
@@ -273,7 +273,7 @@ class ProdNode(ASTNode):
                         self.size -= 1
                         self.nextNodes.remove(node)
                 else:
-                    print("oei, iets vergeten bij ProdNode")
+                    print("oei, iets vergeten: ", type(node))
                 getal += 1
 
             self.value = val
@@ -310,7 +310,7 @@ class AddNode(ASTNode):
                         self.size -= 1
                         self.nextNodes.remove(node)
                 else:
-                    print("oei, iets vergeten bij AddNode")
+                    print("oei, iets vergeten: ", type(node))
                 getal += 1
 
             self.value = val
@@ -341,7 +341,7 @@ class AtomNode(ASTNode):
             self.size = 1
             ASTNode.simplify(self)
         else:
-            print("oei, iets vergeten bij AtomNode")
+            print("oei, iets vergeten: ", type(node))
 
 
 class ReturnStatNode(ASTNode):
@@ -359,7 +359,7 @@ class ReturnStatNode(ASTNode):
                 if getal == 1:
                     self.returnVal = node
             else:
-                print("oei, iets vergeten")
+                print("oei, iets vergeten: ", type(node))
             getal += 1
             val += node.value + " "
             self.AST.delNode(node)
@@ -403,7 +403,7 @@ class VarDefNode(ASTNode):
             elif isinstance(node, RefNode):
                 self.id = node
             else:
-                print("oei, iets vergeten")
+                print("oei, iets vergeten: ", type(node))
             val += node.value + " "
             self.AST.delNode(node)
             self.size -= 1
@@ -435,7 +435,7 @@ class VarDeclNode(ASTNode):
             elif isinstance(node, VarNode):
                 self.var = node
             else:
-                print("oei, iets vergeten")
+                print("oei, iets vergeten: ", type(node))
             val += node.value + " "
             self.AST.delNode(node)
 
@@ -460,7 +460,7 @@ class FuncNode(ASTNode):
             elif isinstance(node, IdentNode):
                 self.idents.append(node)
             else:
-                print("oei, iets vergeten")
+                print("oei, iets vergeten: ", type(node))
             val += node.value + " "
             self.AST.delNode(node)
 
@@ -498,12 +498,12 @@ class FuncDeclNode(ASTNode):
         self.simplified = True
         val = ""
         for node in self.nextNodes:
-            if isinstance(node, TypeSpecPtrNode):
+            if isinstance(node, TypeSpecPtrNode) or isinstance(node, TypeSpecBaseNode):
                 self.returnType = node
             elif isinstance(node, FuncSignNode):
                 self.fsign = node
             else:
-                print("oei, iets vergeten")
+                print("oei, iets vergeten: ", type(node))
             val += node.value + " "
             self.AST.delNode(node)
 
@@ -540,21 +540,43 @@ class DeRefNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'DeRef', size, ast)
+        self.var = None
+
+
+    def simplify(self):
+        self.simplified = True
+        val = ""
+        for node in self.nextNodes:
+            if isinstance(node, VarNode):
+                self.var = node
+            elif isinstance(node, TerNode):
+                pass
+            else:
+                print("oei, iets vergeten: ", type(node))
+            val += node.value + " "
+            self.AST.delNode(node)
+
+        self.nextNodes = []
+        self.size = 0
+        self.value = val
 
 
 class RefNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'Ref', size, ast)
+        self.var = None
 
     def simplify(self):
         self.simplified = True
         val = ""
         for node in self.nextNodes:
-            if isinstance(node, TerNode):
+            if isinstance(node, VarNode):
+                self.var = node
+            elif isinstance(node, TerNode):
                 pass
             else:
-                print("oei, iets vergeten")
+                print("oei, iets vergeten: ", type(node))
             val += node.value + " "
             self.AST.delNode(node)
 
@@ -597,30 +619,35 @@ class VarNode(TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
+        self.type = "var"
 
 
 class TypeSpecBaseNode(TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
+        self.type = "type"
 
 
 class IntNode(TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
+        self.type = "int"
 
 
 class FloatNode(TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
+        self.type = "float"
 
 
 class CharNode(TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
+        self.type = "char"
 
 # # for symbols as: "=", ";"
 # class SymbolNode(ASTNode):

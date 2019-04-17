@@ -47,7 +47,7 @@ def checkvardef(node, scope):
     #check if types match
     if typeRight != node.type.value:
         printError("Types don't match: " + node.type.value + "|" + typeRight)
-        return -3;
+        return -3
     # insert new variable
     scope.insertVariable(node.var.value, node.type.value)
 
