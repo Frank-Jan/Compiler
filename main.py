@@ -1,4 +1,5 @@
 import sys
+from src.errors import *
 from antlr4 import *
 from src.grammars.c_subsetLexer import c_subsetLexer
 from src.grammars.c_subsetParser import c_subsetParser
@@ -13,48 +14,40 @@ def checkvardef(node, scope):
     print(node.type.value)
     print(node.var.value)
     # left side cannot exist locally:
+    print("checkvardef")
     if scope.existLocal(node.var.value):
+        printError("error: Redefinition " + node.var.value)
         return -1;
 
     typeRight = None
     #check if right side of definition is declared
-    if isinstance(node.right, VarNode) or isinstance(node.right, FuncNode) or Int:
-        print("VarNode not implemented")
-    if isinstance(node.right, RefNode):
+    if isinstance(node.right, VarNode) or isinstance(node.right, FuncNode):
+        #search value:
+        value = scope.search(node.right.value)
+        if value is None:
+            printError("error: undeclared first use " + node.right.value)
+            return -2
+        typeRight = value.getType()
+        print("Type var/func right: ", typeRight)
+    elif isinstance(node.right, IntNode):
+        typeRight = "int"
+    elif isinstance(node.right, CharNode):
+        typeRight = "char"
+    elif isinstance(node.right, RefNode):
         print("RefNode not implemented")
-    if isinstance(node, DeRefNode):
+
+    elif isinstance(node, DeRefNode):
         print("DeRefNode not implemented")
-    if isinstance(node.right, ArOpNode):
+
+    elif isinstance(node.right, ArOpNode):
         print("ArOpNode not implemented")
 
-    elif isinstance(node.right, IntNode):
-        print("INT NODE")
-        print("Print right: ", node.right)
-        print("Print right value: ", node.right.value)
-        print("Print right type node: ", type(node.right))
-        #other side is variable; check if variable exists:
-        value = scope.search(node.right.value)
-        # if value is None:
-        #     #variable not yet declared
-        #     return -1
-        # typeRight = value.getType()  #remember type of variable
-    elif isinstance(node.right, FuncNode):
-        print("FUNC NODE")
-        print("Print right: ", node.right)
-        print("Print right value: ", node.right.value)
-        print("Print right type node: ", type(node.right))
-        #other side is variable; check if variable exists:
-        value = scope.search(node.right.value)
-        # if value is None:
-        #     #variable not yet declared
-        #     return -1
-        # typeRight = value.getType()  #remember type of variable
     else:
-        print("UNKNOWN:", type(node.right), "|", node.right.value, "|", node.ter)
+        print("UNKNOWN:", type(node.right), "|", node.right.value)
     #check if types match
     if typeRight != node.type.value:
-        print("Types don't match: ", node.type.value, "|", typeRight)
-
+        printError("Types don't match: " + node.type.value + "|" + typeRight)
+        return -3;
     # insert new variable
     scope.insertVariable(node.var.value, node.type.value)
 
@@ -122,6 +115,9 @@ def testFile(argv):
         elif isinstance(node, FuncDeclNode):
             print(node.fsign.name.value)
             print(node.fsign.types)
+            print("DEBUG name:       ", node.fsign.name)
+            print("DEBUG value:      ", node.fsign.name.value)
+            print("DEBUG returntype: ", node.returnType)
             scope.insertFunction(node.fsign.name.value, node.returnType.value, node.fsign.types)
         else:
             print("TODO: ", node)
