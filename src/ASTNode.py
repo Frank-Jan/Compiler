@@ -552,7 +552,7 @@ class DeRefNode(ASTNode):
                 pass
             else:
                 print("oei, iets vergeten: ", type(node))
-            val += node.value + " "
+            val += node.value
             self.AST.delNode(node)
 
         self.nextNodes = []
@@ -576,7 +576,7 @@ class RefNode(ASTNode):
                 pass
             else:
                 print("oei, iets vergeten: ", type(node))
-            val += node.value + " "
+            val += node.value
             self.AST.delNode(node)
 
         self.nextNodes = []
