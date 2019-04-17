@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 int v;
 
 int main()

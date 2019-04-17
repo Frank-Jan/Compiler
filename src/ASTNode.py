@@ -92,8 +92,8 @@ class FuncDefNode(ASTNode):
         self.returnType = None
         self.types = []
         self.vars = []
-        self.args = []
-        self.block = None #codeblock
+        self.args = [] #self.vars en self.types combined in tuples
+        self.block = None #returnstats in dit block
         self.name = None
 
     def simplify(self):
@@ -251,7 +251,7 @@ class ArOpNode(ASTNode):
         # self.value = val
 
 
-class ProdNode(ASTNode):
+class ProdNode(ArOpNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'Prod', size, ast)
@@ -285,7 +285,7 @@ class ProdNode(ASTNode):
             self.value = val
 
 
-class AddNode(ASTNode):
+class AddNode(ArOpNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'Add', size, ast)
@@ -361,11 +361,11 @@ class ReturnStatNode(ASTNode):
         val = ""
         getal = 0
         for node in self.nextNodes:
-            if isinstance(node, TerNode):
+            if isinstance(node, TerNode) or isinstance(node, FuncNode) or isinstance(node, ArOpNode):
                 if getal == 1:
                     self.returnVal = node
             else:
-                print("oei, iets vergeten: ", type(node))
+                print("oei, iets vergeten bij ReturnStatNode: ", type(node))
             getal += 1
             val += node.value + " "
             self.AST.delNode(node)
@@ -474,11 +474,6 @@ class FuncNode(ASTNode):
         self.value = val
 
 
-class LitNode(ASTNode):
-
-    def __init__(self, size, ast):
-        ASTNode.__init__(self, 'Lit', size, ast)
-
 
 class GenDeclNode(ASTNode):
 
@@ -539,6 +534,36 @@ class IfElseNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'IfElse', size, ast)
+        self.cond = None
+        self.ifBlock = None
+        self.elseBlock = None
+
+    def simplify(self):
+        self.simplified = True
+        val = ""
+        getal = 0
+        for node in self.nextNodes:
+            getal += 1
+            if isinstance(node, CondExpNode):
+                self.cond = node
+                continue
+            elif isinstance(node, CodeBlockNode):
+                if getal == 5:
+                    self.ifBlock = node
+                elif getal == 7:
+                    self.elseBlock = node
+                else:
+                    print("CodeBlock op verkeerde plaats bij IfElseNode")
+                continue
+            elif isinstance(node, TerNode):
+                print("node ", node, " gedropped")
+            else:
+                print("oei, iets vergeten bij IfElseNode: ", type(node))
+            val += node.value
+            self.AST.delNode(node)
+
+        self.size = len(self.nextNodes)
+        self.value = val
 
 
 class DeRefNode(ASTNode):
@@ -635,21 +660,28 @@ class TypeSpecBaseNode(TerNode):
         self.type = "type"
 
 
-class IntNode(TerNode):
+class LitNode(ASTNode):
+
+    def __init__(self, size, ast):
+        ASTNode.__init__(self, "Lit", size, ast)
+
+
+
+class IntNode(LitNode, TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
         self.type = INT()
 
 
-class FloatNode(TerNode):
+class FloatNode(LitNode, TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
         self.type = FLOAT()
 
 
-class CharNode(TerNode):
+class CharNode(LitNode, TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
