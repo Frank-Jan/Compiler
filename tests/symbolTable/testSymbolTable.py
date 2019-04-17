@@ -21,7 +21,7 @@ def testAccepted():
     value = subTable.search("i")
     assert(not subTable.existLocal("i"))
     assert(table.existLocal("i"))
-    assert(subTable.insertFunction("i", "type_i" ,["arg_i"]))
+    assert(subTable.insertFunction("i", "type_i", ["arg_i"]))
     assert(subTable.insertVariable("v", "type_v"))
     assert(not subTable.insertVariable("v", "type_v"))
     assert(subTable.existLocal("i"))

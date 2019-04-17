@@ -5,6 +5,9 @@ class VOID:
     def __str__(self):
         return "void"
 
+    def __eq__(self, other):
+        return self.__str__() == other.__str__()
+
 class CHAR(VOID):
     def getType(self):
         return 1
@@ -17,7 +20,7 @@ class INT(VOID):
         return 2
 
     def __str__(self):
-        return int
+        return "int"
 
 class FLOAT(VOID):
     def getType(self):

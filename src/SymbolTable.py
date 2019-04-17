@@ -31,12 +31,16 @@ class Record:
 
 # functionRecord holds functions with the same name i.e. both "int function()" and "int function(int)"
 class FunctionRecord(Record):
-    def __init__(self, returnType, argumentList):
+    def __init__(self, returnType, argumentList , defined = False):
         super().__init__(returnType)
         self.argumentList = argumentList  # holds all argument lists
+        self.defined = defined
 
     def isVar(self):
         return False
+
+    def isDefined(self):
+        return self.defined
 
     def __eq__(self, other):
         if not other.isVar:
@@ -61,15 +65,61 @@ class SymbolTable:
         return False #name already exists
 
     # argumentList contains only types i.e. ["int", "float"]
-    def insertFunction(self, name, returnType, argumentList):
+    def defineFunction(self, name, returnType, argumentList):
+        value =  self.getLocal(name)
+        if value is None:
+            self.table[name] = FunctionRecord(returnType, argumentList, True)   #define function
+            return 0
+        elif value.isVar():
+            return -1 #already defined/declared as variable
+        elif value.defined:
+            # functions is already defined
+            return -2
+        else:
+            if self.parent == None:
+                #global scope: allow multiple declarations with one definition:
+                if value.name == name and value.type == returnType and value.argumentList == argumentList:
+                    #definition same as declaration
+                    self.table[name] = FunctionRecord(returnType, argumentList, True) #define function
+                else:
+                    #declaration and definition are different
+                    return -3
+            else:
+                #not in global scope: no double declarations or definitions allowed
+                return -4
+
+    def declareFunction(self, name, returnType, argumentList):
         value = self.getLocal(name)
         if value is None:
-            self.table[name] = FunctionRecord(returnType, argumentList)
-            return True
+            self.table[name] = FunctionRecord(returnType, argumentList, False) #define function
+            return 0
         elif value.isVar():
-            return False  # name already taken by a variable
+            return -1 # name already defined as variable
+        elif self.parent is None:
+            # global scope: allow multiple declarations with one definition:
+            if value.name == name and value.type == returnType and value.argumentList == argumentList:
+                # declaration same as previous declarations/definition
+                # already declared/defined
+                return 0
+            else:
+                # different function signature
+                return -2
+        elif value.defined:
+            # not in global scope and function already defined
+            return -3
         else:
-            return value.insert(returnType, argumentList)
+            # not in global scope and not yet defined
+            # check function signature
+            if value.name == name and value.type == returnType and value.argumentList == argumentList:
+                # declaration same as previous declarations/definition
+                # already declared/defined
+                return 0
+            else:
+                # different function signature
+                return -2
+
+
+
 
     # searches for symbol with the correct name
     def search(self, name):

@@ -10,7 +10,7 @@ from src.SymbolTable import *
 from src.ASTNode import *
 
 
-def checkvardef(node, scope):
+def checkVarDef(node, scope):
     print(node.type.value)
     print(node.var.value)
     # left side cannot exist locally:
@@ -47,25 +47,35 @@ def checkvardef(node, scope):
             printError("error: undeclared first use " + rightSideNode.value)
             return -2
         # check if types match
-        if varType != rightSide.getType() or varType != rightSide.getType() + "* ":
+        if not (varType == rightSide.getType() or varType == rightSide.getType() + "*"):
             printError("Types don't match: " + str(varType) + "|" + str(rightSide.getType()))
             return -3
 
     elif isinstance(node.right, DeRefNode):
-        print("DeRefNode not implemented")
-        value = scope.search(node.right.var.value)
-        if value is None:
-            printError("error: undeclared first use " + node.right.var.value)
+        rightSideNode = node.right.var
+        rightSide = scope.search(rightSideNode.value)
+        if rightSide is None:
+            printError("error: undeclared first use " + rightSideNode.value)
             return -2
-        typeRight = value.getType()
-
+        # check if types match
+        if varType + "*" != rightSide.getType():
+            printError("Types don't match: " + str(varType) + "|" + str(rightSide.getType()))
+            return -3
     elif isinstance(node.right, ArOpNode):
         print("ArOpNode not implemented")
-
     else:
-        print("UNKNOWN:", type(node.right), "|", node.right.value)
+        print("UNKNOWN:", type(node.right))
     # insert new variable
-    scope.insertVariable(node.var.value, node.type.value)
+    scope.insertVariable(varName, varType)  #will always return True because it was check earlier
+    return 0
+
+
+def checkFuncDef(node, scope):
+    print(node.name.value)
+    print(node.args)
+    function = node.args
+    #check if function is already defined
+    scope.insertFunction(node.name.value, node.returnType.value, node.types)
 
 
 def testFile(argv):
@@ -118,14 +128,11 @@ def testFile(argv):
             node.symboltable = scope
             codeBlocks.append(node)
         elif isinstance(node, VarDefNode):
-            checkvardef(node, scope)
+            checkVarDef(node, scope)
         elif isinstance(node, VarDeclNode):
             scope.insertVariable(node.var.value, node.type.value)
         elif isinstance(node, FuncDefNode):
-            print(node.name.value)
-            print(node.args)
-            function = node.args
-            scope.insertFunction(node.name.value, node.returnType.value, node.types)
+            checkFuncDef(node, scope)
         elif isinstance(node, FuncDeclNode):
             print(node.fsign.name.value)
             print(node.fsign.types)

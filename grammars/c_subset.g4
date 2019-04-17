@@ -117,7 +117,7 @@ whileLoop
 ifelseLoop
     : IF '('conditionalExpression')' (functionStatement ';' | codeBlock)
      (ELSE IF '('conditionalExpression')' (functionStatement ';' | codeBlock))*
-      ELSE (functionStatement ';' | codeBlock)
+      (ELSE (functionStatement ';' | codeBlock))?
     ;
 
 
