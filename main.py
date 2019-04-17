@@ -17,12 +17,12 @@ def checkvardef(node, scope):
     print("checkvardef")
     if scope.existLocal(node.var.value):
         printError("error: Redefinition " + node.var.value)
-        return -1;
+        return -1
 
     typeRight = None
-    #check if right side of definition is declared
+    # check if right side of definition is declared
     if isinstance(node.right, VarNode) or isinstance(node.right, FuncNode):
-        #search value:
+        # search value:
         value = scope.search(node.right.value)
         if value is None:
             printError("error: undeclared first use " + node.right.value)
@@ -52,7 +52,7 @@ def checkvardef(node, scope):
 
     else:
         print("UNKNOWN:", type(node.right), "|", node.right.value)
-    #check if types match
+    # check if types match
     if typeRight != node.type.value:
         printError("Types don't match: " + str(node.type.value) + "|" + str(typeRight))
         return -3
@@ -77,7 +77,7 @@ def testFile(argv):
         return 1
 
     print("2/3:\tSyntax accepted")
-# try:
+    # try:
     listener = Listener()
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
@@ -85,19 +85,17 @@ def testFile(argv):
     ast.printDot("derivationTree.dot")
     ast.simplify()
     ast.printDot("AST.dot")
-# except:
-#     print("Error creating AST:\n", sys.exc_info()[0])
-#     return 1
+    # except:
+    #     print("Error creating AST:\n", sys.exc_info()[0])
+    #     return 1
     print("3/3:\tWriting AST to AST.dot")
-
-
 
     scope = SymbolTable(None)
     function = None
     codeBlocks = []
 
     for node in ast:
-        #check scopes
+        # check scopes
         if len(codeBlocks) != 0:
             codeblokje = codeBlocks[-1]
             codeblokje.scopeCounter -= 1
@@ -131,7 +129,6 @@ def testFile(argv):
             print("TODO: ", node)
     print(scope)
     return 0
-
 
 
 if __name__ == '__main__':
