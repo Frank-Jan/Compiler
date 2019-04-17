@@ -161,9 +161,12 @@ variable
     ;
 
 literal
-    : Char
+    : char
     | integer
     | float_
+    ;
+char
+    : Char
     ;
 
 integer
