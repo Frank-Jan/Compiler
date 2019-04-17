@@ -17,9 +17,10 @@ def checkvardef(node, scope):
 
     typeRight = None
     #check if right side of definition is declared
-    if isinstance(node.ter, VarNode):
-        print("Var node value: ", node.ter.value)
-        print("Var node type:  ", node.ter.type)
+    if isinstance(node.right, VarNode):
+        print("Print right: ", node.right)
+        print("Print right value: ", node.right.value)
+        print("Print right: ", node.right)
         #other side is variable; check if variable exists:
         value = scope.search(node.ter.value)
         if value is None:
@@ -30,6 +31,9 @@ def checkvardef(node, scope):
 
     print("Print Node: ", node)
     print("Print type: ", node.type)
+    print("Print type right: ", node.right)
+    print("Print type right: ", node.right.value)
+    print("Print type right: ", node.right)
     print("Print var", node.var)
     print("Print id", node.id)
     if(isinstance(node, VarDefNode)):

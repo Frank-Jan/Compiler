@@ -376,7 +376,7 @@ class VarDefNode(ASTNode):
         ASTNode.__init__(self, 'VarDef', size, ast)
         self.type = None
         self.var = None
-        self.right = None
+        self.right = None   #right side of assignment
         self.id = None
         self.ter = None
         self.arop = None    #arithmic operation
