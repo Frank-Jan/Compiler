@@ -75,7 +75,7 @@ def checkFuncDef(node, scope):
     print(node.args)
     function = node.args
     #check if function is already defined
-    scope.insertFunction(node.name.value, node.returnType.value, node.types)
+    scope.defineFunction(node.name.value, node.returnType.value, node.types)
 
 
 def testFile(argv):
@@ -139,7 +139,7 @@ def testFile(argv):
             print("DEBUG name:       ", node.fsign.name)
             print("DEBUG value:      ", node.fsign.name.value)
             print("DEBUG returntype: ", node.returnType)
-            scope.insertFunction(node.fsign.name.value, node.returnType.value, node.fsign.types)
+            scope.defineFunction(node.fsign.name.value, node.returnType.value, node.fsign.types)
         else:
             print("TODO: ", node)
     print(scope)
