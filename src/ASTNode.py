@@ -376,6 +376,7 @@ class VarDefNode(ASTNode):
         ASTNode.__init__(self, 'VarDef', size, ast)
         self.type = None
         self.var = None
+        self.right = None
         self.id = None
         self.ter = None
         self.arop = None
@@ -384,15 +385,20 @@ class VarDefNode(ASTNode):
         self.simplified = True
         val = ""
         kopie = copy.copy(self.nextNodes)
+        getal = 0
         for node in kopie:
             if isinstance(node, TypeSpecBaseNode) or isinstance(node, TypeSpecPtrNode):
                 self.type = node
             elif isinstance(node, VarNode):
-                self.var = node
+                if getal == 1:
+                    self.var = node
+                elif getal > 1:
+                    self.right = node
             elif isinstance(node, IdentNode):
                 self.id = node
             elif isinstance(node, TerNode):
-                self.ter = node
+                if getal == 2:
+                    self.ter = node
             elif isinstance(node, AddNode):
                 self.arop = node
                 continue
@@ -404,6 +410,7 @@ class VarDefNode(ASTNode):
             self.AST.delNode(node)
             self.size -= 1
             self.nextNodes.remove(node)
+            getal += 1
 
         self.value = val
 
