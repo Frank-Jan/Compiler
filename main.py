@@ -18,27 +18,29 @@ def checkvardef(node, scope):
     typeRight = None
     #check if right side of definition is declared
     if isinstance(node.right, VarNode):
+        print("VAR NODE")
         print("Print right: ", node.right)
         print("Print right value: ", node.right.value)
-        print("Print right: ", node.right)
+        print("Print right type node: ", type(node.right))
         #other side is variable; check if variable exists:
-        value = scope.search(node.ter.value)
+        value = scope.search(node.right.value)
         if value is None:
             #variable not yet declared
             return -1
         typeRight = value.getType()  #remember type of variable
-
-
-    print("Print Node: ", node)
-    print("Print type: ", node.type)
-    print("Print type right: ", node.right)
-    print("Print type right: ", node.right.value)
-    print("Print type right: ", node.right)
-    print("Print var", node.var)
-    print("Print id", node.id)
-    if(isinstance(node, VarDefNode)):
-        print("Print ter", node.ter, " ", type(node.ter))
-        print("Print arop", node.arop)
+    elif isinstance(node.right, IntNode):
+        print("INT NODE")
+        print("Print right: ", node.right)
+        print("Print right value: ", node.right.value)
+        print("Print right type node: ", type(node.right))
+        #other side is variable; check if variable exists:
+        value = scope.search(node.right.value)
+        if value is None:
+            #variable not yet declared
+            return -1
+        typeRight = value.getType()  #remember type of variable
+    else:
+        print("UNKNOWN:", type(node.right), "|", node.right.value, "|", node.ter)
     #check if types match
     if typeRight != node.type.value:
         print("Types don't match: ", node.type.value, "|", typeRight)
