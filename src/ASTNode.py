@@ -93,7 +93,7 @@ class FuncDefNode(ASTNode):
         self.types = []
         self.vars = []
         self.args = []
-        self.block = None
+        self.block = None #returnstats in dit block
         self.name = None
 
     def simplify(self):
@@ -172,12 +172,17 @@ class CodeBlockNode(ASTNode):
         ASTNode.__init__(self, 'CodeBlock', size, ast)
         self.symboltable = symboltable
         self.scopeCounter = None
+        self.returnStats = []
 
     def simplify(self):
         self.simplified = True
         kopie = copy.copy(self.nextNodes)
         for node in kopie:
-            if isinstance(node, TerNode):
+            if isinstance(node, ReturnStatNode):
+                self.returnStats.append(node)
+            elif isinstance(node, CodeBlockNode):
+                self.returnStats += node.returnStats
+            elif isinstance(node, TerNode):
                 print("node ", node, " gedropped")
                 self.AST.delNode(node)
                 self.nextNodes.remove(node)
@@ -593,7 +598,9 @@ class TypeSpecPtrNode(ASTNode):
         self.simplified = True
         val = ""
         for node in self.nextNodes:
-            if isinstance(node, TerNode):
+            if isinstance(node, TypeSpecPtrNode):
+                pass
+            elif isinstance(node, TerNode):
                 pass
             else:
                 print("oei, iets vergeten")
