@@ -34,10 +34,18 @@ def checkvardef(node, scope):
     elif isinstance(node.right, CharNode):
         typeRight = "char"
     elif isinstance(node.right, RefNode):
-        print("RefNode not implemented")
-
-    elif isinstance(node, DeRefNode):
+        value = scope.search(node.right.value)
+        if value is None:
+            printError("error: undeclared first use " + node.right.value)
+            return -2
+        typeRight = value.getType()
+    elif isinstance(node.right, DeRefNode):
         print("DeRefNode not implemented")
+        value = scope.search(node.right.value)
+        if value is None:
+            printError("error: undeclared first use " + node.right.value)
+            return -2
+        typeRight = value.getType()
 
     elif isinstance(node.right, ArOpNode):
         print("ArOpNode not implemented")
@@ -46,7 +54,7 @@ def checkvardef(node, scope):
         print("UNKNOWN:", type(node.right), "|", node.right.value)
     #check if types match
     if typeRight != node.type.value:
-        printError("Types don't match: " + node.type.value + "|" + typeRight)
+        printError("Types don't match: " + str(node.type.value) + "|" + str(typeRight))
         return -3
     # insert new variable
     scope.insertVariable(node.var.value, node.type.value)

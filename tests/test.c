@@ -1,6 +1,11 @@
+int i;
+int function();
 
 int main(){
-    int i = 4;
-    char c = i;
+    int i = 1;
+    int j = k;
+    int l = i;
+    int j = &i;
+    int* j = &i;
     //int o = function();
 }
