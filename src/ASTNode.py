@@ -470,6 +470,7 @@ class LitNode(ASTNode):
         ASTNode.__init__(self, 'Lit', size, ast)
 
 
+
 class GenDeclNode(ASTNode):
 
     def __init__(self, size, ast):

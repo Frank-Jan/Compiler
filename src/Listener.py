@@ -283,6 +283,7 @@ class Listener(c_subsetListener):
     # Enter a parse tree produced by c_subsetParser#literal.
     def enterLiteral(self, ctx: c_subsetParser.LiteralContext):
         self.AST.addNode(LitNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children)
 
     # Exit a parse tree produced by c_subsetParser#literal.
     def exitLiteral(self, ctx: c_subsetParser.LiteralContext):
