@@ -3,9 +3,10 @@ int function();
 
 int main(){
     int i = 1;
-    int j = k;
+    int u = i;
     int l = i;
     int j = &i;
-    int* j = &i;
+    int* k = &i;
+    int l = (*k);
     //int o = function();
 }

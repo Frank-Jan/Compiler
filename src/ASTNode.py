@@ -395,13 +395,12 @@ class VarDefNode(ASTNode):
                     self.right = node
             elif isinstance(node, IdentNode):
                 self.id = node
-            elif isinstance(node, TerNode) or isinstance(node, FuncNode):
+            elif isinstance(node, TerNode) or isinstance(node, FuncNode) or isinstance(node, RefNode) \
+                    or isinstance(node, DeRefNode):
                 self.right = node
             elif isinstance(node, AddNode):
                 self.arop = node
                 continue
-            elif isinstance(node, RefNode):
-                self.id = node
             else:
                 print("oei, iets vergeten: ", type(node))
             val += node.value + " "
@@ -540,8 +539,7 @@ class DeRefNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'DeRef', size, ast)
-        self.var = None
-
+        self.right = None
 
     def simplify(self):
         self.simplified = True
