@@ -12,22 +12,21 @@ from src.ASTNode import *
 def checkvardef(node, scope):
     print(node.type.value)
     print(node.var.value)
-    # insert new variable
-    scope.insertVariable(node.var.value, node.type.value)
+    # left side cannot exist locally:
+    if scope.existLocal(node.var.value):
+        return -1;
 
     typeRight = None
     #check if right side of definition is declared
-    if isinstance(node.right, VarNode):
-        print("VAR NODE")
-        print("Print right: ", node.right)
-        print("Print right value: ", node.right.value)
-        print("Print right type node: ", type(node.right))
-        #other side is variable; check if variable exists:
-        value = scope.search(node.right.value)
-        if value is None:
-            #variable not yet declared
-            return -1
-        typeRight = value.getType()  #remember type of variable
+    if isinstance(node.right, VarNode) or isinstance(node.right, FuncNode) or Int:
+        print("VarNode not implemented")
+    if isinstance(node.right, RefNode):
+        print("RefNode not implemented")
+    if isinstance(node, DeRefNode):
+        print("DeRefNode not implemented")
+    if isinstance(node.right, ArOpNode):
+        print("ArOpNode not implemented")
+
     elif isinstance(node.right, IntNode):
         print("INT NODE")
         print("Print right: ", node.right)
@@ -35,15 +34,29 @@ def checkvardef(node, scope):
         print("Print right type node: ", type(node.right))
         #other side is variable; check if variable exists:
         value = scope.search(node.right.value)
-        if value is None:
-            #variable not yet declared
-            return -1
-        typeRight = value.getType()  #remember type of variable
+        # if value is None:
+        #     #variable not yet declared
+        #     return -1
+        # typeRight = value.getType()  #remember type of variable
+    elif isinstance(node.right, FuncNode):
+        print("FUNC NODE")
+        print("Print right: ", node.right)
+        print("Print right value: ", node.right.value)
+        print("Print right type node: ", type(node.right))
+        #other side is variable; check if variable exists:
+        value = scope.search(node.right.value)
+        # if value is None:
+        #     #variable not yet declared
+        #     return -1
+        # typeRight = value.getType()  #remember type of variable
     else:
         print("UNKNOWN:", type(node.right), "|", node.right.value, "|", node.ter)
     #check if types match
     if typeRight != node.type.value:
         print("Types don't match: ", node.type.value, "|", typeRight)
+
+    # insert new variable
+    scope.insertVariable(node.var.value, node.type.value)
 
 
 def testFile(argv):
