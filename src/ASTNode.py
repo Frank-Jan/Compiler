@@ -167,7 +167,7 @@ class FuncSignNode(ASTNode):
 
 class CodeBlockNode(ASTNode):
 
-    def __init__(self, size, ast, symboltable = None):
+    def __init__(self, size, ast, symboltable=None):
         ASTNode.__init__(self, 'CodeBlock', size, ast)
         self.symboltable = symboltable
         self.scopeCounter = None
@@ -181,7 +181,7 @@ class CodeBlockNode(ASTNode):
                 self.AST.delNode(node)
                 self.nextNodes.remove(node)
         self.size = len(self.nextNodes)
-        self.scopeCounter = self.size +1
+        self.scopeCounter = self.size + 1
 
     def getSymbolTable(self):
         return self.symboltable
@@ -344,7 +344,6 @@ class AtomNode(ASTNode):
             print("oei, iets vergeten bij AtomNode")
 
 
-
 class ReturnStatNode(ASTNode):
 
     def __init__(self, size, ast):
@@ -376,10 +375,10 @@ class VarDefNode(ASTNode):
         ASTNode.__init__(self, 'VarDef', size, ast)
         self.type = None
         self.var = None
-        self.right = None   #right side of assignment
+        self.right = None  # right side of assignment
         self.id = None
         self.ter = None
-        self.arop = None    #arithmic operation
+        self.arop = None  # arithmic operation
 
     def simplify(self):
         self.simplified = True
@@ -476,7 +475,6 @@ class LitNode(ASTNode):
         ASTNode.__init__(self, 'Lit', size, ast)
 
 
-
 class GenDeclNode(ASTNode):
 
     def __init__(self, size, ast):
@@ -512,6 +510,7 @@ class FuncDeclNode(ASTNode):
         self.nextNodes = []
         self.size = 0
         self.value = val
+
 
 class CondExpNode(ASTNode):
 
@@ -613,6 +612,12 @@ class IntNode(TerNode):
 
 
 class FloatNode(TerNode):
+
+    def __init__(self, value, ast):
+        TerNode.__init__(self, value, ast)
+
+
+class CharNode(TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)

@@ -330,3 +330,11 @@ class Listener(c_subsetListener):
     # Exit a parse tree produced by c_subsetParser#float_.
     def exitFloat_(self, ctx: c_subsetParser.Float_Context):
         pass
+
+    # Enter a parse tree produced by c_subsetParser#char.
+    def enterChar(self, ctx:c_subsetParser.CharContext):
+        self.AST.addNode(CharNode(ctx.getText(), self.AST))
+
+    # Exit a parse tree produced by c_subsetParser#char.
+    def exitChar(self, ctx:c_subsetParser.CharContext):
+        pass
