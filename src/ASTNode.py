@@ -113,7 +113,9 @@ class FuncDefNode(ASTNode):
                 self.block = node
                 continue
             elif isinstance(node, TerNode):
-                if getal == 1:
+                if getal == 0:
+                    self.returnType = node
+                elif getal == 1:
                     self.name = node
                 else:
                     print("node ", node, " gedropped")
@@ -168,15 +170,18 @@ class CodeBlockNode(ASTNode):
     def __init__(self, size, ast, symboltable = None):
         ASTNode.__init__(self, 'CodeBlock', size, ast)
         self.symboltable = symboltable
+        self.scopeCounter = None
 
     def simplify(self):
         self.simplified = True
-        for node in self.nextNodes:
+        kopie = copy.copy(self.nextNodes)
+        for node in kopie:
             if isinstance(node, TerNode):
                 print("node ", node, " gedropped")
                 self.AST.delNode(node)
                 self.nextNodes.remove(node)
-                self.size -= 1
+        self.size = len(self.nextNodes)
+        self.scopeCounter = self.size +1
 
     def getSymbolTable(self):
         return self.symboltable
@@ -413,17 +418,17 @@ class VarDeclNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'VarDecl', size, ast)
-        self.type = ""
-        self.var = ""
+        self.type = None
+        self.var = None
 
     def simplify(self):
         self.simplified = True
         val = ""
         for node in self.nextNodes:
             if isinstance(node, TypeSpecBaseNode) or isinstance(node, TypeSpecPtrNode):
-                self.type = node.value
+                self.type = node
             elif isinstance(node, VarNode):
-                self.var = node.value
+                self.var = node
             else:
                 print("oei, iets vergeten")
             val += node.value + " "

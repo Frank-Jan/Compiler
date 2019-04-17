@@ -13,7 +13,7 @@ def testFile(argv):
     print("1/3:\tLoading file")
     try:
         input_stream = FileStream(argv[1])
-    except():
+    except:
         print("Error loading file:\n", sys.exc_info()[0])
     try:
         lexer = c_subsetLexer(input_stream)
@@ -21,7 +21,7 @@ def testFile(argv):
         parser = c_subsetParser(stream)
         parser.buildParseTrees = True
         tree = parser.cppSyntax()
-    except():
+    except:
         print("Error parsing syntax:\n", sys.exc_info()[0])
         return 1
 
@@ -31,30 +31,36 @@ def testFile(argv):
         walker = ParseTreeWalker()
         walker.walk(listener, tree)
         ast = listener.getAST()
-    except():
+        ast.printDot("derivationTree.dot")
+        ast.simplify()
+        ast.printDot("AST.dot")
+    except:
         print("Error creating AST:\n", sys.exc_info()[0])
         return 1
     print("3/3:\tWriting AST to AST.dot")
-    ast.printDot("derivationTree.dot")
-    ast.simplify()
-    ast.printDot("AST.dot")
+
+
 
     scope = SymbolTable(None)
-    scopeCounter = float("inf")
     function = None
+    codeBlocks = []
 
     for node in ast:
+        #check scopes
+        if len(codeBlocks) != 0:
+            codeblokje = codeBlocks[-1]
+            codeblokje.scopeCounter -= 1
+            if codeblokje.scopeCounter == 0:
+                codeBlocks.remove(codeblokje)
+                scope = scope.closeScope()
+
         # print(node)
-        scopeCounter -= 1
         if isinstance(node, CodeBlockNode):
             scope = scope.openScope(function)
             function = None
             node.symboltable = scope
-            scopeCounter = node.size
-        elif scopeCounter == 0:
-            scope = scope.closeScope()
-            scopeCounter = float("inf")
-        elif isinstance(node, VarDefNode):
+            codeBlocks.append(node)
+        elif isinstance(node, VarDefNode) or isinstance(node, VarDeclNode):
             print(node.type.value)
             print(node.var.value)
             scope.insertVariable(node.var.value, node.type.value)
