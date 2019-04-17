@@ -53,7 +53,7 @@ class FunctionRecord(Record):
 
 class SymbolTable:
     def __init__(self, parent = None):
-        self.parent = parent    #parent symbol table
+        self.parent = parent    #parent sy   mbol table
         self.table = dict()
 
     # add new variable/function
@@ -78,7 +78,7 @@ class SymbolTable:
         else:
             if self.parent == None:
                 #global scope: allow multiple declarations with one definition:
-                if value.name == name and value.type == returnType and value.argumentList == argumentList:
+                if value.type == returnType and value.argumentList == argumentList:
                     #definition same as declaration
                     self.table[name] = FunctionRecord(returnType, argumentList, True) #define function
                 else:
@@ -97,7 +97,7 @@ class SymbolTable:
             return -1 # name already defined as variable
         elif self.parent is None:
             # global scope: allow multiple declarations with one definition:
-            if value.name == name and value.type == returnType and value.argumentList == argumentList:
+            if value.getType() == returnType and value.argumentList == argumentList:
                 # declaration same as previous declarations/definition
                 # already declared/defined
                 return 0
@@ -110,7 +110,7 @@ class SymbolTable:
         else:
             # not in global scope and not yet defined
             # check function signature
-            if value.name == name and value.type == returnType and value.argumentList == argumentList:
+            if value.getType() == returnType and value.argumentList == value.argumentList:
                 # declaration same as previous declarations/definition
                 # already declared/defined
                 return 0

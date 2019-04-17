@@ -1,15 +1,7 @@
-
-int function();
-
-
+int v;
 
 int main()
 {
-    int function();
-    int function();
-    int function();
-    int function();
-    int function();
-
-    return 0;
+    int v = 2;
+    return v;
 }

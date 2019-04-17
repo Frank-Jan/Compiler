@@ -9,6 +9,23 @@ from src.Listener import Listener
 from src.SymbolTable import *
 from src.ASTNode import *
 
+#give a single returnStatement and the scope for it
+def determineType(scope, returnStatement):
+    if returnStatement.returnVal is None:
+        return "void"
+    if isinstance(returnStatement.returnVal, LitNode):    #is it a literal
+        return returnStatement.returnVal.value.type
+    if isinstance(returnStatement.returnVal, VarNode) or isinstance(returnStatement.returnVal, FuncNode):    #is it a variable
+        #search for variable in scope
+        var = scope.search(returnStatement.returnVal.value)
+        print("Variable or Function: ", var.getType())
+        if var is None:
+            return -1
+        else:
+            return var.getType()
+    if isinstance(returnStatement.returnVal, ArOpNode):
+        print("Can't return arithmic operation yet")
+        return "void"
 
 def checkVarDef(node, scope):
     print(node.type.value)
@@ -71,11 +88,21 @@ def checkVarDef(node, scope):
 
 
 def checkFuncDef(node, scope):
-    print(node.name.value)
-    print(node.args)
-    function = node.args
-    #check if function is already defined
-    scope.insertFunction(node.name.value, node.returnType.value, node.types)
+    # check if return type is same as given
+    for retStat in node.block.returnStats:
+        print("Function: ", node.value, " / ",  determineType(node.block.symboltable, retStat))
+        if node.returnType != determineType(node.block.symboltable, retStat):
+            #wrong return type
+            print("Function wrong return type")
+            return -1
+    # check if function is already defined
+    code = scope.defineFunction(node.name.value, node.returnType.value, node.types)
+    if(code == 0):
+        print("Function accepted")
+
+    else:
+        print("Function denied")
+    return 0
 
 
 def testFile(argv):
@@ -128,18 +155,17 @@ def testFile(argv):
             node.symboltable = scope
             codeBlocks.append(node)
         elif isinstance(node, VarDefNode):
+            print("Define variable")
             checkVarDef(node, scope)
         elif isinstance(node, VarDeclNode):
-            scope.insertVariable(node.var.value, node.type.value)
+            print("Declare variable")
+            #checkVarDecl(node, scope)
         elif isinstance(node, FuncDefNode):
+            print("Define function")
             checkFuncDef(node, scope)
         elif isinstance(node, FuncDeclNode):
-            print(node.fsign.name.value)
-            print(node.fsign.types)
-            print("DEBUG name:       ", node.fsign.name)
-            print("DEBUG value:      ", node.fsign.name.value)
-            print("DEBUG returntype: ", node.returnType)
-            scope.insertFunction(node.fsign.name.value, node.returnType.value, node.fsign.types)
+            print("Declare function")
+            scope.declareFunction(node.fsign.name.value, node.returnType.value, node.fsign.types)
         else:
             print("TODO: ", node)
     print(scope)

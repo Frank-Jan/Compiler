@@ -93,7 +93,7 @@ class FuncDefNode(ASTNode):
         self.types = []
         self.vars = []
         self.args = []
-        self.block = None #returnstats in dit block
+        self.block = None #codeblock
         self.name = None
 
     def simplify(self):
@@ -172,7 +172,7 @@ class CodeBlockNode(ASTNode):
         ASTNode.__init__(self, 'CodeBlock', size, ast)
         self.symboltable = symboltable
         self.scopeCounter = None
-        self.returnStats = []
+        self.returnStats = []   #full return statements
 
     def simplify(self):
         self.simplified = True
