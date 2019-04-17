@@ -398,7 +398,7 @@ class VarDefNode(ASTNode):
                 self.id = node
             elif isinstance(node, TerNode):
                 if getal == 2:
-                    self.ter = node
+                    self.right = node
             elif isinstance(node, AddNode):
                 self.arop = node
                 continue
