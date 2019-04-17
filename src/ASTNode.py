@@ -397,8 +397,7 @@ class VarDefNode(ASTNode):
             elif isinstance(node, IdentNode):
                 self.id = node
             elif isinstance(node, TerNode):
-                if getal == 2:
-                    self.right = node
+                self.right = node
             elif isinstance(node, AddNode):
                 self.arop = node
                 continue
@@ -454,7 +453,7 @@ class FuncNode(ASTNode):
         self.idents = []
 
     def simplify(self):
-        self.simplified = TrueIntNode
+        self.simplified = True
         val = ""
         for node in self.nextNodes:
             if isinstance(node, TerNode):
