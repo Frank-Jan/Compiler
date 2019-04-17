@@ -1,5 +1,5 @@
-int i;
-int function();
+//int i;
+//int function();
 
 int main(){
     int i = 1;

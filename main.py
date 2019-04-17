@@ -15,35 +15,47 @@ def checkvardef(node, scope):
     print(node.var.value)
     # left side cannot exist locally:
     print("checkvardef")
-    if scope.existLocal(node.var.value):
-        printError("error: Redefinition " + node.var.value)
-        return -1;
+    varType = node.type.value
+    varName = node.var.value
+    if scope.existLocal(varName):
+        printError("error: Redefinition " + varName)
+        return -1
 
-    typeRight = None
     #check if right side of definition is declared
     if isinstance(node.right, VarNode) or isinstance(node.right, FuncNode):
         #search value:
-        value = scope.search(node.right.value)
-        if value is None:
+        rightSide = scope.search(node.right.value)
+        if rightSide is None:
             printError("error: undeclared first use " + node.right.value)
             return -2
-        typeRight = value.getType()
-        print("Type var/func right: ", typeRight)
-    elif isinstance(node.right, IntNode):
-        typeRight = "int"
-    elif isinstance(node.right, CharNode):
-        typeRight = "char"
+
+        # check if types match
+        if varType != rightSide.getType():
+            printError("Types don't match: " + str(varType) + "|" + str(rightSide.getType()))
+            return -3
+
+    elif isinstance(node.right, IntNode) or isinstance(node.right, CharNode) or isinstance(node.right, FloatNode):
+        # check if types match
+        if varType != node.right.type:
+            printError("Types don't match: " + str(varType) + "|" + str(node.right.type))
+            return -3
+
     elif isinstance(node.right, RefNode):
-        value = scope.search(node.right.value)
-        if value is None:
-            printError("error: undeclared first use " + node.right.value)
+        rightSideNode = node.right.var
+        rightSide = scope.search(rightSideNode.value)
+        if rightSide is None:
+            printError("error: undeclared first use " + rightSideNode.value)
             return -2
-        typeRight = value.getType()
+        # check if types match
+        if varType != rightSide.getType() or varType != rightSide.getType() + "* ":
+            printError("Types don't match: " + str(varType) + "|" + str(rightSide.getType()))
+            return -3
+
     elif isinstance(node.right, DeRefNode):
         print("DeRefNode not implemented")
-        value = scope.search(node.right.value)
+        value = scope.search(node.right.var.value)
         if value is None:
-            printError("error: undeclared first use " + node.right.value)
+            printError("error: undeclared first use " + node.right.var.value)
             return -2
         typeRight = value.getType()
 
@@ -52,10 +64,6 @@ def checkvardef(node, scope):
 
     else:
         print("UNKNOWN:", type(node.right), "|", node.right.value)
-    #check if types match
-    if typeRight != node.type.value:
-        printError("Types don't match: " + str(node.type.value) + "|" + str(typeRight))
-        return -3
     # insert new variable
     scope.insertVariable(node.var.value, node.type.value)
 
