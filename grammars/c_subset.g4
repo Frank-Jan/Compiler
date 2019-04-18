@@ -99,9 +99,9 @@ atom
 
 //conditional expressions
 conditionalExpression
-    :   identifier | arithmicOperation '>' identifier | arithmicOperation
-    |   identifier | arithmicOperation '<' identifier | arithmicOperation
-    |   identifier | arithmicOperation '==' identifier | arithmicOperation
+    :   (identifier | arithmicOperation) '>' (identifier | arithmicOperation)
+    |   (identifier | arithmicOperation) '<' (identifier | arithmicOperation)
+    |   (identifier | arithmicOperation) '==' (identifier | arithmicOperation)
     ;
 
 //loops
