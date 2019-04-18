@@ -713,16 +713,17 @@ class TypeSpecPtrNode(ASTNode):
 # CHILDREN THAT ARE NOT PARENTS = LEAFS
 class TerNode(ASTNode):
 
-    def __init__(self, value, ast):
+    def __init__(self, value, ast, pos):
         ASTNode.__init__(self, value, 0, ast)
         self.child = True
         self.simplified = True
+        self.pos = pos
 
 
 class VarNode(TerNode):
 
     def __init__(self, value, ast):
-        TerNode.__init__(self, value, ast)
+        TerNode.__init__(self, value, ast, pos)
         self.type = VOID()
 
     def getName(self):
@@ -735,7 +736,7 @@ class VarNode(TerNode):
 class TypeSpecBaseNode(TerNode):
 
     def __init__(self, value, ast):
-        TerNode.__init__(self, value, ast)
+        TerNode.__init__(self, value, ast, pos)
         self.type = VOID()
 
     def getType(self):
@@ -756,22 +757,22 @@ class LitNode(ASTNode):
 
 class IntNode(LitNode, TerNode):
 
-    def __init__(self, value, ast):
-        TerNode.__init__(self, value, ast)
+    def __init__(self, value, ast, pos):
+        TerNode.__init__(self, value, ast, pos)
         self.type = INT()
 
 
 class FloatNode(LitNode, TerNode):
 
-    def __init__(self, value, ast):
-        TerNode.__init__(self, value, ast)
+    def __init__(self, value, ast, pos):
+        TerNode.__init__(self, value, ast, pos)
         self.type = FLOAT()
 
 
 class CharNode(LitNode, TerNode):
 
-    def __init__(self, value, ast):
-        TerNode.__init__(self, value, ast)
+    def __init__(self, value, ast, pos):
+        TerNode.__init__(self, value, ast, pos)
         self.type = CHAR()
 
 # # for symbols as: "=", ";"
