@@ -17,21 +17,21 @@ int function(){
     }
     }
 
-//void eenWHile_LUS12343(char c, int j);
+void eenWHile_LUS12343(char , int j);
 
 int main(){
     char c = 'r';
     c = c+c;
-//    eenWHile_LUS12343(c, 4);
+    eenWHile_LUS12343(c, 4);
     return 900;
 }
 
-//void eenWHile_LUS12343(char c, int j){
-//    while(c == 'C'){
-//        j = j+1;
-//        if(j == 23){
-//            c = 'B';
-//        }
-//    }
-//    return;
-//}
+void eenWHile_LUS12343(char c, int j){
+    while(c == 'C'){
+        j = j+1;
+        if(j == 23){
+            c = 'B';
+        }
+    }
+    return;
+}
