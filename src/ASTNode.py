@@ -361,17 +361,20 @@ class ReturnStatNode(ASTNode):
         val = ""
         getal = 0
         for node in self.nextNodes:
-            if isinstance(node, TerNode) or isinstance(node, FuncNode) or isinstance(node, ArOpNode):
+            if isinstance(node, LitNode) or isinstance(node, FuncNode) or isinstance(node, ArOpNode):
                 if getal == 1:
                     self.returnVal = node
+                continue
+            elif isinstance(node, TerNode):
+                pass
             else:
                 print("oei, iets vergeten bij ReturnStatNode: ", type(node))
             getal += 1
             val += node.value + " "
             self.AST.delNode(node)
+            self.nextNodes.remove(node)
 
-        self.nextNodes = []
-        self.size = 0
+        self.size = len(self.nextNodes)
         self.value = val
 
 
@@ -516,6 +519,32 @@ class CondExpNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'CondExp', size, ast)
+        self.left = None
+        self.right = None
+
+    def simplify(self):
+        self.simplified = True
+        val = ""
+        getal = 0
+        for node in self.nextNodes:
+            getal +=1
+            if isinstance(node, VarNode) or isinstance(node, LitNode):
+                if getal == 1:
+                    self.left = node
+                else:
+                    self.right = node
+            elif isinstance(node, VarNode) or isinstance(node, LitNode):
+                self.right = node
+            elif isinstance(node, TerNode):
+                pass
+            else:
+                print("oei, iets vergeten bij CondExpNode: ", type(node))
+            val += node.value + " "
+            self.AST.delNode(node)
+
+        self.nextNodes = []
+        self.size = 0
+        self.value = val
 
 
 class LoopNode(ASTNode):
@@ -540,12 +569,14 @@ class IfElseNode(ASTNode):
 
     def simplify(self):
         self.simplified = True
-        val = ""
+        val = "if( "
         getal = 0
-        for node in self.nextNodes:
+        kopie = copy.copy(self.nextNodes)
+        for node in kopie:
             getal += 1
             if isinstance(node, CondExpNode):
                 self.cond = node
+                val += node.value + ") else"
                 continue
             elif isinstance(node, CodeBlockNode):
                 if getal == 5:
@@ -559,8 +590,8 @@ class IfElseNode(ASTNode):
                 print("node ", node, " gedropped")
             else:
                 print("oei, iets vergeten bij IfElseNode: ", type(node))
-            val += node.value
             self.AST.delNode(node)
+            self.nextNodes.remove(node)
 
         self.size = len(self.nextNodes)
         self.value = val
