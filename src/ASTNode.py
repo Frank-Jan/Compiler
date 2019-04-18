@@ -501,7 +501,7 @@ class FuncDeclNode(ASTNode):
         self.simplified = True
         val = ""
         for node in self.nextNodes:
-            if isinstance(node, TypeSpecPtrNode) or isinstance(node, TypeSpecBaseNode):
+            if isinstance(node, TypeSpecPtrNode) or isinstance(node, TypeSpecBaseNode) or isinstance(node, TerNode):
                 self.returnType = node
             elif isinstance(node, FuncSignNode):
                 self.fsign = node
