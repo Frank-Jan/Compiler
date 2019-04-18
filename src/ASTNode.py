@@ -360,7 +360,8 @@ class ReturnStatNode(ASTNode):
         self.simplified = True
         val = ""
         getal = 0
-        for node in self.nextNodes:
+        kopie = copy.copy(self.nextNodes)
+        for node in kopie:
             if isinstance(node, VarNode) or isinstance(node, LitNode) or isinstance(node, FuncNode) or isinstance(node, ArOpNode):
                 if getal == 1:
                     self.returnVal = node
@@ -505,7 +506,7 @@ class FuncDeclNode(ASTNode):
             elif isinstance(node, FuncSignNode):
                 self.fsign = node
             else:
-                print("oei, iets vergeten: ", type(node))
+                print("oei, iets vergeten Bij FuncDeclNode: ", type(node))
             val += node.value + " "
             self.AST.delNode(node)
 
@@ -556,6 +557,9 @@ class WhileNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'While', size, ast)
+
+    def simplify(self):
+        pass
 
 
 class IfElseNode(ASTNode):
