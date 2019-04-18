@@ -361,7 +361,7 @@ class ReturnStatNode(ASTNode):
         val = ""
         getal = 0
         for node in self.nextNodes:
-            if isinstance(node, LitNode) or isinstance(node, FuncNode) or isinstance(node, ArOpNode):
+            if isinstance(node, VarNode) or isinstance(node, LitNode) or isinstance(node, FuncNode) or isinstance(node, ArOpNode):
                 if getal == 1:
                     self.returnVal = node
                 continue

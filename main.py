@@ -12,6 +12,7 @@ from src.ASTNode import *
 #give a single returnStatement and the scope for it
 def determineType(scope, returnStatement):
     if returnStatement.returnVal is None:
+        print("returnStatement.returnVal is None")
         return "void"
     if isinstance(returnStatement.returnVal, LitNode):    #is it a literal
         return returnStatement.returnVal.value.type
@@ -89,6 +90,7 @@ def checkVarDef(node, scope):
 
 def checkFuncDef(node, scope):
     # check if return type is same as given
+    print(node.block.returnStats)
     for retStat in node.block.returnStats:
         print("Function: ", node.value, " / ",  determineType(node.block.symboltable, retStat))
         if node.returnType != determineType(node.block.symboltable, retStat):
