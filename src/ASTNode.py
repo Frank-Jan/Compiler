@@ -697,6 +697,7 @@ class LitNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, "Lit", size, ast)
+        self.type = None
 
 
 class IntNode(LitNode, TerNode):

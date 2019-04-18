@@ -12,10 +12,9 @@ from src.ASTNode import *
 #give a single returnStatement and the scope for it
 def determineType(scope, returnStatement):
     if returnStatement.returnVal is None:
-        print("returnStatement.returnVal is None")
         return "void"
     if isinstance(returnStatement.returnVal, LitNode):    #is it a literal
-        return returnStatement.returnVal.value.type
+        return returnStatement.returnVal.type
     if isinstance(returnStatement.returnVal, VarNode) or isinstance(returnStatement.returnVal, FuncNode):    #is it a variable
         #search for variable in scope
         var = scope.search(returnStatement.returnVal.value)
@@ -92,19 +91,18 @@ def checkFuncDef(node, scope):
     # check if return type is same as given
     print(node.block.returnStats)
     for retStat in node.block.returnStats:
-        print("Function: ", node.value, " / ",  determineType(node.block.symboltable, retStat))
-        if node.returnType != determineType(node.block.symboltable, retStat):
+        if node.returnType.value != determineType(node.block.symboltable, retStat):
             #wrong return type
             print("Function wrong return type")
             return -1
     # check if function is already defined
     code = scope.defineFunction(node.name.value, node.returnType.value, node.types)
-    if(code == 0):
+    if code == 0:
         print("Function accepted")
-
+        return 0
     else:
         print("Function denied")
-    return 0
+        return -2
 
 
 def testFile(argv):
