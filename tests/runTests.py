@@ -4,7 +4,7 @@ from tests.symbolTable.testSymbolTable import testAll as testSymbolTable
 def testAll():
     print("starting tests")
     testGrammar()
-    testSymbolTable()
+    #testSymbolTable()
     print("Done...")
     return 0
 

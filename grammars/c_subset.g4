@@ -41,7 +41,7 @@ returnStatement
 
 
 variableDefinition
-    : typeSpec variable '=' (identifier | arithmicOperation)
+    : variableDeclaration assignRight
     ;
 
 functionDefinition
@@ -70,8 +70,13 @@ generalDeclaration
     | functionDeclaration
     ;
 
+assignRight
+    : '=' value
+    ;
+
 assignment
-    : variable |  '=' (literal | identifier | arithmicOperation) ;
+    : variable assignRight
+    ;
 
 //arithmic expressions
 arithmicOperation
@@ -93,15 +98,16 @@ prod
     ;
 
 atom
-    : identifier
-    | '(' arithmicOperation ')'
+    : function
+    | lvalue
+    | '(' value ')'
     ;
 
 //conditional expressions
 conditionalExpression
-    :   (identifier | arithmicOperation) '>' (identifier | arithmicOperation)
-    |   (identifier | arithmicOperation) '<' (identifier | arithmicOperation)
-    |   (identifier | arithmicOperation) '==' (identifier | arithmicOperation)
+    :   value '>' value
+    |   value '<' value
+    |   value '==' value
     ;
 
 //loops
@@ -128,40 +134,40 @@ codeBlock
 
 
 //Identifier
-identifier // id is a reserved keyword!!!
-    : dereference
-    | reference
-    | variable
-    | function
-    | literal
-    ;
+//identifier // id is a reserved keyword!!!
+//    : dereference
+//    | reference
+//    | variable
+//    | function
+//    | literal
+//    ;
+//
+//dereference_right
+//    : dereference_left
+//    | '*' function
+//    | '*' dereference_right
+//    ;
 
-dereference_right
-    : dereference_left
-    | '*' function
-    | '*' dereference_right
+value
+    : lvalue
+    | rvalue
     ;
 
 rvalue
     : function
-    | reference
-    ;
-
-reference
-    : '&' lvalue
+    | '&' lvalue
+    | arithmicOperation
     ;
 
 lvalue
     : variable
-    ;
-
-dereference
-    : '*' (variable | reference | '*' dereference)
+    | '*' lvalue
+    | '*' rvalue
     ;
 
 function
     : NAME '(' ')'
-    | NAME ('(' (identifier)(',' identifier)* ')')
+    | NAME ('(' (value)(',' value)* ')')
     ;
 
 functionSignature

@@ -4,7 +4,7 @@ from antlr4 import *
 from src.grammars.c_subsetLexer import c_subsetLexer
 from src.grammars.c_subsetParser import c_subsetParser
 # from src.grammars.c_subsetListener import c_subsetListener
-from src.Listener import Listener
+# from src.Listener import Listener
 # from src.DebugListener import DebugListener
 from src.SymbolTable import *
 from src.ASTNode import *
@@ -136,53 +136,53 @@ def testFile(argv):
 
     print("2/3:\tSyntax accepted")
     # try:
-    listener = Listener()
-    walker = ParseTreeWalker()
-    walker.walk(listener, tree)
-    ast = listener.getAST()
-    ast.printDot("derivationTree.dot")
-    ast.simplify()
-    ast.printDot("AST.dot")
+    # listener = Listener()
+    # walker = ParseTreeWalker()
+    # walker.walk(listener, tree)
+    # ast = listener.getAST()
+    # ast.printDot("derivationTree.dot")
+    # ast.simplify()
+    # ast.printDot("AST.dot")
     # except:
     #     print("Error creating AST:\n", sys.exc_info()[0])
     #     return 1
-    print("3/3:\tWriting AST to AST.dot")
-
-    scope = SymbolTable(None)
-    function = None
-    codeBlocks = []
-
-    for node in ast:
-        # check scopes
-        if len(codeBlocks) != 0:
-            codeblokje = codeBlocks[-1]
-            codeblokje.scopeCounter -= 1
-            if codeblokje.scopeCounter == 0:
-                codeBlocks.remove(codeblokje)
-                scope = scope.closeScope()
-
-        # print(node)
-        if isinstance(node, CodeBlockNode):
-            scope = scope.openScope(function)
-            function = None
-            node.symboltable = scope
-            codeBlocks.append(node)
-        elif isinstance(node, VarDefNode):
-            printError("Define variable")
-            checkVarDef(node, scope)
-        elif isinstance(node, VarDeclNode):
-            printError("Declare variable")
-            print("\tNot yet implemented")
-            #checkVarDecl(node, scope)
-        elif isinstance(node, FuncDefNode):
-            printError("Define function")
-            checkFuncDef(node, scope)
-        elif isinstance(node, FuncDeclNode):
-            printError("Declare function")
-            checkFuncDecl(node, scope)
-        else:
-            print("TODO: ", node)
-    print(scope)
+    print("3/4:\tWriting AST to AST.dot")
+    #
+    # scope = SymbolTable(None)
+    # function = None
+    # codeBlocks = []
+    #
+    # for node in ast:
+    #     # check scopes
+    #     if len(codeBlocks) != 0:
+    #         codeblokje = codeBlocks[-1]
+    #         codeblokje.scopeCounter -= 1
+    #         if codeblokje.scopeCounter == 0:
+    #             codeBlocks.remove(codeblokje)
+    #             scope = scope.closeScope()
+    #
+    #     # print(node)
+    #     if isinstance(node, CodeBlockNode):
+    #         scope = scope.openScope(function)
+    #         function = None
+    #         node.symboltable = scope
+    #         codeBlocks.append(node)
+    #     elif isinstance(node, VarDefNode):
+    #         printError("Define variable")
+    #         checkVarDef(node, scope)
+    #     elif isinstance(node, VarDeclNode):
+    #         printError("Declare variable")
+    #         print("\tNot yet implemented")
+    #         #checkVarDecl(node, scope)
+    #     elif isinstance(node, FuncDefNode):
+    #         printError("Define function")
+    #         checkFuncDef(node, scope)
+    #     elif isinstance(node, FuncDeclNode):
+    #         printError("Declare function")
+    #         checkFuncDecl(node, scope)
+    #     else:
+    #         print("TODO: ", node)
+    # print(scope)
     return 0
 
 

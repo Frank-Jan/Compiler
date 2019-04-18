@@ -1,5 +1,4 @@
-int main() {
-    int i = 4;
-    int j = *&*&i;
+int main(){
+
     return 0;
 }
