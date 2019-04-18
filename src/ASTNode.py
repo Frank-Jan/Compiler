@@ -501,7 +501,7 @@ class FuncDeclNode(ASTNode):
         self.simplified = True
         val = ""
         for node in self.nextNodes:
-            if isinstance(node, TypeSpecPtrNode) or isinstance(node, TypeSpecBaseNode):
+            if isinstance(node, TypeSpecPtrNode) or isinstance(node, TypeSpecBaseNode) or isinstance(node, TerNode):
                 self.returnType = node
             elif isinstance(node, FuncSignNode):
                 self.fsign = node
@@ -557,9 +557,31 @@ class WhileNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'While', size, ast)
+        self.cond = None
+        self.block = None
 
     def simplify(self):
-        pass
+        self.simplified = True
+        val = "While"
+        getal = 0
+        kopie = copy.copy(self.nextNodes)
+        for node in kopie:
+            getal += 1
+            if isinstance(node, CondExpNode):
+                self.cond = node
+                continue
+            elif isinstance(node, CodeBlockNode):
+                self.block = node
+                continue
+            elif isinstance(node, TerNode):
+                print("node ", node, " gedropped")
+            else:
+                print("oei, iets vergeten bij WhileNode: ", type(node))
+            self.AST.delNode(node)
+            self.nextNodes.remove(node)
+
+        self.size = len(self.nextNodes)
+        self.value = val
 
 
 class IfElseNode(ASTNode):
