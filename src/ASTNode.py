@@ -153,7 +153,7 @@ class FuncSignNode(ASTNode):
             elif isinstance(node, TerNode):
                 if getal == 0:
                     getal += 1
-                    self.name = node
+                    self.name = node.value
                 else:
                     print("node ", node, " gedropped")
             else:
