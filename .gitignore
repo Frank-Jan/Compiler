@@ -1,0 +1,6 @@
+AST.dot
+cexecute
+derivationTree.dot
+.idea
+*/__pycache__/
+*/*/__pycache__/
