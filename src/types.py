@@ -53,4 +53,5 @@ class REFERENCE(VOID):
         return self.type
 
     def __str__(self):
-        return self.type.__str__() + "&"
+        # return self.type.__str__() + "&"
+        return self.type.__str__()

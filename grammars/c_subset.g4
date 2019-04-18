@@ -71,7 +71,7 @@ generalDeclaration
     ;
 
 assignment
-    : variable '=' (literal | identifier | arithmicOperation) ;
+    : variable |  '=' (literal | identifier | arithmicOperation) ;
 
 //arithmic expressions
 arithmicOperation
@@ -136,12 +136,27 @@ identifier // id is a reserved keyword!!!
     | literal
     ;
 
-dereference
-    : '*' (variable | function | reference | dereference)
+dereference_right
+    : dereference_left
+    | '*' function
+    | '*' dereference_right
+    ;
+
+rvalue
+    : function
+    | reference
     ;
 
 reference
-    : '&' (variable | dereference)
+    : '&' lvalue
+    ;
+
+lvalue
+    : variable
+    ;
+
+dereference
+    : '*' (variable | reference | '*' dereference)
     ;
 
 function

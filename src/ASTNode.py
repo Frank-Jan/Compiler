@@ -5,7 +5,7 @@ from src.types import *
 class ASTNode:
 
     def __init__(self, value, size, ast):
-        self.value = value
+        self.value = value  # waarde van de node
         self.parent = None  # tupel of parent node and position
         self.nextNodes = []
         self.size = size
@@ -460,6 +460,12 @@ class FuncNode(ASTNode):
         self.name = None
         self.idents = []
 
+    def getType(self):
+        return VOID()
+
+    def getName(self):
+        return self.name
+
     def simplify(self):
         self.simplified = True
         val = ""
@@ -625,7 +631,13 @@ class DeRefNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'DeRef', size, ast)
-        self.right = None
+        self.right = None   #VarNode
+
+    def getValue(self):
+        return self.right
+
+    def getType(self):
+        return self.right.getType().getBase()
 
     def simplify(self):
         self.simplified = True
@@ -649,7 +661,13 @@ class RefNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, 'Ref', size, ast)
-        self.var = None
+        self.var = None #VarNode or RefNode or DeRefNode
+
+    def getValue(self):
+        return self.var
+
+    def getType(self):
+        return REFERENCE(self.var.getType())
 
     def simplify(self):
         self.simplified = True
@@ -705,22 +723,36 @@ class VarNode(TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
-        self.type = "var"
+        self.type = VOID()
+
+    def getName(self):
+        return "unknown"
+
+    def getType(self):
+        return self.type
 
 
 class TypeSpecBaseNode(TerNode):
 
     def __init__(self, value, ast):
         TerNode.__init__(self, value, ast)
-        self.type = "type"
+        self.type = VOID()
+
+    def getType(self):
+        return self.type
 
 
 class LitNode(ASTNode):
 
     def __init__(self, size, ast):
         ASTNode.__init__(self, "Lit", size, ast)
-        self.type = None
+        self.type = VOID()
 
+    def getValue(self):
+        return self.value
+
+    def getType(self):
+        return self.type.__str__()
 
 class IntNode(LitNode, TerNode):
 

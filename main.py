@@ -26,11 +26,10 @@ def determineType(scope, returnStatement):
         print("Can't return arithmic operation yet")
         return "void"
 
+
 def checkVarDef(node, scope):
-    print(node.type.value)
-    print(node.var.value)
     # left side cannot exist locally:
-    print("checkvardef")
+    print("checkvardef for: ", node.type.value, node.var.value)
     varType = node.type.value
     varName = node.var.value
     if scope.existLocal(varName):
@@ -41,6 +40,7 @@ def checkVarDef(node, scope):
     if isinstance(node.right, VarNode) or isinstance(node.right, FuncNode):
         #search value:
         rightSide = scope.search(node.right.value)
+        print("\tname rightside?: ", node.right.value)
         if rightSide is None:
             printError("error: undeclared first use " + node.right.value)
             return -2
@@ -79,10 +79,13 @@ def checkVarDef(node, scope):
             return -3
     elif isinstance(node.right, ArOpNode):
         print("ArOpNode not implemented")
+        return 0
     else:
         print("UNKNOWN:", type(node.right))
+        return 0
     # insert new variable
     scope.insertVariable(varName, varType)  #will always return True because it was check earlier
+    print("\tvardef accepted")
     return 0
 
 
@@ -104,7 +107,6 @@ def checkFuncDef(node, scope):
         return -2
 
 def checkFuncDecl(node, scope):
-    print(type(node.fsign.name), node.fsign.name)
     print("Check func decl for: ", node.returnType.value, " ", node.fsign.name, " ", node.fsign.types)
     # check if function is already defined or declared
     code = scope.declareFunction(node.fsign.name, node.returnType.value, node.fsign.types)
@@ -166,10 +168,11 @@ def testFile(argv):
             node.symboltable = scope
             codeBlocks.append(node)
         elif isinstance(node, VarDefNode):
-            print("Define variable")
+            printError("Define variable")
             checkVarDef(node, scope)
         elif isinstance(node, VarDeclNode):
-            print("Declare variable")
+            printError("Declare variable")
+            print("\tNot yet implemented")
             #checkVarDecl(node, scope)
         elif isinstance(node, FuncDefNode):
             printError("Define function")
