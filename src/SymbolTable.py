@@ -66,8 +66,10 @@ class SymbolTable:
 
     # argumentList contains only types i.e. ["int", "float"]
     def defineFunction(self, name, returnType, argumentList):
+        print("\tSymboltable: declare function: ", returnType, " ", name, " ", argumentList)
         value =  self.getLocal(name)
         if value is None:
+            print("\tvalue is None")
             self.table[name] = FunctionRecord(returnType, argumentList, True)   #define function
             return 0
         elif value.isVar():
@@ -77,6 +79,7 @@ class SymbolTable:
             return -2
         else:
             if self.parent == None:
+                print("\tglobal scope")
                 #global scope: allow multiple declarations with one definition:
                 if value.type == returnType and value.argumentList == argumentList:
                     #definition same as declaration
@@ -85,17 +88,22 @@ class SymbolTable:
                     #declaration and definition are different
                     return -3
             else:
+                print("\tlocal scope")
                 #not in global scope: no double declarations or definitions allowed
                 return -4
 
     def declareFunction(self, name, returnType, argumentList):
+        print("\tSymboltable: declare function: ", returnType, " ", name, " ", argumentList)
         value = self.getLocal(name)
         if value is None:
+            print("\tvalue is None")
             self.table[name] = FunctionRecord(returnType, argumentList, False) #define function
             return 0
         elif value.isVar():
+            print("\tvalue already var")
             return -1 # name already defined as variable
         elif self.parent is None:
+            print("\tglobal scope")
             # global scope: allow multiple declarations with one definition:
             if value.getType() == returnType and value.argumentList == argumentList:
                 # declaration same as previous declarations/definition
@@ -105,9 +113,11 @@ class SymbolTable:
                 # different function signature
                 return -2
         elif value.defined:
+            print("\tlocal scope & defined already")
             # not in global scope and function already defined
             return -3
         else:
+            print("\tlocal scope && not defined")
             # not in global scope and not yet defined
             # check function signature
             if value.getType() == returnType and value.argumentList == value.argumentList:

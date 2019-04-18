@@ -18,7 +18,6 @@ def determineType(scope, returnStatement):
     if isinstance(returnStatement.returnVal, VarNode) or isinstance(returnStatement.returnVal, FuncNode):    #is it a variable
         #search for variable in scope
         var = scope.search(returnStatement.returnVal.value)
-        print("Variable or Function: ", var.getType())
         if var is None:
             return -1
         else:
@@ -88,21 +87,33 @@ def checkVarDef(node, scope):
 
 
 def checkFuncDef(node, scope):
+    print("Check func def for: ", node.returnType.value, " ", node.name.value, " ", node.types)
     # check if return type is same as given
-    print(node.block.returnStats)
     for retStat in node.block.returnStats:
         if node.returnType.value != determineType(node.block.symboltable, retStat):
             #wrong return type
-            print("Function wrong return type")
+            print("\tFunction wrong return type")
             return -1
     # check if function is already defined
     code = scope.defineFunction(node.name.value, node.returnType.value, node.types)
     if code == 0:
-        print("Function accepted")
+        print("\tFunction accepted")
         return 0
     else:
-        print("Function denied")
+        printError("error: function definition denied")
         return -2
+
+def checkFuncDecl(node, scope):
+    print(type(node.fsign.name), node.fsign.name)
+    print("Check func decl for: ", node.returnType.value, " ", node.fsign.name, " ", node.fsign.types)
+    # check if function is already defined or declared
+    code = scope.declareFunction(node.fsign.name, node.returnType.value, node.fsign.types)
+    if code == 0:
+        print("\tFunction accepted")
+        return 0
+    else:
+        printError("error: function declaration denied")
+        return -1
 
 
 def testFile(argv):
@@ -161,11 +172,11 @@ def testFile(argv):
             print("Declare variable")
             #checkVarDecl(node, scope)
         elif isinstance(node, FuncDefNode):
-            print("Define function")
+            printError("Define function")
             checkFuncDef(node, scope)
         elif isinstance(node, FuncDeclNode):
-            print("Declare function")
-            scope.declareFunction(node.fsign.name.value, node.returnType.value, node.fsign.types)
+            printError("Declare function")
+            checkFuncDecl(node, scope)
         else:
             print("TODO: ", node)
     print(scope)
