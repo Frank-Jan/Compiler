@@ -1,8 +1,10 @@
-<<<<<<< HEAD
 int v;
+
+int func(){
+    return i;
+}
 
 int main()
 {
-    int v = 2;
-    return v;
+    return 0;
 }
