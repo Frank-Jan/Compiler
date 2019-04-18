@@ -86,6 +86,7 @@ class SymbolTable:
                 if value.type == returnType and value.argumentList == argumentList:
                     #definition same as declaration
                     self.table[name] = FunctionRecord(returnType, argumentList, True) #define function
+                    return 0
                 else:
                     #declaration and definition are different
                     print("different signature")
