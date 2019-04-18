@@ -73,9 +73,11 @@ class SymbolTable:
             self.table[name] = FunctionRecord(returnType, argumentList, True)   #define function
             return 0
         elif value.isVar():
+            print("already defined as var")
             return -1 #already defined/declared as variable
         elif value.defined:
             # functions is already defined
+            print("already defined")
             return -2
         else:
             if self.parent == None:
@@ -86,6 +88,7 @@ class SymbolTable:
                     self.table[name] = FunctionRecord(returnType, argumentList, True) #define function
                 else:
                     #declaration and definition are different
+                    print("different signature")
                     return -3
             else:
                 print("\tlocal scope")
@@ -110,6 +113,7 @@ class SymbolTable:
                 # already declared/defined
                 return 0
             else:
+                print("different signature")
                 # different function signature
                 return -2
         elif value.defined:
@@ -126,6 +130,7 @@ class SymbolTable:
                 return 0
             else:
                 # different function signature
+                print("different signature")
                 return -2
 
 

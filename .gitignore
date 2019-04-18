@@ -4,3 +4,6 @@ derivationTree.dot
 .idea
 */__pycache__/
 */*/__pycache__/
+
+src/grammars
+tests/test.c
