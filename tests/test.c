@@ -1,1 +1,3 @@
-int function();
+int i;
+char c;
+float f;

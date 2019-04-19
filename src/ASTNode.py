@@ -49,18 +49,24 @@ class ASTNode:
         return True
 
     def simplify(self):
-        self.isSimplified = True
+        #Base simplify will only call simplify() on all children
+        for child in self.children:
+            child.simplify()
 
-        if self.parent == None or self.maxChildren == 0:
-            return
-        elif self.maxChildren == 2:
-            self.AST.delNode(self.children[1])
-        elif self.maxChildren > 2:
-            print("Say whut?!")
 
-        self.children[0].parent = self.parent
-        self.parent[0].children[self.parent[1]] = self.children[0]
-        self.AST.delNode(self)
+
+        # self.isSimplified = True
+        # print("Base simplify: ", type(self))
+        # if self.parent == None or self.maxChildren == 0:
+        #     return
+        # elif self.maxChildren == 2:
+        #     self.AST.delNode(self.children[1])
+        # elif self.maxChildren > 2:
+        #     print("Say whut?!")
+        #
+        # self.children[0].parent = self.parent
+        # self.parent[0].children[self.parent[1]] = self.children[0]
+        # self.AST.delNode(self)
 
 
 class GenStatNode(ASTNode):
@@ -68,6 +74,11 @@ class GenStatNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'GenStat', maxChildren, ast)
 
+    def simplify(self):
+        #only children need to simplify
+        for child in self.children:
+            child.simplify()
+        # self.isSimplified = True
 
 class AssignNode(ASTNode):
 
@@ -77,23 +88,30 @@ class AssignNode(ASTNode):
         self.right = None   #left node
 
     def simplify(self):
-        self.isSimplified = True
-        val = ""
-        for node in self.children:
-            if isinstance(node, VarNode):
-                self.var = node
-            elif isinstance(node, TerNode):
-                self.ter = node
-                val += node.value + " "
-                self.AST.delNode(node)
-                self.maxChildren -= 1
-                self.children.remove(node)
-            elif isinstance(node, ArOpNode):
-                pass
-            else:
-                print("oei, iets vergeten: ", type(node))
+        if len(self.children) != 2:
+            printError("AssignNode doesn't have 2 children: ", len(self.children))
+        self.left = self.children[0]
+        self.right = self.children[1].simplify()  #assignRight wil return value node
+        self.AST.delNode(self.children[1])
+        self.children[1] = self.right             #remove old child and replace
 
-        self.value = val
+        # self.isSimplified = True
+        # val = ""
+        # for node in self.children:
+        #     if isinstance(node, VarNode):
+        #         self.var = node
+        #     elif isinstance(node, TerNode):
+        #         self.ter = node
+        #         val += node.value + " "
+        #         self.AST.delNode(node)
+        #         self.maxChildren -= 1
+        #         self.children.remove(node)
+        #     elif isinstance(node, ArOpNode):
+        #         pass
+        #     else:
+        #         print("oei, iets vergeten: ", type(node))
+        #
+        # self.value = val
 
 
 class AssignRightNode(ASTNode, Type):
@@ -120,6 +138,9 @@ class FuncDefNode(ASTNode, Type):
 
     def getName(self):
         return self.name
+
+    def setType(self, type):    #set return type
+        self.type = type
 
     def simplify(self):
         self.isSimplified = True
@@ -336,7 +357,7 @@ class ProdNode(ArOpNode):
                         self.maxChildren -= 1
                         self.children.remove(node)
                 else:
-                    print("oei, iets vergeten: ", type(node))
+                    print("oei, iets vergeten simply_prod: ", type(node))
                 getal += 1
 
             self.value = val
@@ -373,7 +394,7 @@ class AddNode(ArOpNode):
                         self.maxChildren -= 1
                         self.children.remove(node)
                 else:
-                    print("oei, iets vergeten: ", type(node))
+                    print("oei, iets vergeten: simply_add ", type(node))
                 getal += 1
 
             self.value = val
@@ -448,35 +469,36 @@ class VarDefNode(ASTNode):
         self.arop = None  # arithmic operation
 
     def simplify(self):
-        self.isSimplified = True
-        val = ""
-        kopie = copy.copy(self.children)
-        getal = 0
-        for node in kopie:
-            if isinstance(node, TypeSpecBaseNode) or isinstance(node, TypeSpecPtrNode):
-                self.type = node
-            elif isinstance(node, VarNode):
-                if getal == 1:
-                    self.var = node
-                elif getal > 1:
-                    self.right = node
-            elif isinstance(node, IdentNode):
-                self.id = node
-            elif isinstance(node, FuncNode) or isinstance(node, RefNode) \
-                    or isinstance(node, DeRefNode) or isinstance(node, TerNode):
-                self.right = node
-            elif isinstance(node, AddNode):
-                self.arop = node
-                continue
-            else:
-                print("oei, iets vergeten: ", type(node))
-            val += node.value + " "
-            self.AST.delNode(node)
-            self.maxChildren -= 1
-            self.children.remove(node)
-            getal += 1
-
-        self.value = val
+        pass
+        # self.isSimplified = True
+        # val = ""
+        # kopie = copy.copy(self.children)
+        # getal = 0
+        # for node in kopie:
+        #     if isinstance(node, TypeSpecBaseNode) or isinstance(node, TypeSpecPtrNode):
+        #         self.type = node
+        #     elif isinstance(node, VarNode):
+        #         if getal == 1:
+        #             self.var = node
+        #         elif getal > 1:
+        #             self.right = node
+        #     elif isinstance(node, IdentNode):
+        #         self.id = node
+        #     elif isinstance(node, FuncNode) or isinstance(node, RefNode) \
+        #             or isinstance(node, DeRefNode) or isinstance(node, TerNode):
+        #         self.right = node
+        #     elif isinstance(node, AddNode):
+        #         self.arop = node
+        #         continue
+        #     else:
+        #         print("oei, iets vergeten: simply_vardef ", type(node))
+        #     val += node.value + " "
+        #     self.AST.delNode(node)
+        #     self.maxChildren -= 1
+        #     self.children.remove(node)
+        #     getal += 1
+        #
+        # self.value = val
 
 
 class GenDefNode(ASTNode):
@@ -484,6 +506,8 @@ class GenDefNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'GenDef', maxChildren, ast)
 
+    def simplify(self):
+        self.isSimplified = True
 
 class VarDeclNode(ASTNode):
 
@@ -491,23 +515,45 @@ class VarDeclNode(ASTNode):
         ASTNode.__init__(self, 'VarDecl', maxChildren, ast)
         self.type = None
         self.var = None
+        self.size = 0
 
     def simplify(self):
-        self.isSimplified = True
-        val = ""
-        for node in self.children:
-            if isinstance(node, TypeSpecBaseNode) or isinstance(node, TypeSpecPtrNode):
-                self.type = node
-            elif isinstance(node, VarNode):
-                self.var = node
-            else:
-                print("oei, iets vergeten: ", type(node))
-            val += node.value + " "
-            self.AST.delNode(node)
+        print("SIMPLIFY: VarDeclNode")
+        if len(self.children) == 2:
+            #no array
+            self.size = 1
+            self.type = self.children[0].simplify()
+            self.var = self.children[1].simplify()
+        else:
+            self.size = self.children[3].value
+            self.type = self.children[0].simplify()
+            self.var = self.children[1].simplify()
+            self.AST.delNode(self.children[2])  #'('
+            self.AST.delNode(self.children[3])  #DIGIT
+            self.AST.delNode(self.children[4])  #')'
 
+        self.AST.delNode(self.children[0])
+        self.AST.delNode(self.children[1])
         self.children = []
-        self.maxChildren = 0
-        self.value = val
+        self.value = str(self.type) + " " + str(self.var)
+        # self.isSimplified = True
+        # val = ""
+        # for node in self.children:
+        #     print("\ttype child: ", type(node))
+        #     if isinstance(node, TypeSpecNode):
+        #         print("\t\ttype")
+        #         self.type = node
+        #     elif isinstance(node, VarNode):
+        #         print("\t\tvarnode")
+        #         self.var = node
+        #     else:
+        #         print("oei, iets vergeten: simply_vardecl ", type(node))
+        #     val += node.value + " "
+        #     self.AST.delNode(node)
+        #
+        # self.children = []
+        # self.maxChildren = 0
+        # self.value = val
 
 
 class FuncNode(ASTNode):
@@ -546,13 +592,21 @@ class GenDeclNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'GenDecl', maxChildren, ast)
 
+    def simplify(self):
+        # only children need to simplify
+        for child in self.children:
+            child.simplify()
+        self.isSimplified = True
 
-class FuncDeclNode(ASTNode):
+class FuncDeclNode(ASTNode, Type):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'FuncDecl', maxChildren, ast)
         self.returnType = None
         self.fsign = None
+
+    def setType(self, type):  #set return type
+        self.type = type
 
     def simplify(self):
         self.isSimplified = True
@@ -682,7 +736,7 @@ class IfElseNode(ASTNode):
 class TerNode(ASTNode): # leafs
 
     def __init__(self, value, ast, pos):
-        ASTNode.__init__(self, "TER:"+value, 0, ast)
+        ASTNode.__init__(self, value, 0, ast)
         self.child = True
         self.pos = pos
 
@@ -694,11 +748,25 @@ class VarNode(ASTNode):
 
     def __init__(self, value, ast, pos):
         # TerNode.__init__(self, value, ast, pos)
-        ASTNode.__init__(self, 'VAR', 1, ast)
-        self.name = 'VAR'   #fill in name
+        ASTNode.__init__(self, value, 1, ast)
 
     def getName(self):
-        return self.name
+        return self.value
+
+    def simplify(self):
+        return self.value
+        # self.isSimplified = True
+        # print("SIMPLIFY:")
+        # print("\t", self.name)
+        # print("\tchildren:")
+        # for c in self.children:
+        #     print("\t\t", c, "/", c.value)
+        # self.name = self.children[0].value
+        # self.AST.delNode(self.children[0])
+        # self.children[0].parent = self.parent
+        # self.parent[0].children[self.parent[1]] = self.children[0]
+        # self.AST.delNode(self)
+
 
 
 class LitNode(ASTNode, Type):
@@ -729,8 +797,7 @@ class CharNode(LitNode, TerNode):
 
     def __init__(self, value, ast, pos):
         LitNode.__init__(self, 1, ast, CHAR())
-        TerNode.__init__(self, "CHAR"+value, ast)
-
+        TerNode.__init__(self, value, ast)
 
 #type/pointer/reference/literal nodes
 
@@ -740,12 +807,31 @@ class TypeSpecNode(Type, ASTNode):
         ASTNode.__init__(self, 'TypeSpecNode', maxChildren, ast)
         Type.__init__(self, VOID())
 
+    def setType(self, childType):
+        self.type = childType
+
+    def simplify(self):
+        type = self.children[0].simplify()
+        self.setType(type)
+        print("Simplified TypeSpecNode to: ", self.getType())
+        return self.getType()
+
 
 class TypeSpecFuncNode(Type, ASTNode):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'TypeSpecFunc', maxChildren, ast)
         Type.__init__(self, VOID())
+
+    def setType(self, childType):
+        self.type = childType
+
+    def simplify(self):
+        self.isSimplified = True
+        self.setType(self.children[0])
+        print("Simplified TypeSpecFuncNode to: ", self.getType())
+        # self.AST.delNode(self.children[0])
+        # self.children = None
 
 
 class TypeSpecBaseNode(Type, ASTNode):
@@ -754,16 +840,20 @@ class TypeSpecBaseNode(Type, ASTNode):
         ASTNode.__init__(self, 'TypeSpecBaseNode', maxChildren, ast)
         Type.__init__(self, VOID())
 
-
     def setType(self, childType):
         self.type = childType
 
     def simplify(self):
-        self.isSimplified = True
-        print(self.children[0])
-        print(type(self.children[0]))
-        print(isinstance(self.children[0], CharNode))
-        # self.setType(self.children[0].getType())    #has only a single child (TerNode)
+        print("Child: ", self.children[0].value)
+        self.type = toType(self.children[0].value)
+        self.AST.delNode(self.children[0])
+        self.children = None
+        print("Simplified TypeSpecBaseNode to: ", self.getType())
+        return self.getType()
+        # self.isSimplified = True
+        # self.setType(toType(self.children[0]))
+        # self.AST.delNode(self.children[0])
+        # self.children = None
 
 
 class TypeSpecReferenceNode(Type, ASTNode):
@@ -780,11 +870,13 @@ class TypeSpecReferenceNode(Type, ASTNode):
 
     def simplify(self):
         self.isSimplified = True
+        print("Simplified TypeSpecReferenceNode to: ", self.getType())
         # has 2 children: & and a TypeSpecBase or TypeSpecBasePointerNode
         if isinstance(self.children[0], TypeSpecBaseNode):
             self.setType(self.children[0].getType())
         else:
             self.setType(self.children[1].getType())
+
 
 class TypeSpecPtrNode(Type, ASTNode):
 
@@ -796,88 +888,9 @@ class TypeSpecPtrNode(Type, ASTNode):
         self.type = POINTER(childType)
 
     def simplify(self):
+        print("Simplified TypeSpecPtrNode to: ", self.getType())
         self.isSimplified = True
-        val = ""
-        for node in self.children:
-            if isinstance(node, TypeSpecPtrNode):
-                pass
-            elif isinstance(node, TerNode):
-                pass
-            else:
-                print("oei, iets vergeten")
-            val += node.value
-            self.AST.delNode(node)
-
-        self.children = []
-        self.maxChildren = 0
-        self.value = val
-
-#depricated
-class RefNode(ASTNode):
-
-    def __init__(self, maxChildren, ast):
-        ASTNode.__init__(self, 'Ref', maxChildren, ast)
-        # Type.__init__(self, VOID())
-        self.var = None #VarNode or RefNode or DeRefNode
-
-    def getValue(self):
-        return self.var
-
-    def getType(self):
-        return self.var.getType()
-
-    def simplify(self):
-        self.isSimplified = True
-        val = ""
-        for node in self.children:
-            if isinstance(node, VarNode):
-                self.var = node
-            elif isinstance(node, TerNode):
-                pass
-            else:
-                print("oei, iets vergeten: ", type(node))
-            val += node.value
-            self.AST.delNode(node)
-
-        self.children = []
-        self.maxChildren = 0
-        self.value = val
-
-
-#depricated
-class DeRefNode(ASTNode):
-
-    def __init__(self, maxChildren, ast):
-        ASTNode.__init__(self, 'DeRef', maxChildren, ast)
-        self.right = None   #VarNode
-
-    def getValue(self):
-        return self.right
-
-    def getType(self):
-        return self.right.getType().getBase()
-
-    def simplify(self):
-        self.isSimplified = True
-        val = ""
-        for node in self.children:
-            if isinstance(node, VarNode):
-                self.var = node
-            elif isinstance(node, TerNode):
-                pass
-            else:
-                print("oei, iets vergeten: ", type(node))
-            val += node.value
-            self.AST.delNode(node)
-
-        self.children = []
-        self.maxChildren = 0
-        self.value = val
-
-# # for symbols as: "=", ";"
-# class SymbolNode(ASTNode):
-#
-#     def __init__(self, value, ast):
-#         ASTNode.__init__(self, value, 0, ast)
-#         self.child = True
-#         self.isSimplified = True
+        if isinstance(self.children[0], TerNode):
+            self.setType(VOID())
+        else:
+            self.type = self.children[0].getType()

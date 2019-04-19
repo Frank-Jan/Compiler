@@ -15,20 +15,24 @@ class Listener(c_subsetListener):
 
     # ADDS TERMINALS TO AST
     def addTerminals(self, children, pos):
-        if children == None:
+        if children is None:
             return
 
         for i in range(len(children)):
             if isinstance(children[i], TerminalNode):
-                self.AST.addNode(TerNode(children[i].symbol.text, self.AST, pos), i)
+                node = TerNode(children[i].symbol.text, self.AST, pos)
+                if not(toType(node.value) is None):
+                    node.isType = True
+                self.AST.addNode(node, i)
 
     # Enter a parse tree produced by c_subsetParser#cppSyntax.
     def enterCSyntax(self, ctx: c_subsetParser.CSyntaxContext):
         getal = 0
-        if ctx.children != None:
+        if not (ctx.children is None):
             getal = len(ctx.children)
         node = ASTNode("Root", getal, self.AST)
         self.AST.nodes.append(node)
+        self.AST.root = node
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Exit a parse tree produced by c_subsetParser#cppSyntax.
@@ -322,7 +326,9 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#typeSpecBase.
     def enterTypeSpecBase(self, ctx:c_subsetParser.TypeSpecBaseContext):
-        self.AST.addNode(TypeSpecBaseNode(ctx.getText(),len(ctx.children), self.AST))
+        node = TypeSpecBaseNode(ctx.getText(), len(ctx.children), self.AST)
+        node.type = toType(ctx.children[0].symbol.text) #first child is always a type
+        self.AST.addNode(node)
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Exit a parse tree produced by c_subsetParser#typeSpecBase.

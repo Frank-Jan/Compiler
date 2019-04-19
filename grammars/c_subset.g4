@@ -44,8 +44,8 @@ variableDefinition
     ;
 
 functionDefinition
-    : (typeSpec | VOID) NAME '(' ')' codeBlock
-    | (typeSpec | VOID) NAME ('(' (typeSpecFunc variable)
+    : (typeSpec | VOID) variable '(' ')' codeBlock
+    | (typeSpec | VOID) variable ('(' (typeSpecFunc variable)
                 (','(typeSpecFunc variable) )*
             ')') codeBlock
     ;
@@ -168,13 +168,13 @@ rvalue
     ;
 
 function
-    : NAME '(' ')'
-    | NAME ('(' (value)(',' value)* ')')
+    : variable '(' ')'
+    | variable ('(' (value)(',' value)* ')')
     ;
 
 functionSignature
-    : NAME '(' ')'
-    | NAME ('(' (typeSpecFunc variable?)
+    : variable '(' ')'
+    | variable ('(' (typeSpecFunc variable?)
                 (','(typeSpecFunc variable?) )*
             ')')
     ;
