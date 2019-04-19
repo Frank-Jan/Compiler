@@ -3,11 +3,11 @@ grammar c_subset;
 import c_subset_tokens;
 
 //woops: should be cSynthax
-cppSyntax
+cSyntax
     : (generalStatement)* EOF;
 
 functionSyntax
-    : (functionStatement | codeBlock | loop)*
+    : (functionStatement | functionDefinition ';'? | codeBlock | loop)*
     ;
 
 generalStatement
@@ -20,7 +20,6 @@ functionStatement
     : (variableDeclaration
         | variableDefinition
         | functionDeclaration
-        | functionDefinition
         | assignment
         | returnStatement
         | variable
@@ -34,7 +33,7 @@ returnStatement
                 | function
                 | literal
                 | variable
-                | arithmicOperation
+                | arithmeticOperation
                 )
     | RETURN
     ;
@@ -46,8 +45,8 @@ variableDefinition
 
 functionDefinition
     : (typeSpec | VOID) NAME '(' ')' codeBlock
-    | (typeSpec | VOID) NAME ('(' (typeSpec '&'? variable)
-                (','(typeSpec '&'? variable) )*
+    | (typeSpec | VOID) NAME ('(' (typeSpecFunc variable)
+                (','(typeSpecFunc variable) )*
             ')') codeBlock
     ;
 
@@ -75,11 +74,11 @@ assignRight
     ;
 
 assignment
-    : variable assignRight
+    : lvalue assignRight
     ;
 
-//arithmic expressions
-arithmicOperation
+//arithmetic expressions
+arithmeticOperation
     : add
     | prod
     ;
@@ -99,6 +98,7 @@ prod
 
 atom
     : function
+    | literal
     | lvalue
     | '(' value ')'
     ;
@@ -153,16 +153,18 @@ value
     | rvalue
     ;
 
-rvalue
-    : function
-    | '&' lvalue
-    | arithmicOperation
-    ;
 
 lvalue
     : variable
     | '*' lvalue
-    | '*' rvalue
+    | '*' '&' lvalue
+    ;
+
+rvalue
+    : function
+    | literal
+    | '&' lvalue
+    | arithmeticOperation
     ;
 
 function
@@ -172,8 +174,8 @@ function
 
 functionSignature
     : NAME '(' ')'
-    | NAME ('(' (typeSpec '&'? variable?)
-                (','(typeSpec '&'? variable?) )*
+    | NAME ('(' (typeSpecFunc variable?)
+                (','(typeSpecFunc variable?) )*
             ')')
     ;
 
@@ -209,6 +211,11 @@ typeSpecBase //typeSpecifier, type is reserved keyword!!!
     | INT
     ;
 
+typeSpecReference
+    : typeSpecBase '&'
+    | typeSpecPointer '&'
+    ;
+
 typeSpecPointer
     : typeSpecBase '*'
     | typeSpecPointer '*'
@@ -218,6 +225,12 @@ typeSpecPointer
 typeSpec
     : typeSpecBase
     | typeSpecPointer
+    ;
+
+typeSpecFunc
+    : typeSpecBase
+    | typeSpecPointer
+    | typeSpecReference
     ;
 
 //Things to skip:

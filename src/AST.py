@@ -19,10 +19,10 @@ class AST():
 
             leftnodes.append(node)
 
-            if node.isChild():  # if child
+            if node.isLeaf():  # if child
                 continue
 
-            for child in reversed(node.nextNodes):  # traverse childs in reversed order (left-derivation)_
+            for child in reversed(node.children):  # traverse childs in reversed order (left-derivation)_
                 nodes.append(child)
         self.nodes = leftnodes
         return self
@@ -42,29 +42,32 @@ class AST():
         while not len(nodes) == 0:  # while not all nodes are simplified
             node = nodes[-1]  # take last node
 
-            if node.simplified:  # if node is simplified: skip this one
+            if node.isSimplified:  # if node is simplified: skip this one
                 nodes.pop()
                 continue
-            elif node.isChild() or node.timeToSimplify():  # if childs are simplified parent may be simplified
+            elif node.isLeaf() or node.timeToSimplify():  # if childs are simplified parent may be simplified
                 node.simplify()  # child node is already simplified
                 nodes.pop()
 
-            for child in reversed(node.nextNodes):  # traverse childs in reversed order (left-derivation)_
+            for child in reversed(node.children):  # traverse childs in reversed order (left-derivation)_
                 nodes.append(child)
 
     def addNode(self, ASTnode, pos=None):
+        print("===========ADD NODE=========")
+        print("Name:\t", ASTnode)
+        print("type:\t", type(ASTnode))
         prevNode = None
         for i in reversed(range(len(self.nodes))):
             prevNode = self.nodes[i]
-            if not prevNode.isChild() and not prevNode.hasMaxChildren():
+            if not prevNode.isLeaf() and not prevNode.hasMaxChildren():
                 break
-
+        print("prev1:\t", prevNode)
         if pos == None:
-            for i in range(len(prevNode.nextNodes)):
-                if prevNode.nextNodes[i] == None:
+            for i in range(len(prevNode.children)):
+                if prevNode.children[i] == None:
                     pos = i
                     break
-
+        print("prev2:\t", prevNode)
         if pos == None:
             print("POS IS NONE")
             for node in self:
@@ -72,16 +75,18 @@ class AST():
             return
             # raise Exception("POS IS NONE")
 
-        if not prevNode.isChild():
-            prevNode.nextNodes[pos] = ASTnode
+        if not prevNode.isLeaf():
+            prevNode.children[pos] = ASTnode
             ASTnode.parent = (prevNode, pos)
+            print("Parent:\t", ASTnode.parent)
+        print("prevNode is child")
         self.nodes.append(ASTnode)
 
     def delNode(self, ASTNode):
         try:
-            nextNodes = ASTNode.nextNodes  # check voor copy
+            children = ASTNode.children  # check voor copy
             self.nodes.remove(ASTNode)
-            return nextNodes
+            return children
         except:
             return
 
@@ -97,12 +102,12 @@ class AST():
             self.id += 1
 
         for node in self.nodes:
-            if node.isChild():
+            if node.isLeaf():
                 states += "\"" + str(node) + "\" " + "[color = \"red\"]\n" + "[label=\"" + str(node.value) + "\"]"
             else:
                 states += "\"" + str(node) + "\"\n" + "[label=\"" + str(node.value) + "\"]"
 
-            for subnode in node.nextNodes:
+            for subnode in node.children:
                 graph += "\"" + str(node) + "\" -> \"" + str(subnode) + "\"\n"
 
         graph += states + '}'

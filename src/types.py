@@ -8,12 +8,14 @@ class VOID:
     def __eq__(self, other):
         return self.__str__() == other.__str__()
 
+
 class CHAR(VOID):
     def getType(self):
         return 1
 
     def __str__(self):
         return "char"
+
 
 class INT(VOID):
     def getType(self):
@@ -22,6 +24,7 @@ class INT(VOID):
     def __str__(self):
         return "int"
 
+
 class FLOAT(VOID):
     def getType(self):
         return 3
@@ -29,29 +32,34 @@ class FLOAT(VOID):
     def __str__(self):
         return "float"
 
+
 class POINTER(VOID):
-    def __init__(self, type):
+    def __init__(self, type=VOID()):
         self.type = type
 
     def getType(self):
-        return 4
+        return self.__str__()
 
     def getBase(self):
-        return self.type
+        return self.type.getType()
 
     def __str__(self):
         return self.type.__str__() + "*"
 
-class REFERENCE(VOID):
-    def __init__(self, type):
-        self.type = type
+#
+# class REFERENCE(VOID):
+#     def __init__(self, type=VOID()):
+#         self.type = type
+#
+#     def getType(self):
+#         return self.__str__()
+#
+#     def getBase(self):
+#         return self.type.getType()
+#
+#     def __str__(self):
+#         # return self.type.__str__() + "&"
+#         return self.type.__str__()
 
-    def getType(self):
-        return 5
 
-    def getBase(self):
-        return self.type
 
-    def __str__(self):
-        # return self.type.__str__() + "&"
-        return self.type.__str__()
