@@ -1,5 +1,9 @@
 from src.errors import printError
 
+llvmTypes = {'int': 'i32',
+             'double': 'double'
+             }
+
 
 def toType(string):
     if string == "void":
@@ -28,6 +32,10 @@ class VOID:
     def __eq__(self, other):
         return self.__str__() == other.__str__()
 
+    def toLLVM(self):
+        print("VOID to LLVM")
+        return llvmTypes[str(self)]
+
 
 class CHAR(VOID):
     def getType(self):
@@ -35,6 +43,10 @@ class CHAR(VOID):
 
     def __str__(self):
         return "char"
+
+    def toLLVM(self):
+        print("CHAR to LLVM")
+        return llvmTypes[str(self)]
 
 
 class INT(VOID):
@@ -44,6 +56,10 @@ class INT(VOID):
     def __str__(self):
         return "int"
 
+    def toLLVM(self):
+        print("INT to LLVM")
+        return llvmTypes[str(self)]
+
 
 class FLOAT(VOID):
     def getType(self):
@@ -51,6 +67,10 @@ class FLOAT(VOID):
 
     def __str__(self):
         return "float"
+
+    def toLLVM(self):
+        print("FLOAT to LLVM")
+        return llvmTypes[str(self)]
 
 
 class POINTER(VOID):
@@ -66,6 +86,10 @@ class POINTER(VOID):
     def __str__(self):
         return self.type.__str__() + "*"
 
+    def toLLVM(self):
+        print("POINTER to LLVM")
+        return llvmTypes[str(self.type)] + "*"
+
 
 class REFERENCE(VOID):
     def __init__(self, type=VOID()):
@@ -79,6 +103,3 @@ class REFERENCE(VOID):
 
     def __str__(self):
         return self.type.__str__() + "&"
-
-
-
