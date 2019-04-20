@@ -64,6 +64,7 @@ class ASTNode:
 
     def simplify(self):
         # Base simplify will only call simplify() on all children
+        print("Base simplify for: ", type(self))
         for child in self.children:
             child.simplify()
 
@@ -165,7 +166,8 @@ class AssignRightNode(ASTNode, Type):
         print("Simplify AssignRightNode")
         value = self.children[1].simplify()
         self.setType(value.getType())
-        self.AST.delNode(self.children[1])
+        if value is not self.children[1]:
+            self.AST.delNode(self.children[1])
         self.AST.delNode(self.children[0])
         self.children = []
         return value
@@ -323,6 +325,7 @@ class CodeBlockNode(ScopeNode):
         del self.children[0]
 
         # steal children of funcSyntax
+        print("funcSyntax children: ", type(funcSyntax.children))
         self.children = funcSyntax.children
         funcSyntax.children = []
         self.AST.delNode(funcSyntax)
@@ -401,10 +404,7 @@ class RvalueNode(ASTNode, Type):
         print("Simplify RvalueNode")
         retNode = None
         if len(self.children) == 1:
-            if isinstance(self.children[0], FuncNode):
-                printError("FuncDefNode simplify not yet implemented: returning VOID type")
-                return None
-            elif isinstance(self.children[0], ArOpNode):
+            if isinstance(self.children[0], ArOpNode):
                 printError("ArOpNode simplify not yet implemented: returning VOID type")
                 return None
             retNode = self.children[0].simplify()
@@ -452,6 +452,12 @@ class FuncStatNode(ASTNode):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'FuncStat', maxChildren, ast)
+
+    def simplify(self):
+        print("Simplify FuncStatNode")
+        for c in self.children:
+            c.simplify()
+        return None
 
 
 class ArOpNode(ASTNode):
@@ -740,7 +746,7 @@ class FuncNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Func', maxChildren, ast)
         self.name = None
-        self.idents = []
+        self.arguments = []
 
     def getType(self):
         return VOID()
@@ -749,21 +755,20 @@ class FuncNode(ASTNode):
         return self.name
 
     def simplify(self):
-        self.isSimplified = True
-        val = ""
-        for node in self.children:
-            if isinstance(node, TerNode):
-                self.name = node
-            elif isinstance(node, IdentNode):
-                self.idents.append(node)
-            else:
-                print("oei, iets vergeten: ", type(node))
-            val += node.value + " "
-            self.AST.delNode(node)
+        print("Simplify FuncNode")
+        self.children[0].simplify()
+        self.name = self.children[0].value
+        for c in self.children[1:]:
+            if isinstance(c,ValueNode):
+                self.arguments.append(c.simplify())
 
-        self.children = []
-        self.maxChildren = 0
-        self.value = val
+        toDelete = [item for item in self.children[1:] if item not in self.arguments]
+        for c in toDelete:
+            print("\tTo delete: ", type(c))
+            self.AST.delNode(c)
+        self.children = [self.children[0]]
+        self.children += self.arguments
+        return self
 
 
 class GenDeclNode(ASTNode):
