@@ -96,6 +96,15 @@ class Listener(c_subsetListener):
     def exitFunctionDefinition(self, ctx: c_subsetParser.FunctionDefinitionContext):
         pass
 
+    # Enter a parse tree produced by c_subsetParser#functionSignatureDefinition.
+    def enterFunctionSignatureDefinition(self, ctx:c_subsetParser.FunctionSignatureDefinitionContext):
+        self.AST.addNode(FuncSignDefNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+
+    # Exit a parse tree produced by c_subsetParser#functionSignatureDefinition.
+    def exitFunctionSignatureDefinition(self, ctx:c_subsetParser.FunctionSignatureDefinitionContext):
+        pass
+
     # Enter a parse tree produced by c_subsetParser#generalDefinition.
     def enterGeneralDefinition(self, ctx: c_subsetParser.GeneralDefinitionContext):
         self.AST.addNode(GenDefNode(len(ctx.children), self.AST))
@@ -309,7 +318,7 @@ class Listener(c_subsetListener):
     # Enter a parse tree produced by c_subsetParser#integer.
     def enterInteger(self, ctx: c_subsetParser.IntegerContext):
         self.AST.addNode(IntNode(ctx.getText(), self.AST, 0))
-        self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+        # self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Exit a parse tree produced by c_subsetParser#integer.
     def exitInteger(self, ctx: c_subsetParser.IntegerContext):

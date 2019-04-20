@@ -1,2 +1,6 @@
 
-int main(){return 0;}
+int main(){
+    int i;
+    int j = 0;
+    return f();
+}

@@ -29,8 +29,7 @@ functionStatement
     ;
 
 returnStatement
-    : RETURN    ( conditionalExpression
-                | function
+    : RETURN    ( function
                 | literal
                 | variable
                 | arithmeticOperation
@@ -44,10 +43,12 @@ variableDefinition
     ;
 
 functionDefinition
-    : (typeSpec | VOID) variable '(' ')' codeBlock
-    | (typeSpec | VOID) variable ('(' (typeSpecFunc variable)
-                (','(typeSpecFunc variable) )*
-            ')') codeBlock
+    : (typeSpec | VOID) functionSignatureDefinition codeBlock
+    ;
+
+functionSignatureDefinition
+    : variable '(' ')'
+    | variable '(' (typeSpecFunc variable)(','(typeSpecFunc variable) )* ')'
     ;
 
 generalDefinition
