@@ -276,6 +276,7 @@ class FuncSignDefNode(ASTNode):
         self.varNames = []  # VarNodes itself (not strings)
 
     def simplify(self):
+        self.children[0].simplify()
         self.name = self.children[0].value  # function name
         toDelete = []  # delete useless Ternodes ('(' ')' ',' variable)
         for c in self.children[1:]:
@@ -373,8 +374,7 @@ class LvalueNode(ASTNode, Type):
     def simplify(self):
         print("Simplify LvalueNode")
         if len(self.children) == 1:
-            self.children[0].simplify()
-            retNode = self.children[0]
+            retNode = self.children[0].simplify()
         elif len(self.children) == 2:
             retNode = self.children[1].simplify()
             if not isinstance(retNode.getType(), POINTER):
