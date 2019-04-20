@@ -401,20 +401,23 @@ class RvalueNode(ASTNode, Type):
         print("Simplify RvalueNode")
         retNode = None
         if len(self.children) == 1:
-            self.children[0].simplify()
-            retNode = self.children[0]
             if isinstance(self.children[0], FuncNode):
                 printError("FuncDefNode simplify not yet implemented: returning VOID type")
+                return None
             elif isinstance(self.children[0], ArOpNode):
                 printError("ArOpNode simplify not yet implemented: returning VOID type")
+                return None
+            retNode = self.children[0].simplify()
+            self.children.remove(self.children[0])
         elif len(self.children) == 2:
             retNode = self.children[1].simplify() #simplify lvalue node
             retNode.type = POINTER(self.children[1].getType())
+            self.children.remove(self.children[1])
         else:
             printError("error: unexpected number of children (", len(self.children) ,") in: ", type(RvalueNode))
             retNode = None
 
-        self.children.remove(retNode)
+
         for c in self.children:
             self.AST.delNode(c)
         self.children = []
@@ -457,7 +460,8 @@ class ArOpNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'ArOp', maxChildren, ast)
 
-    # def simplify(self):
+    def simplify(self):
+        return self
     # ASTNode.simplify(self)
     # self.isSimplified = True
     # val = ""
@@ -977,7 +981,7 @@ class LitNode(ASTNode, Type):
         retNode = self.children[0].simplify()
         self.value = self.children[0].value
         self.setType(self.children[0].getType())
-        self.AST.delNode(self.children[0])
+        # self.AST.delNode(self.children[0])
         self.children = []
         return retNode
 
@@ -993,6 +997,7 @@ class IntNode(TerNode, Type):
         TerNode.__init__(self, value, ast, pos)
 
     def simplify(self):
+        print("Simplify IntNode: ", self.value)
         toDelete = self.children
         for c in toDelete:
             self.AST.delNode(c)
@@ -1007,6 +1012,7 @@ class FloatNode(TerNode, Type):
         TerNode.__init__(self, value, ast, pos)
 
     def simplify(self):
+        print("Simplify FloatNode: ", self.value)
         toDelete = self.children
         for c in toDelete:
             self.AST.delNode(c)
@@ -1020,6 +1026,7 @@ class CharNode(TerNode, Type):
         TerNode.__init__(self, value, ast, pos)
 
     def simplify(self):
+        print("Simplify CharNode: ", self.value)
         toDelete = self.children
         for c in toDelete:
             self.AST.delNode(c)
