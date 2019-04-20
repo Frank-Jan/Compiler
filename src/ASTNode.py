@@ -133,10 +133,15 @@ class AssignNode(ASTNode):
         print("Simplify AssignNode")
         if len(self.children) != 2:
             printError("AssignNode doesn't have 2 children: ", len(self.children))
-        self.left = self.children[0]
+        self.left = self.children[0].simplify()
         self.right = self.children[1].simplify()  # assignRight wil return value node
-        self.AST.delNode(self.children[1])
-        self.children[1] = self.right  # remove old child and replace
+        toDelete = self.children[1]
+        self.children[1] = self.children[1].children[0]
+        toDelete.children = []
+        self.AST.delNode(toDelete)
+
+        # self.AST.delNode(self.children[1])
+        # self.children[1] = self.right  # remove old child and replace
 
 
 class AssignRightNode(ASTNode, Type):
@@ -353,6 +358,7 @@ class ValueNode(ASTNode, Type):
     def simplify(self):
         print("Simplify VarNode")
         self.setType(self.children[0].simplify())
+        self.value = self.children[0].value
         self.AST.delNode(self.children[0])
         self.children = []
         return self.getType()
@@ -367,14 +373,18 @@ class LvalueNode(ASTNode, Type):
         print("Simplify LvalueNode")
         if len(self.children) == 1:
             self.setType(self.children[0].simplify())
+            self.value = self.children[0].value
         elif len(self.children) == 2:
             self.children[1].simplify()
             if not isinstance(self.children[1].getType(), POINTER):
                 printError("error: dereferencing non-pointer")
                 return
             self.setType(self.children[1].getType().getBase())
+            self.value = self.children[1].value
         else:
             self.setType(self.children[2].simplify())   #* and & cancel eachother in '*&'
+            self.value = self.children[2].value
+
 
         for c in self.children:
             self.AST.delNode(c)
@@ -399,12 +409,14 @@ class RvalueNode(ASTNode, Type):
                 return VOID()
             else:
                 self.setType(self.children[0].simplify())
+                self.value = self.children[0].value
         elif len(self.children) == 2:
             self.children[1].simplify() #simplify lvalue node
             if not isinstance(self.children[1].getType(), POINTER):
                 printError("error: dereferencing non-pointer")
                 return
             self.setType(POINTER(self.children[1].getType()))
+            self.value = self.children[1].value
         else:
             printError("error: unexpected number of children (", len(self.children) ,") in: ", type(RvalueNode))
             return VOID()
@@ -961,8 +973,9 @@ class LitNode(ASTNode, Type):
 
     def simplify(self):
         print("Simplify LitNode")
-        self.setType(self.children[0].getType())
+        self.children[0].simplify()
         self.value = self.children[0].value
+        self.setType(self.children[0].getType())
         self.AST.delNode(self.children[0])
         self.children = []
 
@@ -977,6 +990,13 @@ class IntNode(TerNode, Type):
         Type.__init__(self, INT())
         TerNode.__init__(self, value, ast, pos)
 
+    def simplify(self):
+        toDelete = self.children
+        for c in toDelete:
+            self.AST.delNode(c)
+        self.children = []
+        return self.value
+
 
 class FloatNode(TerNode, Type):
 
@@ -984,6 +1004,12 @@ class FloatNode(TerNode, Type):
         Type.__init__(self, FLOAT())
         TerNode.__init__(self, value, ast, pos)
 
+    def simplify(self):
+        toDelete = self.children
+        for c in toDelete:
+            self.AST.delNode(c)
+        self.children = []
+        return self.value
 
 class CharNode(TerNode, Type):
 
@@ -991,6 +1017,12 @@ class CharNode(TerNode, Type):
         Type.__init__(self, CHAR())
         TerNode.__init__(self, value, ast, pos)
 
+    def simplify(self):
+        toDelete = self.children
+        for c in toDelete:
+            self.AST.delNode(c)
+        self.children = []
+        return self.value
 
 # type/pointer/reference/literal nodes
 

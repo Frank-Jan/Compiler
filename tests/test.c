@@ -1,12 +1,5 @@
-
-int f(int*);
-
 int main(){
-    int* i;
-    int j = 0;
-    return f(i);
-}
-
-int f(int* i){
-    return 0;
+    a = 5;
+    int a = 4;
+    return 1;
 }
