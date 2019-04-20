@@ -408,16 +408,15 @@ class RvalueNode(ASTNode, Type):
                 printError("ArOpNode simplify not yet implemented: returning VOID type")
                 return None
             retNode = self.children[0].simplify()
-            self.children.remove(self.children[0])
         elif len(self.children) == 2:
             retNode = self.children[1].simplify() #simplify lvalue node
-            retNode.type = POINTER(self.children[1].getType())
-            self.children.remove(self.children[1])
+            retNode.type = POINTER(retNode.getType())
         else:
             printError("error: unexpected number of children (", len(self.children) ,") in: ", type(RvalueNode))
             retNode = None
 
-
+        if retNode in self.children:
+            self.children.remove(retNode)
         for c in self.children:
             self.AST.delNode(c)
         self.children = []
@@ -981,7 +980,9 @@ class LitNode(ASTNode, Type):
         retNode = self.children[0].simplify()
         self.value = self.children[0].value
         self.setType(self.children[0].getType())
-        # self.AST.delNode(self.children[0])
+        self.children.remove(retNode)
+        for c in self.children:
+            self.AST.delNode(c)
         self.children = []
         return retNode
 

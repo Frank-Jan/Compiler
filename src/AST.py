@@ -36,7 +36,7 @@ class AST:
         return self.nodes[self.currentNode - 1]
 
     def simplify(self):
-        if not self.root is None:
+        if self.root is not None:
             self.root.simplify()
         # nodes = []  # python-list is a stack
         #
