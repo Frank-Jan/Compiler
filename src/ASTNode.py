@@ -602,10 +602,14 @@ class ReturnStatNode(ASTNode, Type):
         if len(self.children) == 0:
             self.setType(VOID())  # no return value
         else:
-            self.children[0].simplify()
+            node = self.children[0].simplify()
             if isinstance(self.children[0], FuncNode) or isinstance(self.children[0], ArOpNode):
                 self.type = None
             # can't take type because a function's output might be returned
+            if isinstance(node, IntNode) or isinstance(node, FloatNode) or isinstance(node, CharNode):
+                self.AST.delNode(self.children[0])
+                del self.children[0]
+                self.children.append(node)
         print("Simplify returnStatNode: ", self.getType())
 
         # self.isSimplified = True
