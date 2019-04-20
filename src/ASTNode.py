@@ -116,6 +116,7 @@ class AssignNode(ASTNode):
         self.right = None   #left node
 
     def simplify(self):
+        print("Simplify AssignNode")
         if len(self.children) != 2:
             printError("AssignNode doesn't have 2 children: ", len(self.children))
         self.left = self.children[0]
