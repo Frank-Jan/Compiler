@@ -52,7 +52,6 @@ functionDefinition
 
 generalDefinition
     : functionDefinition
-    | variableDefinition ';'
     ;
 
 variableDeclaration

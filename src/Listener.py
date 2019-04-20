@@ -308,7 +308,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#integer.
     def enterInteger(self, ctx: c_subsetParser.IntegerContext):
-        self.AST.addNode(IntNode(ctx.getText(), self.AST))
+        self.AST.addNode(IntNode(ctx.getText(), self.AST, 0))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Exit a parse tree produced by c_subsetParser#integer.
