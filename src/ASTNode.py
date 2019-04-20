@@ -140,14 +140,7 @@ class AssignNode(ASTNode):
         self.AST.delNode(self.children[1])
         self.children[0] = self.left
         self.children[1] = self.right
-        print("\tCHILD[1]: ", type(self.children[1]))
-        # print("\tGRANDCHILD[1][0]: ", type(self.children[1].children[0]))
-        # self.children[1] = self.children[1].children[0]
-        # toDelete.children = []
-        # self.AST.delNode(toDelete)
-
-        # self.AST.delNode(self.children[1])
-        # self.children[1] = self.right  # remove old child and replace
+        return self
 
 
 class AssignRightNode(ASTNode, Type):
@@ -311,12 +304,13 @@ class CodeBlockNode(ScopeNode):
 
     def __init__(self, maxChildren, ast, symboltable=None):
         ASTNode.__init__(self, 'CodeBlock', maxChildren, ast)
-        self.returnStats = []  # full return statements
+        self.returnStatements = []  # full return statements
 
     def simplify(self):
         print("Simplify Codeblock")
         funcSyntax = self.children[1]
-        returnStat = funcSyntax.simplify()
+        funcSyntax.simplify()
+        self.returnStatements += funcSyntax.returnStatements
 
         # delete first and last node ('{' and '}')
         self.AST.delNode(self.children[2])
@@ -330,21 +324,7 @@ class CodeBlockNode(ScopeNode):
         funcSyntax.children = []
         self.AST.delNode(funcSyntax)
 
-        return returnStat  # simplify FuncSyntax node and return return statements
-
-        # self.isSimplified = True
-        # kopie = copy.copy(self.children)
-        # for node in kopie:
-        #     if isinstance(node, ReturnStatNode):
-        #         self.returnStats.append(node)
-        #     elif isinstance(node, CodeBlockNode):
-        #         self.returnStats += node.returnStats
-        #     elif isinstance(node, TerNode):
-        #         print("node ", node, " gedropped")
-        #         self.AST.delNode(node)
-        #         self.children.remove(node)
-        # self.maxChildren = len(self.children)
-        # self.scopeCounter = self.maxChildren + 1
+        return self.returnStatements  # simplify FuncSyntax node and return return statements
 
     def getSymbolTable(self):
         return self.symboltable
@@ -428,15 +408,23 @@ class FuncSyntaxNode(ASTNode):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'FuncSyntax', maxChildren, ast)
-
+        self.returnStatements = []
     def simplify(self):
         print("Simplify FuncSyntaxNode")
-        retStatements = []  # all return statement nodes
+        new_children = []
         for c in self.children:
-            c.simplify()
-            if isinstance(c, ReturnStatNode):
-                retStatements.append(c)
-        return retStatements
+            if isinstance(c, FuncStatNode):
+                new_children.append(c.simplify())
+                self.AST.delNode(c)
+                pass
+            elif isinstance(c, CodeBlockNode):
+                self.returnStatements += c.simplify()
+                new_children.append(c)
+            elif isinstance(c, LoopNode):
+                print("LOOP NODE SIMPLIFY NOT YET IMPLEMENTED")
+                new_children.append(c)
+        self.children = new_children
+        return self
         # self.isSimplified = True
         #
         # for i in range(len(self.children)):
@@ -455,9 +443,11 @@ class FuncStatNode(ASTNode):
 
     def simplify(self):
         print("Simplify FuncStatNode")
-        for c in self.children:
-            c.simplify()
-        return None
+        if isinstance(self.children[0], VarNode) or isinstance(self.children, LitNode):
+            self.AST.delNode(self.children[0])
+            del self.children[0]
+            return None
+        return self.children[0].simplify()
 
 
 class ArOpNode(ASTNode):
@@ -617,27 +607,7 @@ class ReturnStatNode(ASTNode, Type):
                 del self.children[0]
                 self.children.append(node)
         print("Simplify returnStatNode: ", self.getType())
-
-        # self.isSimplified = True
-        # val = ""
-        # getal = 0
-        # kopie = copy.copy(self.children)
-        # for node in kopie:
-        #     if isinstance(node, VarNode) or isinstance(node, LitNode) or isinstance(node, FuncNode) or isinstance(node, ArOpNode):
-        #         if getal == 1:
-        #             self.returnVal = node
-        #         continue
-        #     elif isinstance(node, TerNode):
-        #         pass
-        #     else:
-        #         print("oei, iets vergeten bij ReturnStatNode: ", type(node))
-        #     getal += 1
-        #     val += node.value + " "
-        #     self.AST.delNode(node)
-        #     self.children.remove(node)
-        #
-        # self.maxChildren = len(self.children)
-        # self.value = val
+        return self
 
 
 class VarDefNode(ASTNode):
@@ -651,35 +621,8 @@ class VarDefNode(ASTNode):
         value = self.children[1].simplify()  # AssignRightNode
         self.AST.delNode(self.children[1])
         self.children[1] = value
-        # self.isSimplified = True
-        # val = ""
-        # kopie = copy.copy(self.children)
-        # getal = 0
-        # for node in kopie:
-        #     if isinstance(node, TypeSpecBaseNode) or isinstance(node, TypeSpecPtrNode):
-        #         self.type = node
-        #     elif isinstance(node, VarNode):
-        #         if getal == 1:
-        #             self.var = node
-        #         elif getal > 1:
-        #             self.right = node
-        #     elif isinstance(node, IdentNode):
-        #         self.id = node
-        #     elif isinstance(node, FuncNode) or isinstance(node, RefNode) \
-        #             or isinstance(node, DeRefNode) or isinstance(node, TerNode):
-        #         self.right = node
-        #     elif isinstance(node, AddNode):
-        #         self.arop = node
-        #         continue
-        #     else:
-        #         print("oei, iets vergeten: simply_vardef ", type(node))
-        #     val += node.value + " "
-        #     self.AST.delNode(node)
-        #     self.maxChildren -= 1
-        #     self.children.remove(node)
-        #     getal += 1
-        #
-        # self.value = val
+        return self
+
 
 class GenDefNode(ASTNode):
 
@@ -718,24 +661,7 @@ class VarDeclNode(ASTNode):
         self.AST.delNode(self.children[1])
         self.children = []
         self.value = str(self.type) + " " + str(self.var)
-        # self.isSimplified = True
-        # val = ""
-        # for node in self.children:
-        #     print("\ttype child: ", type(node))
-        #     if isinstance(node, TypeSpecNode):
-        #         print("\t\ttype")
-        #         self.type = node
-        #     elif isinstance(node, VarNode):
-        #         print("\t\tvarnode")
-        #         self.var = node
-        #     else:
-        #         print("oei, iets vergeten: simply_vardecl ", type(node))
-        #     val += node.value + " "
-        #     self.AST.delNode(node)
-        #
-        # self.children = []
-        # self.maxChildren = 0
-        # self.value = val
+        return self
 
     def toLLVM(self):
         print("VARDECL to LLVM")
@@ -802,22 +728,7 @@ class FuncDeclNode(ASTNode, Type):
             self.setType(self.children[0].simplify())  # first child is TypeSpecNode
         self.children[1].simplify()  # simplify funcSign
         self.fsign = self.children[1]
-
-        # self.isSimplified = True
-        # val = ""
-        # for node in self.children:
-        #     if isinstance(node, TypeSpecPtrNode) or isinstance(node, TypeSpecBaseNode) or isinstance(node, TerNode):
-        #         self.returnType = node
-        #     elif isinstance(node, FuncSignNode):
-        #         self.fsign = node
-        #     else:
-        #         print("oei, iets vergeten Bij FuncDeclNode: ", type(node))
-        #     val += node.value + " "
-        #     self.AST.delNode(node)
-        #
-        # self.children = []
-        # self.maxChildren = 0
-        # self.value = val
+        return self
 
     def toLLVM(self):
         curCode = "declare " + self.type.toLLVM() + " @" + self.fsign.toLLVM()
