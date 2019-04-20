@@ -6,6 +6,7 @@ llvmTypes = {'int': 'i32',
              'double': 'double'
              }
 
+counter = 0;
 
 class Type:
     # for nodes who have a type/return type
@@ -74,18 +75,6 @@ class ASTNode:
     def fillSymbolTable(self):
         for c in self.children:
             c.fillSymbolTable()
-        # self.isSimplified = True
-        # print("Base simplify: ", type(self))
-        # if self.parent == None or self.maxChildren == 0:
-        #     return
-        # elif self.maxChildren == 2:
-        #     self.AST.delNode(self.children[1])
-        # elif self.maxChildren > 2:
-        #     print("Say whut?!")
-        #
-        # self.children[0].parent = self.parent
-        # self.parent[0].children[self.parent[1]] = self.children[0]
-        # self.AST.delNode(self)
 
 
 class ScopeNode(ASTNode):
@@ -135,11 +124,13 @@ class AssignNode(ASTNode):
         if len(self.children) != 2:
             printError("AssignNode doesn't have 2 children: ", len(self.children))
         self.left = self.children[0].simplify()
-        self.right = self.children[1].simplify()  # assignRight wil return value node
+        self.right = self.children[1].simplify()  # assignRight wil return funcNode or ...
         self.AST.delNode(self.children[0])
         self.AST.delNode(self.children[1])
         self.children[0] = self.left
         self.children[1] = self.right
+        self.left.parent = self
+        self.right.parent = self
         return self
 
 
@@ -157,13 +148,13 @@ class AssignRightNode(ASTNode, Type):
 
     def simplify(self):
         print("Simplify AssignRightNode")
-        value = self.children[1].simplify()
-        self.setType(value.getType())
-        if value is not self.children[1]:
+        node = self.children[1].simplify()
+        self.setType(node.getType())
+        if node is not self.children[1]:
             self.AST.delNode(self.children[1])
         self.AST.delNode(self.children[0])
         self.children = []
-        return value
+        return node
 
 
 class FuncDefNode(ASTNode, Type):
@@ -182,6 +173,7 @@ class FuncDefNode(ASTNode, Type):
         self.type = type
 
     def simplify(self):
+        print("Simplify: FuncDefNode")
         if isinstance(self.children[0], TerNode):
             # TerNode will have void as value
             self.setType(VOID())
@@ -191,7 +183,6 @@ class FuncDefNode(ASTNode, Type):
         self.returnTypes = self.children[2].simplify()  # simplify code block
         self.fsign = self.children[1]
         self.block = self.children[2]
-        print("Simplify FuncDefNode: ", self.getType(), " ", self.fsign.name)
 
     def fillSymbolTable(self):
         scope = self.children[2].getSymbolTable()
@@ -212,6 +203,7 @@ class FuncSignNode(ASTNode):
         self.types = []  # arguments
 
     def simplify(self):
+        print("Simplify FuncSignNode")
         self.name = self.children[0].value  # function name
         toDelete = []  # delete useless Ternodes ('(' ')' ',' variable)
         for c in self.children[1:]:
@@ -223,34 +215,10 @@ class FuncSignNode(ASTNode):
         for i in self.types:
             args += str(i)
         args += ')'
-        print("Simplified FuncSignNode to ", self.name, args)
         for d in toDelete:
             self.AST.delNode(d)
             self.children.remove(d)
-        # self.isSimplified = True
-        # val = ""
-        # getal = 0
-        # for node in self.children:
-        #     if isinstance(node, TypeSpecBaseNode) or isinstance(node, TypeSpecPtrNode):
-        #         self.types.append(node.value)
-        #     elif isinstance(node, VarNode):
-        #         self.vars.append(node.value)
-        #     elif isinstance(node, IdentNode):
-        #         self.id = node
-        #     elif isinstance(node, TerNode):
-        #         if getal == 0:
-        #             getal += 1
-        #             self.name = node.value
-        #         else:
-        #             print("node ", node, " gedropped")
-        #     else:
-        #         print("oei, iets vergeten: ", type(node))
-        #     val += node.value + " "
-        #     self.AST.delNode(node)
-        #
-        # self.children = []
-        # self.maxChildren = 0
-        # self.value = val
+        return self
 
     def toLLVM(self):
         args = ""
@@ -259,7 +227,6 @@ class FuncSignNode(ASTNode):
         args = args[:-2]
         curCode = self.name + "(" + args + ")"
         return curCode
-
 
 
 class FuncSignDefNode(ASTNode):
@@ -271,6 +238,7 @@ class FuncSignDefNode(ASTNode):
         self.varNames = []  # VarNodes itself (not strings)
 
     def simplify(self):
+        print("Simplify FuncSignDefNode")
         self.children[0].simplify()
         self.name = self.children[0].value  # function name
         toDelete = []  # delete useless Ternodes ('(' ')' ',' variable)
@@ -285,10 +253,10 @@ class FuncSignDefNode(ASTNode):
         for i in range(len(self.types)):
             sign += str(self.types[i]) + " " + str(self.varNames[i]) + ", "
         sign += ')'
-        print("Simplified FuncSignDefNode to ", self.name, sign)
         for d in toDelete:
             self.AST.delNode(d)
             self.children.remove(d)
+        return self
 
     def toLLVM(self):
         args = ""
@@ -319,8 +287,10 @@ class CodeBlockNode(ScopeNode):
         del self.children[0]
 
         # steal children of funcSyntax
-        print("funcSyntax children: ", type(funcSyntax.children))
         self.children = funcSyntax.children
+        for c in self.children:
+            c.parent = self
+            print("\t", type(c), " ", len(c.children))
         funcSyntax.children = []
         self.AST.delNode(funcSyntax)
 
@@ -443,11 +413,14 @@ class FuncStatNode(ASTNode):
 
     def simplify(self):
         print("Simplify FuncStatNode")
-        if isinstance(self.children[0], VarNode) or isinstance(self.children, LitNode):
+        if isinstance(self.children[0], VarNode) or isinstance(self.children[0], LitNode):
+            # print("")
             self.AST.delNode(self.children[0])
             del self.children[0]
             return None
-        return self.children[0].simplify()
+        ret = self.children[0].simplify()
+        del self.children[0]
+        return ret
 
 
 class ArOpNode(ASTNode):
@@ -617,10 +590,11 @@ class VarDefNode(ASTNode):
 
     def simplify(self):
         print("Simplify vardefnode")
+
         self.children[0].simplify()  # VarDeclNode
-        value = self.children[1].simplify()  # AssignRightNode
+        node = self.children[1].simplify()  # AssignRightNode
         self.AST.delNode(self.children[1])
-        self.children[1] = value
+        self.children[1] = node
         return self
 
 
@@ -690,7 +664,6 @@ class FuncNode(ASTNode):
 
         toDelete = [item for item in self.children[1:] if item not in self.arguments]
         for c in toDelete:
-            print("\tTo delete: ", type(c))
             self.AST.delNode(c)
         self.children = [self.children[0]]
         self.children += self.arguments
@@ -1006,7 +979,7 @@ class TypeSpecBaseNode(Type, ASTNode):
         self.type = childType
 
     def simplify(self):
-        print("Child: ", self.children[0].value)
+        print("Simplify TypeSpecBaseNode")
         self.type = toType(self.children[0].value)
         self.AST.delNode(self.children[0])
         self.children = []

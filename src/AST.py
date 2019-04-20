@@ -96,6 +96,7 @@ class AST:
             for child in ASTnode.children:
                 self.delNode(child) #delete children to
         if ASTnode in self.nodes:
+            # print("AST deleted: ", type(ASTnode))
             self.nodes.remove(ASTnode)
 
     def printDot(self, filename):
@@ -111,7 +112,7 @@ class AST:
 
         for node in self.nodes:
             if node.isLeaf():
-                states += "\"" + str(node) + "\" " + "[color = \"red\"]\n" + "[label=\"" + str(node.value) + "\"]"
+                states += "\"" + str(node) + "\" " + "[color = \"red\"]\n" + "[label=\"" + str(node.value) + " " + str(type(node)) + "\"]"
             else:
                 states += "\"" + str(node) + "\"\n" + "[label=\"" + str(node.value) + "\"]"
 
