@@ -309,7 +309,7 @@ class Listener(c_subsetListener):
     # Enter a parse tree produced by c_subsetParser#char.
     def enterChar(self, ctx:c_subsetParser.CharContext):
         self.AST.addNode(CharNode(ctx.getText(), self.AST, (ctx.start.line, ctx.start.column)))
-        self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+        #self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Exit a parse tree produced by c_subsetParser#char.
     def exitChar(self, ctx:c_subsetParser.CharContext):
@@ -327,7 +327,7 @@ class Listener(c_subsetListener):
     # Enter a parse tree produced by c_subsetParser#float_.
     def enterFloat_(self, ctx: c_subsetParser.Float_Context):
         self.AST.addNode(FloatNode(ctx.getText(), self.AST, (ctx.start.line, ctx.start.column)))
-        self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+        #self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Exit a parse tree produced by c_subsetParser#float_.
     def exitFloat_(self, ctx: c_subsetParser.Float_Context):
