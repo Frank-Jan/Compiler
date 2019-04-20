@@ -1,13 +1,13 @@
 from src.ASTNode import *
 
 
-class AST():
+class AST:
 
-    def __init__(self, root = None):
+    def __init__(self):
         self.nodes = []
         self.id = 0
         self.currentNode = 0
-        self.root = root    #ASTNode (should be from Listener.enterCSyntax())
+        self.root = None   #ScopeNode (should be from Listener.enterCSyntax())
 
     def __iter__(self):
         nodes = [self.nodes[0]]  # python-list is a stack
@@ -70,12 +70,12 @@ class AST():
             prevNode = self.nodes[i]
             if not prevNode.isLeaf() and not prevNode.hasMaxChildren():
                 break
-        if pos == None:
+        if pos is None:
             for i in range(len(prevNode.children)):
                 if prevNode.children[i] == None:
                     pos = i
                     break
-        if pos == None:
+        if pos is None:
             print("POS IS NONE")
             for node in self:
                 print(node)
@@ -86,6 +86,10 @@ class AST():
             prevNode.children[pos] = ASTnode
             ASTnode.parent = (prevNode, pos)
         self.nodes.append(ASTnode)
+
+    def generateSymbolTable(self):
+        self.root.fillSymbolTable()
+        pass
 
     def delNode(self, ASTnode):
         if ASTnode.children is not None:

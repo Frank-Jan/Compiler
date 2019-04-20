@@ -27,10 +27,10 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#cppSyntax.
     def enterCSyntax(self, ctx: c_subsetParser.CSyntaxContext):
-        getal = 0
+        children = 0
         if not (ctx.children is None):
-            getal = len(ctx.children)
-        node = ASTNode("Root", getal, self.AST)
+            children = len(ctx.children)
+        node = ScopeNode("Root", children, self.AST)
         self.AST.nodes.append(node)
         self.AST.root = node
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))

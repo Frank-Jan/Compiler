@@ -13,6 +13,7 @@ call parent
 class Record:
     def __init__(self, _type):
         self.type = _type
+        self.llvmName = None
 
     def isVar(self):
         return True
@@ -133,8 +134,6 @@ class SymbolTable:
                 # different function signature
                 print("\tdifferent signature")
                 return -2
-
-
 
 
     # searches for symbol with the correct name
