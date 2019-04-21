@@ -110,11 +110,14 @@ def checkFuncDecl(node, scope):
         return -1
 
 
-def generateSymbolTables(ast, scope):
-    ast.generateSymbolTable()
-    function = None
-    codeBlocks = []
-    #
+# def generateSymbolTables(ast):
+#     ast.getSymbolTable()
+#     root = ast.root
+#
+
+    # function = None
+    # codeBlocks = []
+
     # for node in ast:
     #     # check scopes
     #     if len(codeBlocks) != 0:

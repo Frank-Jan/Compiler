@@ -27,7 +27,7 @@ class Record:
         return False
 
     def __str__(self):
-        return "Var Type: " + str(self.type)
+        return "Var:" + str(self.type)
 
 
 # functionRecord holds functions with the same name i.e. both "int function()" and "int function(int)"
@@ -50,7 +50,7 @@ class FunctionRecord(Record):
         return False
 
     def __str__(self):
-        return "Function Type: " + self.type + "\t| Arguments: \t" + str(self.argumentList)
+        return "Function: " + str(self.type) + "\t|\t" + str(self.argumentList)
 
 class SymbolTable:
     def __init__(self, parent = None):
@@ -102,7 +102,7 @@ class SymbolTable:
         value = self.getLocal(name)
         if value is None:
             print("\tvalue is None")
-            self.table[name] = FunctionRecord(returnType, argumentList, False) #define function
+            self.table[name] = FunctionRecord(returnType, argumentList, False) #declare function
             return 0
         elif value.isVar():
             print("\tvalue already var")
@@ -177,6 +177,6 @@ class SymbolTable:
     def __str__(self):
         string = "SYMBOLTABLE:\t" + str(id(self))
         string += "\nPARENT:\t\t\t" + str(id(self.parent))
-        for key, value in self.table.items():
-            string += "\n" + str(key) + "\t|" + str(value)
+        for key,value in self.table.items():
+            string += '\n{:<20}|{:<20}'.format(str(key), str(value))
         return string

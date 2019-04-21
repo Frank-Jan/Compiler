@@ -1,4 +1,5 @@
-global id = 0
+id = 0
+
 class VarGen:
 
     def __init__(self):

@@ -66,9 +66,8 @@ class AST:
             ASTnode.parent = (prevNode, pos)
         self.nodes.append(ASTnode)
 
-    def generateSymbolTable(self):
-        self.root.fillSymbolTable()
-        pass
+    def getSymbolTable(self):
+        return self.root.getSymbolTable()
 
     def delNode(self, ASTnode):
         if ASTnode.children is not None:

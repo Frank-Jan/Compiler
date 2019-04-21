@@ -8,8 +8,7 @@ varGen = VarGen()
 llvmTypes = {'int': 'i32',
              'double': 'double'
              }
-
-counter = 0;
+counter = 0 #counter to make sure all print debug filenames are unique
 
 class Type:
     # for nodes who have a type/return type
@@ -46,6 +45,10 @@ class ASTNode:
     def isRoot(self):
         return self.value == "Root"
 
+    def buildSymbolTable(self,symbolTable):
+        print("Using base buildSymbolTable: ", type(self))
+        return symbolTable
+
     def isLeaf(self):
         return len(self.children) == 0
 
@@ -56,12 +59,6 @@ class ASTNode:
                 count += 1
         return self.maxChildren == count
 
-    def timeToSimplify(self):
-        for node in self.children:
-            if not node.isSimplified:
-                return False
-        return True
-
     def toLLVM(self):
         if len(self.children) == 0:
             print("TO DO LLVM: " + str(type(self)))
@@ -71,7 +68,7 @@ class ASTNode:
             code += child.toLLVM()  # + "\n"
         return code
 
-    def simplify(self):
+    def simplify(self, scope = None):
         # Base simplify will only call simplify() on all children
         print("Base simplify for: ", type(self))
         toDelete = []
@@ -90,10 +87,6 @@ class ASTNode:
     def getSymbolTable(self):
         return self.parent.getSymbolTable()
 
-    def fillSymbolTable(self):
-        for c in self.children:
-            c.fillSymbolTable()
-
 
 class ScopeNode(ASTNode):
     def __init__(self, value, maxChildren, ast):
@@ -102,21 +95,15 @@ class ScopeNode(ASTNode):
 
     def getSymbolTable(self):
         if self.symbolTable is None:
-            self.symbolTable = SymbolTable()
+            parent = None
+            if self.parent is not None:
+                parent = self.parent.getSymbolTable()
+            self.symbolTable = SymbolTable(parent)
         return self.symbolTable
 
     def setParent(self, parentScope):
         self.symbolTable.parent = parentScope
-
-    def fillSymbolTable(self):
-        if self.parent is None:
-            # create new scope
-            self.symbolTable = SymbolTable()
-        else:
-            # create symboltable with parent symboltable
-            self.symbolTable = SymbolTable(self.parent.getSymbolTable())
-        for c in self.children:
-            c.fillSymbolTable(self.symbolTable)
+        
 
 class RootNode(ScopeNode):
     def __init__(self, value, maxChildren, ast):
@@ -124,20 +111,29 @@ class RootNode(ScopeNode):
         self.symbolTable = SymbolTable()
 
     def setParent(self, parentScope):
-        pass
+        pass    #is the highest parent (global scope)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         toDelete = []
         newChildren = []
         for c in self.children:
             if isinstance(c, GenStatNode):
-                newChildren.append(c.simplify())
+                tmp = c.simplify()
+                tmp.buildSymbolTable(self.symbolTable)
+                newChildren.append(tmp)
+            else:
+                toDelete.append(c)
 
         for c in self.children:
             self.AST.delNode(c)
         self.children = newChildren
-        self.AST.printDotDebug(str(self.getCount()) + "BaseSimplify.dot")
+        self.AST.printDotDebug(str(self.getCount()) + "RootSimplify.dot")
         return self
+
+    def buildSymbolTable(self):
+        for c in self.children:
+            if not isinstance(c, StdioNode):
+                c.buildSymbolTable(self.symbolTable)
 
 
 class GenStatNode(ASTNode):
@@ -145,13 +141,13 @@ class GenStatNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'GenStat', maxChildren, ast)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         # only children need to simplify
         retNode = self.children[0].simplify()
         self.AST.printDotDebug(str(self.getCount()) + "GenStatNode.dot")
         if retNode is not self.children[0]:
             self.AST.delNode(self.children[0])
-        self.children = []
+        self.children.remove(self.children[0])
         return retNode
 
 
@@ -162,7 +158,7 @@ class AssignNode(ASTNode):
         self.left = None  # right node
         self.right = None  # left node
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify AssignNode")
         if len(self.children) != 2:
             printError("AssignNode doesn't have 2 children: ", len(self.children))
@@ -184,7 +180,7 @@ class AssignRightNode(ASTNode, Type):
         ASTNode.__init__(self, 'Assign', 2, ast)  # always 2 children
         Type.__init__(self, VOID())
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify AssignRightNode")
         node = self.children[1].simplify()
         if node is not self.children[1]:
@@ -210,7 +206,7 @@ class FuncDefNode(ASTNode, Type):
     def setType(self, type):  # set return type
         self.type = type
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify: FuncDefNode")
         if isinstance(self.children[0], TerNode):
             # TerNode will have void as value
@@ -224,8 +220,11 @@ class FuncDefNode(ASTNode, Type):
         self.AST.printDotDebug(str(self.getCount()) + "FuncDef.dot")
         return self
 
-    def fillSymbolTable(self):
-        scope = self.children[2].getSymbolTable()
+    def buildSymbolTable(self,scope):
+        functionScope = SymbolTable(scope)
+        self.fsign.buildSymbolTable(functionScope)
+        self.block.buildSymbolTable(functionScope)
+        return scope
 
     def toLLVM(self):
         curCode = "define " + llvmTypes[str(self.getType())] + " @" + self.fsign.toLLVM() + "{"
@@ -241,7 +240,7 @@ class FuncSignNode(ASTNode):
         self.name = None  # name
         self.types = []  # arguments
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify FuncSignNode")
         self.name = self.children[0].value  # function name
         toDelete = []  # delete useless Ternodes ('(' ')' ',' variable)
@@ -277,7 +276,7 @@ class FuncSignDefNode(ASTNode):
         self.types = []  # arguments Types
         self.varNames = []  # VarNodes itself (not strings)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify FuncSignDefNode")
         self.children[0].simplify()
         self.name = self.children[0].value  # function name
@@ -299,6 +298,14 @@ class FuncSignDefNode(ASTNode):
         self.AST.printDotDebug(str(self.getCount()) + "FuncSignDef.dot")
         return self
 
+    def buildSymbolTable(self,symbolTable):
+        #insert variables
+        for i in range(len(self.types)):
+            symbolTable.insertVariable(self.varNames[i], self.types[i])
+        print("Func sign table:")
+        print(symbolTable)
+        return symbolTable
+
     def toLLVM(self):
         args = ""
         for i in range(len(self.types)):
@@ -315,10 +322,11 @@ class CodeBlockNode(ScopeNode):
         ASTNode.__init__(self, 'CodeBlock', maxChildren, ast)
         self.returnStatements = []  # full return statements
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify Codeblock")
+            
         funcSyntax = self.children[1]
-        funcSyntax.simplify()
+        funcSyntax.simplify(scope)
         self.returnStatements += funcSyntax.returnStatements
 
         # delete first and last node ('{' and '}')
@@ -336,7 +344,7 @@ class CodeBlockNode(ScopeNode):
         self.AST.delNode(funcSyntax)
 
         return self.returnStatements  # simplify FuncSyntax node and return return statements
-
+    
     def getSymbolTable(self):
         return self.symboltable
 
@@ -352,7 +360,7 @@ class ValueNode(ASTNode, Type):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Value', maxChildren, ast)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify ValueNode")
         retNode = self.children[0].simplify()
         if retNode is not self.children[0]:
@@ -371,7 +379,7 @@ class LvalueNode(ASTNode, Type):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Lvalue', maxChildren, ast)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify LvalueNode")
         if len(self.children) == 1:
             retNode = self.children[0].simplify()
@@ -397,7 +405,7 @@ class RvalueNode(ASTNode, Type):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Rvalue', maxChildren, ast)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify RvalueNode")
         retNode = None
         if len(self.children) == 1:
@@ -427,18 +435,19 @@ class FuncSyntaxNode(ASTNode):
         ASTNode.__init__(self, 'FuncSyntax', maxChildren, ast)
         self.returnStatements = []
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify FuncSyntaxNode")
         new_children = []
         for c in self.children:
             if isinstance(c, FuncStatNode):
-                new_children.append(c.simplify())
+                new_children.append(c.simplify(scope))
                 self.AST.delNode(c)
             elif isinstance(c, CodeBlockNode):
-                self.returnStatements += c.simplify()
+                localScope = SymbolTable(scope)
+                self.returnStatements += c.simplify(localScope)
                 new_children.append(c)
             elif isinstance(c, LoopNode):
-                node = c.simplify()
+                node = c.simplify(scope)
                 self.returnStatements += node.returnStatements
                 new_children.append(node)
                 self.AST.delNode(c)
@@ -461,7 +470,7 @@ class FuncStatNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'FuncStat', maxChildren, ast)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify FuncStatNode")
         if isinstance(self.children[0], VarNode) or isinstance(self.children[0], LitNode):
             # print("")
@@ -480,7 +489,7 @@ class ArOpNode(ASTNode, Type):
         ASTNode.__init__(self, 'ArOp', maxChildren, ast)
         Type.__init__(self, VOID())
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify ArOpNode")
         node = self.children[0].simplify()
         if node is not self.children[0]:
@@ -497,38 +506,29 @@ class ProdNode(ArOpNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Prod', maxChildren, ast)
         self.isMultiplication = True
+        self.left = None
+        self.right = None
 
     def isMultiplication(self):
         return self.isMultiplication
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify ProdNode")
         oldLeft = self.children[0]
         newLeft = oldLeft.simplify()
-        print("ProdNode ret value exist A: ", (newLeft in self.AST.nodes))
         if len(self.children) == 1:
-            print("\tProdNode 1 child: ", type(newLeft))
             self.AST.delNode(oldLeft)
             self.children = []
             self.AST.printDotDebug(str(self.getCount()) + "Prod.dot")
             return newLeft
 
         self.isMultiplication = (self.children[1].value == '*')
-        if self.isMultiplication:
-            print("Prodnode is multi")
-        else:
-            print("Prodnode is div")
+
         oldRight = self.children[2]
         newRight = oldRight.simplify()
-        # if isinstance(newRight, ArOpNode):
-        #     tmp = newRight.children[0]
-        #     newRight.children = []
-        #     self.AST.delNode(newRight)
-        #     newRight = tmp
 
         self.AST.delNode(self.children[1])  #delete TerNode +/-
         del self.children[1]
-        print("Before replace children ", len(self.children), " ", type(self))
         for c in self.children:
             print("\t", type(c))
         if newLeft is not oldLeft:
@@ -537,16 +537,11 @@ class ProdNode(ArOpNode):
         if newRight is not oldRight:
             self.AST.delNode(oldRight)
             self.children[1] = newRight
-        print("After replace children")
         for c in self.children:
-            print("\t", type(c))
-        self.AST.printDotDebug(str(self.getCount()) + "ProductRule" + ".dot")
-        print("ProdNode ret value exist: C", (self in self.AST.nodes))
-        print("ProdNode children exist?")
-        for c in self.children:
-            print("\t", type(c), " ", (c in self.AST.nodes))
             c.parent = self
         self.AST.printDotDebug(str(self.getCount()) + "Prod.dot")
+        self.left = self.children[0]
+        self.right = self.children[1]
         return self
 
     def toLLVM(self):
@@ -565,7 +560,7 @@ class AddNode(ArOpNode):
     def isAddition(self):
         return self.add
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify AddNode")
         oldLeft = self.children[0]
         newLeft = oldLeft.simplify()
@@ -584,14 +579,16 @@ class AddNode(ArOpNode):
 
         self.AST.delNode(self.children[1])  #delete TerNode +/-
         del self.children[1]
-        for c in self.children:
-            print("\t", type(c))
+        # for c in self.children:
+        #     print("\t", type(c))
         if newLeft is not oldLeft:
             self.AST.delNode(oldLeft)
             self.children[0] = newLeft
         if newRight is not oldRight:
             self.AST.delNode(oldRight)
             self.children[1] = newRight
+        self.left = self.children[0]
+        self.right = self.children[1]
         self.AST.printDotDebug(str(self.getCount()) + "Addnode.dot")
         return self
 
@@ -615,7 +612,7 @@ class AtomNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Atom', maxChildren, ast)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify atomNode")
         if len(self.children) > 1:
             #rule: (ArOpNode)
@@ -646,7 +643,7 @@ class ReturnStatNode(ASTNode, Type):
         Type.__init__(self, VOID())
         self.returnVal = None
 
-    def simplify(self):
+    def simplify(self, scope = None):
         self.AST.delNode(self.children[0])  # del return TerNode
         del self.children[0]
         if len(self.children) == 0:
@@ -677,7 +674,7 @@ class VarDefNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'VarDef', maxChildren, ast)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify vardefnode")
 
         self.children[0].simplify()  # VarDeclNode
@@ -699,7 +696,7 @@ class GenDefNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'GenDef', maxChildren, ast)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify GenDefNode")
         retNode = self.children[0].simplify()
         self.children = []
@@ -714,7 +711,7 @@ class VarDeclNode(ASTNode):
         self.var = None  # VarNode itself
         self.size = 0
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("SIMPLIFY: VarDeclNode")
         if len(self.children) == 2:
             # no array
@@ -735,6 +732,13 @@ class VarDeclNode(ASTNode):
         self.value = str(self.type) + " " + str(self.var)
         return self
 
+    def buildSymbolTable(self,symbolTable):
+        print("BST: vardecl: ", self.var.value, " ", self.type)
+        if not symbolTable.insertVariable(self.var.value, self.type):
+            raise Exception("error: {} already defined/declared in local scope".format(self.var.value))
+
+
+
     def toLLVM(self):
         print("VARDECL to LLVM")
         return self.var.toLLVM() + " = alloca " + self.type.toLLVM() + ", align 4\n"  # %1 = alloca i32, align 4
@@ -754,7 +758,7 @@ class FuncNode(ASTNode):
     def getName(self):
         return self.name
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify FuncNode")
         self.children[0].simplify()
         self.name = self.children[0].value
@@ -785,7 +789,7 @@ class GenDeclNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'GenDecl', maxChildren, ast)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         # only children need to simplify
         print("Simplifying declare node")
         retNode = self.children[0].simplify()
@@ -802,7 +806,7 @@ class FuncDeclNode(ASTNode, Type):
     def setType(self, type):  # set return type
         self.type = type
 
-    def simplify(self):
+    def simplify(self, scope = None):
         if isinstance(self.children[0], TerNode):
             # TerNode will have void as value
             self.setType(VOID())
@@ -811,6 +815,25 @@ class FuncDeclNode(ASTNode, Type):
         self.children[1].simplify()  # simplify funcSign
         self.fsign = self.children[1]
         return self
+
+    def buildSymbolTable(self, symbolTable):
+        string  = "BST: Funcdecl: " + str(self.type) + " " + self.fsign.name + "("
+        if len(self.fsign.types) >= 1:
+            string += str(self.fsign.types[0])
+        if len(self.fsign.types) > 1:
+            for a in self.fsign.types[1:]:
+                string += ", " + str(a)
+        string += ")"
+        print(string)
+
+        code = symbolTable.declareFunction(self.fsign.name, self.type, self.fsign.types)
+        if code == -1:
+            raise Exception("error: {} function already defined/declared as variable in local scope".format(self.fsign.name))
+        if code == -2:
+            raise Exception("error: {} function already defined/declared with different signature  in local scope".format(self.fsign.name))
+        if code == -3:
+            raise Exception("error: {} function already defined in local scope".format(self.fsign.name))
+        return symbolTable
 
     def toLLVM(self):
         curCode = "declare " + self.type.toLLVM() + " @" + self.fsign.toLLVM()
@@ -823,7 +846,7 @@ class CondExpNode(ASTNode):
         ASTNode.__init__(self, 'CondExp', maxChildren, ast)
         self.expression = None
 
-    def simplify(self):
+    def simplify(self, scope = None):
         self.expression = self.children[1].value;
         self.value = self.expression
         self.AST.delNode(self.children[1])
@@ -844,7 +867,7 @@ class LoopNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'LoopNode', maxChildren, ast)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify LoopNode")
         retNode = self.children[0].simplify() #return while or ifelseLoop
         self.children = []
@@ -858,7 +881,7 @@ class WhileNode(ASTNode):
         self.block = None   #will be CodeblockNode or FuncStatNode
         self.returnStatements = []
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify WhileNode")
         self.cond = self.children[2].simplify()
         self.block = self.children[4]               #codeblock or functionstatement
@@ -888,7 +911,7 @@ class IfElseNode(ASTNode):
         self.elseBlock = None
         self.returnStatements = []
 
-    def simplify(self):
+    def simplify(self, scope = None):
         toDelete = []
         newChildren = []
         isIfBlock = True
@@ -928,7 +951,7 @@ class TerNode(ASTNode):  # leafs
         self.child = True
         self.pos = pos
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify TerNode: ", self.value)
         return self.value
 
@@ -948,7 +971,7 @@ class VarNode(ASTNode):
     def getType(self):
         return VOID()
 
-    def simplify(self):
+    def simplify(self, scope = None):
         for c in self.children:
             self.AST.delNode(c)
         self.children = []
@@ -978,7 +1001,7 @@ class LitNode(ASTNode, Type):
     def getValue(self):
         return self.value
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify LitNode")
         retNode = self.children[0].simplify()
         self.value = self.children[0].value
@@ -1000,7 +1023,7 @@ class IntNode(TerNode, Type):
         Type.__init__(self, INT())
         TerNode.__init__(self, value, ast, pos)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify IntNode: ", self.value)
         toDelete = self.children
         for c in toDelete:
@@ -1018,7 +1041,7 @@ class FloatNode(TerNode, Type):
         Type.__init__(self, FLOAT())
         TerNode.__init__(self, value, ast, pos)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify FloatNode: ", self.value)
         toDelete = self.children
         for c in toDelete:
@@ -1036,7 +1059,7 @@ class CharNode(TerNode, Type):
         Type.__init__(self, CHAR())
         TerNode.__init__(self, value, ast, pos)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify CharNode: ", self.value)
         toDelete = self.children
         for c in toDelete:
@@ -1059,7 +1082,7 @@ class TypeSpecNode(Type, ASTNode):
     def setType(self, childType):
         self.type = childType
 
-    def simplify(self):
+    def simplify(self, scope = None):
         type = self.children[0].simplify()
         self.setType(type)
         print("Simplified TypeSpecNode to: ", self.getType())
@@ -1081,7 +1104,7 @@ class TypeSpecFuncNode(Type, ASTNode):
     def setType(self, childType):
         self.type = childType
 
-    def simplify(self):
+    def simplify(self, scope = None):
         # self.isSimplified = True
         self.setType(self.children[0].simplify())
         self.value = self.type
@@ -1105,7 +1128,7 @@ class TypeSpecBaseNode(Type, ASTNode):
     def setType(self, childType):
         self.type = childType
 
-    def simplify(self):
+    def simplify(self, scope = None):
         print("Simplify TypeSpecBaseNode")
         self.type = toType(self.children[0].value)
         self.AST.delNode(self.children[0])
@@ -1134,7 +1157,7 @@ class TypeSpecReferenceNode(Type, ASTNode):
     def setType(self, childType):
         self.type = REFERENCE(childType)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         self.setType(self.children[0].simplify())
         print("Simplified TypeSpecReferenceNode to: ", self.getType())
         self.value = self.getType()
@@ -1153,7 +1176,7 @@ class TypeSpecPtrNode(Type, ASTNode):
     def setType(self, childType):
         self.type = POINTER(childType)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         if isinstance(self.children[0], TerNode):
             # first child is 'void'
             self.setType(VOID())
@@ -1171,5 +1194,5 @@ class StdioNode(TerNode):
     def __init__(self, value, ast, pos):
         TerNode.__init__(self, '#include <stdio>',ast,pos)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         return self
