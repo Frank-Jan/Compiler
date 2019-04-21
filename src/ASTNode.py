@@ -1188,13 +1188,13 @@ class WhileNode(ASTNode):
         return self
 
     def toLLVM(self):
-        code = ""
-        code += self.cond.toLLVM()
         lbl1 = VarGen.getNewLabel(varGen)
         lbl2 = VarGen.getNewLabel(varGen)
         lbl3 = VarGen.getNewLabel(varGen)
+        code = ""
         code += "br label %" + lbl3 + "\n"
         code += lbl3 + ":\n"
+        code += self.cond.toLLVM()
         code += "br i1 " + self.cond.returnVar + ", label %" + lbl1 + ", label %" + lbl2 + "\n\n"  # br i1 %6, label %label1, label %label2
 
         code += lbl1 + ":\n" + self.block.toLLVM() + "\n"
