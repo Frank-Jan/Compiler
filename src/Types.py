@@ -1,8 +1,12 @@
 from src.errors import printError
 
 llvmTypes = {'int': 'i32',
-             'double': 'double',
+             'float': 'float',
+             'char': 'i8',
              'void': 'void'}
+opTypes = {'==': 'eq',
+             '>': 'sgt',
+             '<': 'slt'}
 
 
 def toType(string):

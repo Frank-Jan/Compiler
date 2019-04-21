@@ -2,6 +2,7 @@ import copy
 from src.Types import *
 from src.SymbolTable import SymbolTable
 from src.VarGen import *
+from struct import *
 
 varGen = VarGen()
 
@@ -9,6 +10,7 @@ llvmTypes = {'int': 'i32',
              'double': 'double'
              }
 counter = 0  # counter to make sure all print debug filenames are unique
+
 
 class Type:
     # for nodes who have a type/return type
@@ -114,7 +116,7 @@ class RootNode(ScopeNode):
     def setParent(self, parentScope):
         pass  # is the highest parent (global scope)
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         toDelete = []
         newChildren = []
         for c in self.children:
@@ -152,6 +154,7 @@ class AssignNode(ASTNode):
         ASTNode.__init__(self, 'Assign', maxChildren, ast)
         self.left = None  # right node
         self.right = None  # left node
+        self.returnVar = None
 
     def simplify(self, scope):
         print("Simplify AssignNode")
@@ -166,7 +169,7 @@ class AssignNode(ASTNode):
         self.left.parent = self
         self.right.parent = self
 
-        #check if left and right have the same type:
+        # check if left and right have the same type:
         if self.left.getType() != self.right.getType():
             if isinstance(self.left.getType(), REFERENCE):
                 if self.left.getType().getBase() != self.right.getType():
@@ -174,7 +177,7 @@ class AssignNode(ASTNode):
                                     "{} and {}".format(self.left.getType().getBase(), self.right.getType()))
             else:
                 raise Exception("error: assigning two different types: "
-                            "{} and {}".format(self.left.getType(),self.right.getType()))
+                                "{} and {}".format(self.left.getType(), self.right.getType()))
 
             # if isinstance(self.left.getType(), REFERENCE):
             #    if self.left.getType().getBase() != self.right.getType():
@@ -183,6 +186,17 @@ class AssignNode(ASTNode):
 
         self.AST.printDotDebug(str(self.getCount()) + "Assign.dot")
         return self
+
+    def toLLVM(self):
+        code = self.right.toLLVM()
+        self.returnVar = VarGen.getNewVar(varGen)
+        symbolTable = self.getSymbolTable()
+        record = symbolTable.search(self.left.value)
+        if record is None:
+            raise Exception("error: VarNode has no record in symbolTable")
+        type = record.getType().toLLVM()
+        code += "store " + type + " " + self.right.returnVar + ", " + type + "* " + self.left.toLLVM()  # store i32 %8, i32* %2, align 4
+        return code
 
 
 class AssignRightNode(ASTNode, Type):
@@ -228,7 +242,7 @@ class FuncDefNode(ASTNode, Type):
             return self.type
         raise Exception("error: FuncDefNode getType called before simplify")
 
-    #give scope where function is defined
+    # give scope where function is defined
     def simplify(self, scope):
         self.isSimplified = True
         print("Simplify: FuncDefNode")
@@ -241,23 +255,23 @@ class FuncDefNode(ASTNode, Type):
 
         self.block = self.children[2]
 
-        #simplify function signature and fill functionscope
-        self.fsign = self.children[1].simplify(functionScope,self.block)
+        # simplify function signature and fill functionscope
+        self.fsign = self.children[1].simplify(functionScope, self.block)
 
-        #define function in scope
+        # define function in scope
         scope.defineFunction(self.getName(), self.getType(), self.fsign.types)
 
         self.returnTypes = self.children[2].simplify(functionScope)  # simplify code block
 
-        #check if returnstatements are correct:
+        # check if returnstatements are correct:
         if self.type != VOID() and len(self.block.returnStatements) == 0:
-            #expected return statements:
+            # expected return statements:
             raise Exception("error: Expected return statements")
 
         for r in self.block.returnStatements:
             if r.getType() != self.getType():
                 raise Exception("error: Wrong return type in function: returns: {}, expected {}"
-                                .format(str(r.getType()),str(self.getType())))
+                                .format(str(r.getType()), str(self.getType())))
 
         self.AST.printDotDebug(str(self.getCount()) + "FuncDef.dot")
         return self
@@ -280,8 +294,8 @@ class FuncDefNode(ASTNode, Type):
             code += "store " + type + " " + var + ", " + type + "* " + orVar + ", align 4\n"
 
         curCode += code
-        curCode += self.block.toLLVM() #  %2 = alloca i32, align 4
-                                       # store i32 %0, i32* %2, align 4
+        curCode += self.block.toLLVM()  # %2 = alloca i32, align 4
+        # store i32 %0, i32* %2, align 4
         curCode += "}"
         return curCode
 
@@ -296,7 +310,7 @@ class FuncSignNode(ASTNode):
     def getName(self):
         if self.isSimplified:
             return self.name
-        raise(Exception("error: FuncSignNode getName call before simplify"))
+        raise (Exception("error: FuncSignNode getName call before simplify"))
 
     def simplify(self, scope=None):
         print("Simplify FuncSignNode")
@@ -336,13 +350,14 @@ class FuncSignDefNode(ASTNode):
         self.types = []  # arguments Types
         self.varNames = []  # VarNodes itself (not strings)
         self.returnStatements = []
+        self.newNames = []
 
     def getName(self):
         if self.isSimplified:
             return self.name
-        raise(Exception("error: FuncSignNode getName call before simplify"))
+        raise (Exception("error: FuncSignNode getName call before simplify"))
 
-    #give a local scope
+    # give a local scope
     def simplify(self, functionscope, codeBlock):
         print("Simplify FuncSignDefNode")
         self.isSimplified = True
@@ -357,9 +372,9 @@ class FuncSignDefNode(ASTNode):
             else:
                 toDelete.append(c)
 
-        #insert variables of signature in functionscope
+        # insert variables of signature in functionscope
         for i in range(len(self.types)):
-            self.varNames.parent = self.codeBlock
+            self.varNames[i].parent = codeBlock
             functionscope.insertVariable(self.varNames[i].getName(), self.types[i])
 
         sign = '('
@@ -413,7 +428,7 @@ class CodeBlockNode(ScopeNode):
         del self.children[2]
         del self.children[0]
 
-        #is endCode if functionSyntax is endCode
+        # is endCode if functionSyntax is endCode
         self.endCode = funcSyntax.endCode
         self.returnStatements = funcSyntax.returnStatements
         # steal children of funcSyntax
@@ -426,7 +441,7 @@ class CodeBlockNode(ScopeNode):
         return self.returnStatements
 
     def getSymbolTable(self):
-        return self.symboltable
+        return self.symbolTable
 
     def toLLVM(self):
         code = "\n"
@@ -647,10 +662,10 @@ class ProdNode(ArOpNode):
         self.left = self.children[0]
         self.right = self.children[1]
 
-        #check left and right types:
+        # check left and right types:
         if self.left.getType() != self.right.getType():
             raise Exception("error: trying to multiply two different types: "
-                            "{} and {}".format(self.left.getType(),self.right.getType()))
+                            "{} and {}".format(self.left.getType(), self.right.getType()))
         self.type = self.left.getType()
         return self
 
@@ -696,7 +711,6 @@ class AddNode(ArOpNode, Type):
             return self.type
         raise Exception("error: AddNode getType called before simplify")
 
-
     def simplify(self, scope=None):
         self.isSimplified = True
         print("Simplify AddNode")
@@ -727,10 +741,10 @@ class AddNode(ArOpNode, Type):
         self.left = self.children[0]
         self.right = self.children[1]
 
-        #check left and right types:
+        # check left and right types:
         if self.left.getType() != self.right.getType():
             raise Exception("error: trying to add two different types: "
-                            "{} and {}".format(self.left.getType(),self.right.getType()))
+                            "{} and {}".format(self.left.getType(), self.right.getType()))
         self.type = self.left.getType()
 
         self.AST.printDotDebug(str(self.getCount()) + "Addnode.dot")
@@ -860,17 +874,17 @@ class VarDefNode(ASTNode):
         print("Simplify vardefnode")
         self.isSimplified = True
 
-        #VarDecl simplify adds variable to node
+        # VarDecl simplify adds variable to node
         varDecl = self.children[0].simplify(scope)  # VarDeclNode
         assignRight = self.children[1].simplify(scope)  # AssignRightNode
         if assignRight is not self.children[1]:
             self.AST.delNode(self.children[1])
             self.children[1] = assignRight
 
-        #check if types match
+        # check if types match
         if self.getType() != assignRight.getType():
             raise Exception("error: types dont match in var definition: "
-                            "{} and {}".format(self.getType(),assignRight.getType()))
+                            "{} and {}".format(self.getType(), assignRight.getType()))
         self.AST.printDotDebug(str(self.getCount()) + "vardef.dot")
         return self
 
@@ -884,8 +898,12 @@ class VarDefNode(ASTNode):
         elif isinstance(node, FuncNode) or isinstance(node, ArOpNode):
             code += node.toLLVM()
             var = node.getType().toLLVM() + " " + node.returnVar
+        # store i32 0, i32* %1
+        align = 4
+        if isinstance(node, CharNode):
+            align = 1
         code += "store " + var + ", " + self.children[0].type.toLLVM() + "* " + \
-                self.children[0].var.toLLVM() + ", align 4"  # store i32 0, i32* %1
+                self.children[0].var.toLLVM() + ", align " + str(align) + "\n"
         return code
 
 
@@ -940,7 +958,7 @@ class VarDeclNode(ASTNode, Type):
         self.children = []
         self.value = str(self.type) + " " + str(self.var)
 
-        #check if declaration is possible
+        # check if declaration is possible
 
         scope.insertVariable(self.getName(), self.getType(), self)
         return self
@@ -952,7 +970,11 @@ class VarDeclNode(ASTNode, Type):
 
     def toLLVM(self):
         print("VARDECL to LLVM")
-        return self.var.toLLVM() + " = alloca " + self.type.toLLVM() + ", align 4\n"  # %1 = alloca i32, align 4
+        align = 4
+        if self.type == CHAR():
+            align = 1
+        return self.var.toLLVM() + " = alloca " + self.type.toLLVM() + ", align " + str(
+            align) + "\n"  # %1 = alloca i32, align 4
 
 
 class FuncNode(ASTNode, Type):
@@ -988,7 +1010,7 @@ class FuncNode(ASTNode, Type):
         self.children = [self.children[0]]
         self.children += self.arguments
 
-        #check if exist in scope:
+        # check if exist in scope:
         value = scope.search(self.name)
         if value is None:
             raise Exception("error: function {} called before declaration".format(self.name))
@@ -1082,9 +1104,12 @@ class CondExpNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'CondExp', maxChildren, ast)
         self.expression = None
+        self.left = None
+        self.right = None
+        self.returnVar = None
 
     def simplify(self, scope=None):
-        self.expression = self.children[1].value;
+        self.expression = self.children[1].value
         self.value = self.expression
         self.AST.delNode(self.children[1])
         del self.children[1]
@@ -1096,7 +1121,31 @@ class CondExpNode(ASTNode):
         if tmpRight is not self.children[1]:
             self.AST.delNode(self.children[1])
             self.children[1] = tmpRight
+        self.left = tmpLeft
+        self.right = tmpRight
         return self
+
+    def toLLVM(self):
+        self.returnVar = varGen.getNewVar(varGen)
+        code = ""
+        l = self.left.toLLVM()
+        r = self.right.value  # het type mag niet nog is getoond worden
+        if isinstance(self.left, VarNode):
+            code += self.left.toLLVM(True)
+            l = self.left.getType().toLLVM() + " " + self.left.returnVar
+        if isinstance(self.right, VarNode):
+            code += self.right.toLLVM(True)
+            r = self.right.returnVar
+        if isinstance(self.left, FuncNode) or isinstance(self.left, ArOpNode):
+            code += self.left.toLLVM()
+            l = self.left.getType().toLLVM() + " " + self.left.returnVar
+        if isinstance(self.right, FuncNode) or isinstance(self.right, ArOpNode):
+            code += self.right.toLLVM()
+            r = self.right.returnVar
+        op = opTypes[self.value]
+        # %6 = icmp eq i32 1, %5
+        code += self.returnVar + " = icmp " + op + " " + l + ", " + r + "\n"
+        return code
 
 
 class LoopNode(ASTNode):
@@ -1104,7 +1153,7 @@ class LoopNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'LoopNode', maxChildren, ast)
 
-    #give local scope
+    # give local scope
     def simplify(self, scope):
         print("Simplify LoopNode")
         retNode = self.children[0].simplify(scope)  # return while or ifelseLoop
@@ -1119,7 +1168,7 @@ class WhileNode(ASTNode):
         self.cond = None
         self.block = None  # will be CodeblockNode or FuncStatNode
         self.returnStatements = []
-        self.endCode = False #if code behind the while loop is reachable
+        self.endCode = False  # if code behind the while loop is reachable
 
     def simplify(self, scope):
         print("Simplify WhileNode")
@@ -1139,6 +1188,22 @@ class WhileNode(ASTNode):
         del self.children[1]
         del self.children[0]
         return self
+
+    def toLLVM(self):
+        code = ""
+        code += self.cond.toLLVM()
+        lbl1 = VarGen.getNewLabel(varGen)
+        lbl2 = VarGen.getNewLabel(varGen)
+        lbl3 = VarGen.getNewLabel(varGen)
+        code += "br label %" + lbl3 + "\n"
+        code += lbl3 + ":\n"
+        code += "br i1 " + self.cond.returnVar + ", label %" + lbl1 + ", label %" + lbl2 + "\n\n"  # br i1 %6, label %label1, label %label2
+
+        code += lbl1 + ":\n" + self.block.toLLVM() + "\n"
+        code += "br label %" + lbl3 + "\n"
+        code += lbl2 + ":\n"
+
+        return code
 
 
 class IfElseNode(ASTNode):
@@ -1196,6 +1261,22 @@ class IfElseNode(ASTNode):
         self.endCode = (ifBlockEndCode and elseBlockEndCode)
         return self
 
+    def toLLVM(self):
+        code = ""
+        code += self.cond.toLLVM()
+        lbl1 = VarGen.getNewLabel(varGen)
+        lbl2 = VarGen.getNewLabel(varGen)
+        code += "br i1 " + self.cond.returnVar + ", label %" + lbl1 + ", label %" + lbl2 + "\n\n"  # br i1 %6, label %label1, label %label2
+
+        code += lbl1 + ":\n" + self.ifBlock.toLLVM() + "\n"
+
+        el = ""
+        if self.elseBlock is not None:
+            el = self.elseBlock.toLLVM()
+        code += lbl2 + ":\n" + el + "\n"
+
+        return code
+
 
 # CHILDREN THAT ARE NOT PARENTS = LEAFS
 class TerNode(ASTNode):  # leafs
@@ -1229,13 +1310,12 @@ class VarNode(ASTNode, Type):
             return self.type
         raise Exception("error: VarNode getType called before simplify")
 
-    #simplify as function name
+    # simplify as function name
     def simplifyAsName(self):
         for c in self.children:
             self.AST.delNode(c)
         self.children = []
         return self.name
-
 
     def simplify(self, scope):
         self.isSimplified = True
@@ -1243,7 +1323,7 @@ class VarNode(ASTNode, Type):
             self.AST.delNode(c)
         self.children = []
 
-        #check if declared or defined in symboltable:
+        # check if declared or defined in symboltable:
         value = scope.search(self.value)
         if value is None:
             raise Exception("Variable {} used before declaration".format(self.name))
@@ -1254,7 +1334,12 @@ class VarNode(ASTNode, Type):
         return self
 
     def toLLVM(self, load=False):
-        type = self.getType().toLLVM()
+        # type = self.getType().toLLVM()
+        symbolTable = self.getSymbolTable()
+        record = symbolTable.search(self.getName())
+        if record is None:
+            raise Exception("error: VarNode has no record in symbolTable")
+        type = record.getType().toLLVM()
         self.returnVar = varGen.getNewVar(varGen)
 
         if load:  # %6 = load i32, i32* %2, align 4
@@ -1321,7 +1406,9 @@ class FloatNode(TerNode, Type):
         return self
 
     def toLLVM(self):
-        return self.type.toLLVM() + " " + self.value
+        # python float = c double
+        fl = str(hex(unpack('<Q', pack('<d', float(self.value)))[0])).upper()  # llvm wants double hexa value
+        return self.type.toLLVM() + " " + fl
 
 
 class CharNode(TerNode, Type):
@@ -1339,7 +1426,10 @@ class CharNode(TerNode, Type):
         return self
 
     def toLLVM(self):
-        return self.type.toLLVM() + " " + self.value
+        if len(self.value) == 2:
+            raise Exception("error: empty character constant")
+        char = str(ord(self.value[1]))
+        return self.type.toLLVM() + " " + char
 
 
 # type/pointer/reference/literal nodes

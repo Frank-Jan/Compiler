@@ -26,7 +26,9 @@ class Record:
         return self.type
 
     def __eq__(self, other):
-        if(other.isVar):
+        if other is None:
+            return False
+        if(other.isVar()):
             return self.type == other.type
         return False
 

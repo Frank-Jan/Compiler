@@ -1,18 +1,21 @@
 //#include <stdio.h>
 
-//int f(int*);
-
-
-
+//int f(int i, int j){
+//    return i - j;
+//}
 
 int main(){
-    int i = f(3, 0);
-    int o = (f(i, 0) - f(2, 0)/f(2, 0)) * f(3, 0) + 4 -0*32 ;
-    int k = i;
-    int j = 0;
-    int f(int i, int o){
-    return i + o/(i -0);
-    }
-    return o;
-}
+    int i = 2;
+//    char c = 'c';
+//    float e = 0.2;
 
+    while( 1 < i){
+       i = i -1;
+    }
+//    float f = 0.0 + 0.2 + e;
+
+//    int i = 3;
+//    int k = 2 + f(i, 2)/f(i,2);
+    return i;
+
+}
