@@ -229,8 +229,19 @@ class FuncDefNode(ASTNode, Type):
         return scope
 
     def toLLVM(self):
-        curCode = "define " + llvmTypes[str(self.getType())] + " @" + self.fsign.toLLVM() + "{"
-        curCode += self.block.toLLVM()
+        curCode = "define " + llvmTypes[str(self.getType())] + " @" + self.fsign.toLLVM() + "{\n"
+        code = ""
+        returnVars = []
+        for i in range(len(self.fsign.types)):
+            var = self.fsign.newNames[i]
+            orVar = self.fsign.varNames[i].toLLVM()
+            type = self.fsign.types[i].toLLVM()
+            code += orVar + " = alloca " + type + ", align 4\n"
+            code += "store " + type + " " + var + ", " + type + "* " + orVar + ", align 4\n"
+
+        curCode += code
+        curCode += self.block.toLLVM() #  %2 = alloca i32, align 4
+                                       # store i32 %0, i32* %2, align 4
         curCode += "}"
         return curCode
 
@@ -283,6 +294,7 @@ class FuncSignDefNode(ASTNode):
         self.name = None  # name
         self.types = []  # arguments Types
         self.varNames = []  # VarNodes itself (not strings)
+        self.newNames = []
 
     def getName(self):
         if self.isSimplified:
@@ -332,7 +344,8 @@ class FuncSignDefNode(ASTNode):
         args = ""
         for i in range(len(self.types)):
             args += self.types[i].toLLVM()
-            args += " " + self.varNames[i].toLLVM() + ", "
+            self.newNames.append(varGen.getNewVar(varGen))
+            args += " " + self.newNames[i] + ", "
         args = args[:-2]
         curCode = self.name + "(" + args + ")"
         return curCode
@@ -470,12 +483,12 @@ class FuncSyntaxNode(ASTNode):
                 if tmp is not c:
                     self.AST.delNode(c)
             elif isinstance(c, CodeBlockNode):
-                #create new scope for CodeBlock
+                # create new scope for CodeBlock
                 localScope = SymbolTable(scope)
                 self.returnStatements += c.simplify(localScope)
                 new_children.append(c)
             elif isinstance(c, LoopNode):
-                #needs new scope
+                # needs new scope
                 localScope = SymbolTable(scope)
                 node = c.simplify(localScope)
                 self.returnStatements += node.returnStatements
@@ -536,6 +549,9 @@ class ArOpNode(ASTNode, Type):
         self.children = []
         return node
 
+    def getType(self):
+        return self.children[0].getType()
+
 
 class ProdNode(ArOpNode):
 
@@ -544,6 +560,7 @@ class ProdNode(ArOpNode):
         self.isMultiplication = True
         self.left = None
         self.right = None
+        self.returnVar = None
 
     def isMultiplication(self):
         return self.isMultiplication
@@ -581,7 +598,18 @@ class ProdNode(ArOpNode):
         return self
 
     def toLLVM(self):
-        return "mul " + self.left.toLLVM() + ", " + self.right.toLLVM()
+        self.returnVar = varGen.getNewVar(varGen)
+        code = ""
+        l = self.left.toLLVM()
+        r = self.right.value  # het type mag niet nog is getoond worden
+        if isinstance(self.left, FuncNode) or isinstance(self.left, ArOpNode):
+            code += self.left.toLLVM()
+            l = self.left.getType().toLLVM() + " " + self.left.returnVar
+        if isinstance(self.right, FuncNode) or isinstance(self.right, ArOpNode):
+            code += self.right.toLLVM()
+            r = self.right.returnVar
+        code += self.returnVar + " = mul " + l + ", " + r + "\n"
+        return code
 
 
 class AddNode(ArOpNode):
@@ -596,7 +624,7 @@ class AddNode(ArOpNode):
     def isAddition(self):
         return self.add
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         print("Simplify AddNode")
         oldLeft = self.children[0]
         newLeft = oldLeft.simplify()
@@ -631,9 +659,15 @@ class AddNode(ArOpNode):
     def toLLVM(self):
         self.returnVar = varGen.getNewVar(varGen)
         code = ""
-        code += self.left.toLLVM()
-        code += self.right.toLLVM()
-        code += self.returnVar + " = add " + self.left.returnVar + ", " + self.right.returnVar
+        l = self.left.toLLVM()
+        r = self.right.value  # het type mag niet nog is getoond worden
+        if isinstance(self.left, FuncNode) or isinstance(self.right, ArOpNode):
+            code += self.left.toLLVM()
+            l = self.left.getType().toLLVM() + " " + self.left.returnVar
+        if isinstance(self.right, FuncNode) or isinstance(self.right, ArOpNode):
+            code += self.right.toLLVM()
+            r = self.right.returnVar
+        code += self.returnVar + " = add " + l + ", " + r + "\n"
         return code
 
 
@@ -648,7 +682,7 @@ class AtomNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Atom', maxChildren, ast)
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         print("Simplify atomNode")
         if len(self.children) > 1:
             # rule: (ArOpNode)
@@ -679,7 +713,7 @@ class ReturnStatNode(ASTNode, Type):
         Type.__init__(self, VOID())
         self.returnVal = None
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         self.AST.delNode(self.children[0])  # del return TerNode
         del self.children[0]
         if len(self.children) == 0:
@@ -746,7 +780,7 @@ class VarDefNode(ASTNode):
         if isinstance(node, VarNode):
             code += node.toLLVM(True)
             var = node.getType().toLLVM() + " " + node.returnVar
-        elif isinstance(node, FuncNode):
+        elif isinstance(node, FuncNode) or isinstance(node, ArOpNode):
             code += node.toLLVM()
             var = node.getType().toLLVM() + " " + node.returnVar
         code += "store " + var + ", " + self.children[0].type.toLLVM() + "* " + \
@@ -807,12 +841,10 @@ class VarDeclNode(ASTNode, Type):
         scope.insertVariable(self.getName(), self.getType())
         return self
 
-    def buildSymbolTable(self,symbolTable):
+    def buildSymbolTable(self, symbolTable):
         print("BST: vardecl: ", self.var.value, " ", self.type)
         if not symbolTable.insertVariable(self.var.value, self.type):
             raise Exception("error: {} already defined/declared in local scope".format(self.var.value))
-
-
 
     def toLLVM(self):
         print("VARDECL to LLVM")
@@ -833,7 +865,7 @@ class FuncNode(ASTNode):
     def getName(self):
         return self.name
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         print("Simplify FuncNode")
         self.children[0].simplify()
         self.name = self.children[0].value
@@ -867,7 +899,7 @@ class GenDeclNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'GenDecl', maxChildren, ast)
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         # only children need to simplify
         print("Simplifying declare node")
         retNode = self.children[0].simplify(scope)
@@ -884,7 +916,7 @@ class FuncDeclNode(ASTNode, Type):
     def setType(self, type):  # set return type
         self.type = type
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         if isinstance(self.children[0], TerNode):
             # TerNode will have void as value
             self.setType(VOID())
@@ -897,7 +929,7 @@ class FuncDeclNode(ASTNode, Type):
         return self
 
     def buildSymbolTable(self, symbolTable):
-        string  = "BST: Funcdecl: " + str(self.type) + " " + self.fsign.name + "("
+        string = "BST: Funcdecl: " + str(self.type) + " " + self.fsign.name + "("
         if len(self.fsign.types) >= 1:
             string += str(self.fsign.types[0])
         if len(self.fsign.types) > 1:
@@ -908,9 +940,12 @@ class FuncDeclNode(ASTNode, Type):
 
         code = symbolTable.declareFunction(self.fsign.name, self.type, self.fsign.types)
         if code == -1:
-            raise Exception("error: {} function already defined/declared as variable in local scope".format(self.fsign.name))
+            raise Exception(
+                "error: {} function already defined/declared as variable in local scope".format(self.fsign.name))
         if code == -2:
-            raise Exception("error: {} function already defined/declared with different signature  in local scope".format(self.fsign.name))
+            raise Exception(
+                "error: {} function already defined/declared with different signature  in local scope".format(
+                    self.fsign.name))
         if code == -3:
             raise Exception("error: {} function already defined in local scope".format(self.fsign.name))
         return symbolTable
@@ -926,7 +961,7 @@ class CondExpNode(ASTNode):
         ASTNode.__init__(self, 'CondExp', maxChildren, ast)
         self.expression = None
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         self.expression = self.children[1].value;
         self.value = self.expression
         self.AST.delNode(self.children[1])
@@ -947,12 +982,11 @@ class LoopNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'LoopNode', maxChildren, ast)
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         print("Simplify LoopNode")
         retNode = self.children[0].simplify()  # return while or ifelseLoop
         self.children = []
         return retNode
-
 
 
 class WhileNode(ASTNode):
@@ -963,7 +997,7 @@ class WhileNode(ASTNode):
         self.block = None  # will be CodeblockNode or FuncStatNode
         self.returnStatements = []
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         print("Simplify WhileNode")
         self.cond = self.children[2].simplify()
         self.block = self.children[4]  # codeblock or functionstatement
@@ -993,7 +1027,7 @@ class IfElseNode(ASTNode):
         self.elseBlock = None
         self.returnStatements = []
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         toDelete = []
         newChildren = []
         isIfBlock = True
@@ -1033,7 +1067,7 @@ class TerNode(ASTNode):  # leafs
         self.child = True
         self.pos = pos
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         print("Simplify TerNode: ", self.value)
         return self.value
 
@@ -1055,7 +1089,7 @@ class VarNode(ASTNode):
     def getType(self):  # linken met symbol table
         return VOID()
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         for c in self.children:
             self.AST.delNode(c)
         self.children = []
@@ -1091,7 +1125,7 @@ class LitNode(ASTNode, Type):
     def getValue(self):
         return self.value
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         print("Simplify LitNode")
         retNode = self.children[0].simplify()
         self.value = self.children[0].value
@@ -1113,7 +1147,7 @@ class IntNode(TerNode, Type):
         Type.__init__(self, INT())
         TerNode.__init__(self, value, ast, pos)
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         print("Simplify IntNode: ", self.value)
         toDelete = self.children
         for c in toDelete:
@@ -1131,7 +1165,7 @@ class FloatNode(TerNode, Type):
         Type.__init__(self, FLOAT())
         TerNode.__init__(self, value, ast, pos)
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         print("Simplify FloatNode: ", self.value)
         toDelete = self.children
         for c in toDelete:
@@ -1149,7 +1183,7 @@ class CharNode(TerNode, Type):
         Type.__init__(self, CHAR())
         TerNode.__init__(self, value, ast, pos)
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         print("Simplify CharNode: ", self.value)
         toDelete = self.children
         for c in toDelete:
@@ -1172,7 +1206,7 @@ class TypeSpecNode(Type, ASTNode):
     def setType(self, childType):
         self.type = childType
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         type = self.children[0].simplify()
         self.setType(type)
         print("Simplified TypeSpecNode to: ", self.getType())
@@ -1194,7 +1228,7 @@ class TypeSpecFuncNode(Type, ASTNode):
     def setType(self, childType):
         self.type = childType
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         # self.isSimplified = True
         self.setType(self.children[0].simplify())
         self.value = self.type
@@ -1218,7 +1252,7 @@ class TypeSpecBaseNode(Type, ASTNode):
     def setType(self, childType):
         self.type = childType
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         print("Simplify TypeSpecBaseNode")
         self.type = toType(self.children[0].value)
         self.AST.delNode(self.children[0])
@@ -1247,7 +1281,7 @@ class TypeSpecReferenceNode(Type, ASTNode):
     def setType(self, childType):
         self.type = REFERENCE(childType)
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         self.setType(self.children[0].simplify())
         print("Simplified TypeSpecReferenceNode to: ", self.getType())
         self.value = self.getType()
@@ -1266,7 +1300,7 @@ class TypeSpecPtrNode(Type, ASTNode):
     def setType(self, childType):
         self.type = POINTER(childType)
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         if isinstance(self.children[0], TerNode):
             # first child is 'void'
             self.setType(VOID())
@@ -1284,6 +1318,5 @@ class StdioNode(TerNode):
     def __init__(self, value, ast, pos):
         TerNode.__init__(self, '#include <stdio>', ast, pos)
 
-    def simplify(self, scope = None):
+    def simplify(self, scope=None):
         return self
-

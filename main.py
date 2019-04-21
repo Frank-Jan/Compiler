@@ -58,18 +58,18 @@ def testFile(argv):
     print("=============================================")
 
 
-    # f = open("tests/test.ll", "w+")
-    # text = "\n\n"
-    #
-    # for node in ast:
-    #     if isinstance(node, FuncDeclNode) or isinstance(node, FuncDefNode):
-    #         text += node.toLLVM() + "\n\n"
-    #     elif isinstance(node, TerNode):
-    #         pass
-    #
-    #
-    # f.write(text)
-    # print(text)
+    f = open("tests/test.ll", "w+")
+    text = "\n\n"
+
+    for node in ast:
+        if isinstance(node, FuncDeclNode) or isinstance(node, FuncDefNode):
+            text += node.toLLVM() + "\n\n"
+        elif isinstance(node, TerNode):
+            pass
+
+
+    f.write(text)
+    print(text)
 
     return 0
 
