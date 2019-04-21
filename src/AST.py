@@ -1,5 +1,6 @@
 from src.ASTNode import *
 
+DEBUG = True
 
 class AST:
 
@@ -38,31 +39,6 @@ class AST:
     def simplify(self):
         if self.root is not None:
             self.root.simplify()
-        # nodes = []  # python-list is a stack
-        #
-        # nodes.append(self.nodes[0])  # append = push
-        # filename = "tmp";
-        # ex = ".dot"
-        # i = 0
-        # print("----------------------")
-        # for n in nodes:
-        #     print(type(n))
-        # print("----------------------")
-        # while not len(nodes) == 0:  # while not all nodes are simplified
-        #     i += 1
-        #     node = nodes[-1]  # take last node
-        #     print("Simplifying nr:", i, " node: ", type(node))
-        #     if node.isSimplified:  # if node is simplified: skip this one
-        #         nodes.pop()
-        #         continue
-        #     elif node.isLeaf() or node.timeToSimplify():  # if childs are simplified parent may be simplified
-        #         node.simplify()  # child node is already simplified
-        #         nodes.pop()
-        #
-        #     for child in reversed(node.children):  # traverse childs in reversed order (left-derivation)_
-        #         nodes.append(child)
-        #
-        #     self.printDot(filename + str(i) + ex);
 
     def addNode(self, ASTnode, pos=None):
         prevNode = None
@@ -98,6 +74,11 @@ class AST:
         if ASTnode in self.nodes:
             # print("AST deleted: ", type(ASTnode))
             self.nodes.remove(ASTnode)
+
+    def printDotDebug(self, filename):
+        global DEBUG
+        if DEBUG:
+            self.printDot(filename)
 
     def printDot(self, filename):
         f = open(filename, "w")

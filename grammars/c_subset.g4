@@ -80,13 +80,11 @@ assignment
 //arithmetic expressions
 arithmeticOperation
     : add
-    | prod
     ;
 
 add
     : (atom | prod) ('+' add)
     | (atom | prod) ('-' add)
-    | atom
     | prod
     ;
 
@@ -122,7 +120,6 @@ whileLoop
 
 ifelseLoop
     : IF '('conditionalExpression')' (functionStatement ';' | codeBlock)
-     (ELSE IF '('conditionalExpression')' (functionStatement ';' | codeBlock))*
       (ELSE (functionStatement ';' | codeBlock))?
     ;
 

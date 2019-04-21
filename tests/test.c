@@ -1,3 +1,16 @@
+int func(){
+    return 0;
+}
+
 int main(){
-    int a = 5;
+    int i = 1;
+
+    if(i == 2){
+        while(i<4){
+            func();
+            }
+
+    }
+    else{
+    }
 }

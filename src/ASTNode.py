@@ -32,6 +32,11 @@ class ASTNode:
         for i in range(self.maxChildren):
             self.children.append(None)
 
+    def getCount(self):
+        global counter
+        counter += 1
+        return counter
+
     def __str__(self):
         return str(self.value) + "  [" + str(self.id) + "]"  # \nNrChildren: " + str(self.maxChildren)
 
@@ -66,8 +71,18 @@ class ASTNode:
     def simplify(self):
         # Base simplify will only call simplify() on all children
         print("Base simplify for: ", type(self))
-        for child in self.children:
-            child.simplify()
+        toDelete = []
+        for c in self.children:
+            if isinstance(c, TerNode):
+                toDelete.append(c)
+            else:
+                c.simplify()
+
+        for c in toDelete:
+            self.children.remove(c)
+            self.AST.delNode(c)
+
+        self.AST.printDotDebug(str(self.getCount()) + "BaseSimplify.dot")
 
     def getSymbolTable(self):
         return self.parent.getSymbolTable()
@@ -100,6 +115,26 @@ class ScopeNode(ASTNode):
         for c in self.children:
             c.fillSymbolTable(self.symbolTable)
 
+class RootNode(ScopeNode):
+    def __init__(self, value, maxChildren, ast):
+        ScopeNode.__init__(self, value, maxChildren, ast)
+        self.symbolTable = SymbolTable()
+
+    def setParent(self, parentScope):
+        pass
+
+    def simplify(self):
+        toDelete = []
+        newChildren = []
+        for c in self.children:
+            if isinstance(c, GenStatNode):
+                newChildren.append(c.simplify())
+
+        for c in self.children:
+            self.AST.delNode(c)
+        self.children = newChildren
+        self.AST.printDotDebug(str(self.getCount()) + "BaseSimplify.dot")
+        return self
 
 class GenStatNode(ASTNode):
 
@@ -108,8 +143,11 @@ class GenStatNode(ASTNode):
 
     def simplify(self):
         # only children need to simplify
-        for child in self.children:
-            child.simplify()
+        retNode = self.children[0].simplify()
+        self.AST.printDotDebug(str(self.getCount()) + "GenStatNode.dot")
+        self.AST.delNode(self.children[0])
+        self.children = []
+        return retNode
 
 
 class AssignNode(ASTNode):
@@ -131,6 +169,7 @@ class AssignNode(ASTNode):
         self.children[1] = self.right
         self.left.parent = self
         self.right.parent = self
+        self.AST.printDotDebug(str(self.getCount()) + "Assign.dot")
         return self
 
 
@@ -140,20 +179,14 @@ class AssignRightNode(ASTNode, Type):
         ASTNode.__init__(self, 'Assign', 2, ast)  # always 2 children
         Type.__init__(self, VOID())
 
-    def getType(self):
-        return self.type  # returns full type (i.e. int ** or char)
-
-    def setType(self, childType):
-        self.type = childType
-
     def simplify(self):
         print("Simplify AssignRightNode")
         node = self.children[1].simplify()
-        self.setType(node.getType())
         if node is not self.children[1]:
             self.AST.delNode(self.children[1])
         self.AST.delNode(self.children[0])
         self.children = []
+        self.AST.printDotDebug(str(self.getCount()) + "AssignRight.dot")
         return node
 
 
@@ -183,6 +216,8 @@ class FuncDefNode(ASTNode, Type):
         self.returnTypes = self.children[2].simplify()  # simplify code block
         self.fsign = self.children[1]
         self.block = self.children[2]
+        self.AST.printDotDebug(str(self.getCount()) + "FuncDef.dot")
+        return self
 
     def fillSymbolTable(self):
         scope = self.children[2].getSymbolTable()
@@ -218,6 +253,7 @@ class FuncSignNode(ASTNode):
         for d in toDelete:
             self.AST.delNode(d)
             self.children.remove(d)
+            self.AST.printDotDebug(str(self.getCount()) + "FuncSign.dot")
         return self
 
     def toLLVM(self):
@@ -256,6 +292,7 @@ class FuncSignDefNode(ASTNode):
         for d in toDelete:
             self.AST.delNode(d)
             self.children.remove(d)
+        self.AST.printDotDebug(str(self.getCount()) + "FuncSignDef.dot")
         return self
 
     def toLLVM(self):
@@ -314,8 +351,11 @@ class ValueNode(ASTNode, Type):
     def simplify(self):
         print("Simplify ValueNode")
         retNode = self.children[0].simplify()
-        self.AST.delNode(self.children[0])
+        if retNode is not self.children[0]:
+            self.AST.delNode(self.children[0])
         self.children = []
+        self.AST.printDotDebug(str(self.getCount()) + "value" + ".dot")
+        self.AST.printDotDebug(str(self.getCount()) + "Value.dot")
         return retNode
 
 
@@ -341,7 +381,7 @@ class LvalueNode(ASTNode, Type):
         for c in self.children:
             self.AST.delNode(c)
         self.children = []
-
+        self.AST.printDotDebug(str(self.getCount()) + "Lvalue.dot")
         return retNode
 
 
@@ -354,9 +394,6 @@ class RvalueNode(ASTNode, Type):
         print("Simplify RvalueNode")
         retNode = None
         if len(self.children) == 1:
-            if isinstance(self.children[0], ArOpNode):
-                printError("ArOpNode simplify not yet implemented: returning VOID type")
-                return None
             retNode = self.children[0].simplify()
         elif len(self.children) == 2:
             retNode = self.children[1].simplify() #simplify lvalue node
@@ -370,7 +407,7 @@ class RvalueNode(ASTNode, Type):
         for c in self.children:
             self.AST.delNode(c)
         self.children = []
-
+        self.AST.printDotDebug(str(self.getCount()) + "Rvalue.dot")
         return retNode
 
 
@@ -379,6 +416,7 @@ class FuncSyntaxNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'FuncSyntax', maxChildren, ast)
         self.returnStatements = []
+
     def simplify(self):
         print("Simplify FuncSyntaxNode")
         new_children = []
@@ -386,14 +424,16 @@ class FuncSyntaxNode(ASTNode):
             if isinstance(c, FuncStatNode):
                 new_children.append(c.simplify())
                 self.AST.delNode(c)
-                pass
             elif isinstance(c, CodeBlockNode):
                 self.returnStatements += c.simplify()
                 new_children.append(c)
             elif isinstance(c, LoopNode):
-                print("LOOP NODE SIMPLIFY NOT YET IMPLEMENTED")
-                new_children.append(c)
+                node = c.simplify()
+                self.returnStatements += node.returnStatements
+                new_children.append(node)
+                self.AST.delNode(c)
         self.children = new_children
+        self.AST.printDotDebug(str(self.getCount()) + "FuncSyntax.dot")
         return self
         # self.isSimplified = True
         #
@@ -420,114 +460,124 @@ class FuncStatNode(ASTNode):
             return None
         ret = self.children[0].simplify()
         del self.children[0]
+        self.AST.printDotDebug(str(self.getCount()) + "Funcstat.dot")
         return ret
 
 
-class ArOpNode(ASTNode):
+class ArOpNode(ASTNode, Type):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'ArOp', maxChildren, ast)
+        Type.__init__(self, VOID())
 
     def simplify(self):
+        print("Simplify ArOpNode")
+        node = self.children[0].simplify()
+        if node is not self.children[0]:
+            print("\treplace child")
+            self.AST.delNode(self.children[0])
+            print("ArOpNode Final child: ", type(node), " ", len(node.children), " ", (node in self.AST.nodes))
+            self.children[0] = node
+        self.AST.printDotDebug(str(self.getCount()) + "ArOpNode.dot")
         return self
-    # ASTNode.simplify(self)
-    # self.isSimplified = True
-    # val = ""
-    # getal = 0
-    # for node in self.children:
-    #     if isinstance(node, TypeSpecBaseNode):
-    #         self.type = node
-    #     elif isinstance(node, VarNode):
-    #         self.var = node
-    #     elif isinstance(node, IdentNode):
-    #         self.id = node
-    #     elif isinstance(node, AddNode):
-    #         self.
-    #     elif isinstance(node, TerNode):
-    #         if getal == 0:
-    #             getal += 1
-    #             self.name = node
-    #         else:
-    #             print("node ", node, " gedropped")
-    #     else:
-    #         print("oei, iets vergeten")
-    #     val += node.value + " "
-    #     self.AST.delNode(node)
-    #
-    # self.children = []
-    # self.maxChildren = 0
-    # self.value = val
 
 
 class ProdNode(ArOpNode):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Prod', maxChildren, ast)
-        self.left = None
-        self.right = None
+        self.isMultiplication = True
+
+    def isMultiplication(self):
+        return self.isMultiplication
 
     def simplify(self):
-        self.isSimplified = True
-        if self.maxChildren == 1:
-            ASTNode.simplify(self)
-        else:
-            val = ""
-            getal = 0
-            for node in self.children:
-                if getal == 0:
-                    if isinstance(node, IntNode):
-                        self.left = node
-                elif getal == 2:
-                    if isinstance(node, IntNode):
-                        self.right = node
-                elif getal == 1:
-                    if isinstance(node, TerNode):
-                        val += node.value + " "
-                        self.AST.delNode(node)
-                        self.maxChildren -= 1
-                        self.children.remove(node)
-                else:
-                    print("oei, iets vergeten simply_prod: ", type(node))
-                getal += 1
+        print("Simplify ProdNode")
+        oldLeft = self.children[0]
+        newLeft = oldLeft.simplify()
+        print("ProdNode ret value exist A: ", (newLeft in self.AST.nodes))
+        if len(self.children) == 1:
+            print("\tProdNode 1 child: ", type(newLeft))
+            self.AST.delNode(oldLeft)
+            self.children = []
+            self.AST.printDotDebug(str(self.getCount()) + "Prod.dot")
+            return newLeft
 
-            self.value = val
+        self.isMultiplication = (self.children[1].value == '*')
+        if self.isMultiplication:
+            print("Prodnode is multi")
+        else:
+            print("Prodnode is div")
+        oldRight = self.children[2]
+        newRight = oldRight.simplify()
+        # if isinstance(newRight, ArOpNode):
+        #     tmp = newRight.children[0]
+        #     newRight.children = []
+        #     self.AST.delNode(newRight)
+        #     newRight = tmp
+
+        self.AST.delNode(self.children[1])  #delete TerNode +/-
+        del self.children[1]
+        print("Before replace children ", len(self.children), " ", type(self))
+        for c in self.children:
+            print("\t", type(c))
+        if newLeft is not oldLeft:
+            self.AST.delNode(oldLeft)
+            self.children[0] = newLeft
+        if newRight is not oldRight:
+            self.AST.delNode(oldRight)
+            self.children[1] = newRight
+        print("After replace children")
+        for c in self.children:
+            print("\t", type(c))
+        self.AST.printDotDebug(str(self.getCount()) + "ProductRule" + ".dot")
+        print("ProdNode ret value exist: C", (self in self.AST.nodes))
+        print("ProdNode children exist?")
+        for c in self.children:
+            print("\t", type(c), " ", (c in self.AST.nodes))
+            c.parent = self
+        self.AST.printDotDebug(str(self.getCount()) + "Prod.dot")
+        return self
 
 
 class AddNode(ArOpNode):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Add', maxChildren, ast)
-        self.left = None
-        self.right = None
+        self.add = True
+
+    def isAddition(self):
+        return self.add
 
     def simplify(self):
-        self.isSimplified = True
-        if self.maxChildren == 1:
-            ASTNode.simplify(self)
-        else:
-            val = ""
-            getal = 0
-            kopie = copy.copy(self.children)
-            for node in kopie:
-                if getal == 0:
-                    if isinstance(node, IntNode):
-                        self.left = node
-                elif getal == 2:
-                    if isinstance(node, IntNode):
-                        self.right = node
-                    elif isinstance(node, ProdNode):
-                        self.right = node
-                elif getal == 1:
-                    if isinstance(node, TerNode):
-                        val += node.value + " "
-                        self.AST.delNode(node)
-                        self.maxChildren -= 1
-                        self.children.remove(node)
-                else:
-                    print("oei, iets vergeten: simply_add ", type(node))
-                getal += 1
+        print("Simplify AddNode")
+        oldLeft = self.children[0]
+        newLeft = oldLeft.simplify()
+        if len(self.children) == 1:
+            if newLeft is not oldLeft:
+                self.AST.delNode(oldLeft)
+            self.children = []
+            self.AST.printDotDebug(str(self.getCount()) + "AddRuleA" + ".dot")
+            for c in newLeft.children:
+                print("\t", type(c), " ", (c in self.AST.nodes))
+            return newLeft
 
-            self.value = val
+        self.add = (self.children[1].value == '+')
+        oldRight = self.children[2]
+        newRight = oldRight.simplify()
+
+        self.AST.delNode(self.children[1])  #delete TerNode +/-
+        del self.children[1]
+        for c in self.children:
+            print("\t", type(c))
+        if newLeft is not oldLeft:
+            self.AST.delNode(oldLeft)
+            self.children[0] = newLeft
+        if newRight is not oldRight:
+            self.AST.delNode(oldRight)
+            self.children[1] = newRight
+        self.AST.printDotDebug(str(self.getCount()) + "Addnode.dot")
+        return self
 
 
 class IdentNode(ASTNode):
@@ -542,20 +592,27 @@ class AtomNode(ASTNode):
         ASTNode.__init__(self, 'Atom', maxChildren, ast)
 
     def simplify(self):
-        self.isSimplified = True
-        if self.maxChildren == 1:
-            ASTNode.simplify(self)
-        elif self.maxChildren == 3:
-            haakje1 = self.children[0]
-            haakje2 = self.children[2]
-            self.children.remove(haakje1)
-            self.children.remove(haakje2)
-            self.AST.delNode(haakje1)
-            self.AST.delNode(haakje2)
-            self.maxChildren = 1
-            ASTNode.simplify(self)
+        print("Simplify atomNode")
+        if len(self.children) > 1:
+            #rule: (ArOpNode)
+            retNode = self.children[1].simplify()
+            if retNode is not self.children[1]:
+                self.AST.delNode(self.children[1])
+            self.AST.delNode(self.children[0])
+            self.AST.delNode(self.children[2])
         else:
-            print("oei, iets vergeten bij AtomNode")
+            retNode = self.children[0].simplify()
+            if retNode is not self.children[0]:
+                self.AST.delNode(self.children[0])
+        self.children = []
+        print("AtomNode retNode: ", type(retNode))
+        self.AST.printDotDebug(str(self.getCount()) + "AtomNode" + ".dot")
+        print("AtomNode ret value exist: ", (retNode in self.AST.nodes))
+        print("AtomNode retNode ", type(retNode),"children exist?")
+        for c in retNode.children:
+            print("\t", type(c), " ", (c in self.AST.nodes))
+        self.AST.printDotDebug(str(self.getCount()) + "Atom.dot")
+        return retNode
 
 
 class ReturnStatNode(ASTNode, Type):
@@ -579,7 +636,7 @@ class ReturnStatNode(ASTNode, Type):
                 self.AST.delNode(self.children[0])
                 del self.children[0]
                 self.children.append(node)
-        print("Simplify returnStatNode: ", self.getType())
+        self.AST.printDotDebug(str(self.getCount()) + "ReturnStat.dot")
         return self
 
 
@@ -595,6 +652,7 @@ class VarDefNode(ASTNode):
         node = self.children[1].simplify()  # AssignRightNode
         self.AST.delNode(self.children[1])
         self.children[1] = node
+        self.AST.printDotDebug(str(self.getCount()) + "vardef.dot")
         return self
 
 
@@ -605,7 +663,9 @@ class GenDefNode(ASTNode):
 
     def simplify(self):
         print("Simplify GenDefNode")
-        self.children[0].simplify()
+        retNode = self.children[0].simplify()
+        self.children = []
+        return retNode
 
 
 class VarDeclNode(ASTNode):
@@ -667,6 +727,7 @@ class FuncNode(ASTNode):
             self.AST.delNode(c)
         self.children = [self.children[0]]
         self.children += self.arguments
+        self.AST.printDotDebug(str(self.getCount()) + "func.dot")
         return self
 
 
@@ -678,9 +739,9 @@ class GenDeclNode(ASTNode):
     def simplify(self):
         # only children need to simplify
         print("Simplifying declare node")
-        for child in self.children:
-            child.simplify()
-        self.isSimplified = True
+        retNode = self.children[0].simplify()
+        self.children = []
+        return retNode
 
 
 
@@ -712,32 +773,22 @@ class CondExpNode(ASTNode):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'CondExp', maxChildren, ast)
-        self.left = None
-        self.right = None
+        self.expression = None
 
     def simplify(self):
-        self.isSimplified = True
-        val = ""
-        getal = 0
-        for node in self.children:
-            getal += 1
-            if isinstance(node, VarNode) or isinstance(node, LitNode) or isinstance(node, ProdNode) or isinstance(node,
-                                                                                                                  AddNode):
-                if getal == 1:
-                    self.left = node
-                else:
-                    self.right = node
-                continue
-            elif isinstance(node, TerNode):
-                pass
-            else:
-                print("oei, iets vergeten bij CondExpNode: ", type(node))
-            val += node.value + " "
-            self.AST.delNode(node)
-            self.children.remove(node)
-
-        self.maxChildren = len(self.children)
-        self.value = val
+        self.expression = self.children[1].value;
+        self.value = self.expression
+        self.AST.delNode(self.children[1])
+        del self.children[1]
+        tmpLeft = self.children[0].simplify()
+        tmpRight = self.children[1].simplify()
+        if tmpLeft is not self.children[0]:
+            self.AST.delNode(self.children[0])
+            self.children[0] = tmpLeft
+        if tmpRight is not self.children[1]:
+            self.AST.delNode(self.children[1])
+            self.children[1] = tmpRight
+        return self
 
 
 class LoopNode(ASTNode):
@@ -745,36 +796,39 @@ class LoopNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'LoopNode', maxChildren, ast)
 
+    def simplify(self):
+        print("Simplify LoopNode")
+        retNode = self.children[0].simplify() #return while or ifelseLoop
+        self.children = []
+        return retNode
 
 class WhileNode(ASTNode):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'While', maxChildren, ast)
         self.cond = None
-        self.block = None
+        self.block = None   #will be CodeblockNode or FuncStatNode
+        self.returnStatements = []
 
     def simplify(self):
-        self.isSimplified = True
-        val = "While"
-        getal = 0
-        kopie = copy.copy(self.children)
-        for node in kopie:
-            getal += 1
-            if isinstance(node, CondExpNode):
-                self.cond = node
-                continue
-            elif isinstance(node, CodeBlockNode):
-                self.block = node
-                continue
-            elif isinstance(node, TerNode):
-                print("node ", node, " gedropped")
-            else:
-                print("oei, iets vergeten bij WhileNode: ", type(node))
-            self.AST.delNode(node)
-            self.children.remove(node)
+        print("Simplify WhileNode")
+        self.cond = self.children[2].simplify()
+        self.block = self.children[4]               #codeblock or functionstatement
+        if isinstance(self.block, CodeBlockNode):
+            self.returnStatements = self.block.simplify()
+        elif isinstance(self.block, ReturnStatNode):
+            self.returnStatements = [ReturnStatNode]
 
-        self.maxChildren = len(self.children)
-        self.value = val
+        self.AST.delNode(self.children[0])
+        self.AST.delNode(self.children[1])
+        self.AST.delNode(self.children[3])
+        if len(self.children) == 4:
+            self.AST.delNode(self.children[4])
+            del self.children[4]
+        del self.children[3]
+        del self.children[1]
+        del self.children[0]
+        return self
 
 
 class IfElseNode(ASTNode):
@@ -784,34 +838,38 @@ class IfElseNode(ASTNode):
         self.cond = None
         self.ifBlock = None
         self.elseBlock = None
+        self.returnStatements = []
 
     def simplify(self):
-        self.isSimplified = True
-        val = "If()Else"
-        getal = 0
-        kopie = copy.copy(self.children)
-        for node in kopie:
-            getal += 1
-            if isinstance(node, CondExpNode):
-                self.cond = node
-                continue
-            elif isinstance(node, CodeBlockNode):
-                if getal == 5:
-                    self.ifBlock = node
-                elif getal == 7:
-                    self.elseBlock = node
+        toDelete = []
+        newChildren = []
+        isIfBlock = True
+        for c in self.children:
+            if isinstance(c, TerNode):
+                if c.value == "else":
+                    isIfBlock = False
+                toDelete.append(c)
+            if isinstance(c, CondExpNode):
+                self.cond = c.simplify()
+                newChildren.append(c)
+            if isinstance(c, FuncStatNode):
+                if isIfBlock:
+                    self.ifBlock = c.simplify()
                 else:
-                    print("CodeBlock op verkeerde plaats bij IfElseNode")
-                continue
-            elif isinstance(node, TerNode):
-                print("node ", node, " gedropped")
-            else:
-                print("oei, iets vergeten bij IfElseNode: ", type(node))
-            self.AST.delNode(node)
-            self.children.remove(node)
+                    self.elseBlock = c.simplify()
+                newChildren.append(c)
+            if isinstance(c, CodeBlockNode):
+                if isIfBlock:
+                    self.ifBlock = c
+                else:
+                    self.elseBlock = c
+                self.returnStatements.extend(c.simplify())
+                newChildren.append(c)
 
-        self.maxChildren = len(self.children)
-        self.value = val
+        self.children = newChildren
+        for c in toDelete:
+            self.AST.delNode(c)
+        return self
 
 
 # CHILDREN THAT ARE NOT PARENTS = LEAFS

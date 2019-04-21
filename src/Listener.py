@@ -30,7 +30,7 @@ class Listener(c_subsetListener):
         children = 0
         if not (ctx.children is None):
             children = len(ctx.children)
-        node = ScopeNode("Root", children, self.AST)
+        node = RootNode("Root", children, self.AST)
         self.AST.nodes.append(node)
         self.AST.root = node
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
