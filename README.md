@@ -18,4 +18,4 @@ A simple-C compiler.
 * in the errors the position and line are not given
 
 ## Optional Features Implemented:
-* All paths if function body end with return statement if function doesn't return void 
+* All paths of function body end with return statement if function doesn't return void 
