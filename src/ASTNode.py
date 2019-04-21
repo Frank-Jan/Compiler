@@ -324,7 +324,8 @@ class CodeBlockNode(ScopeNode):
 
     def simplify(self, scope = None):
         print("Simplify Codeblock")
-            
+        self.symbolTable = scope
+
         funcSyntax = self.children[1]
         funcSyntax.simplify(scope)
         self.returnStatements += funcSyntax.returnStatements
