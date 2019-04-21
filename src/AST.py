@@ -42,6 +42,23 @@ class AST:
     def simplify(self):
         if self.root is not None:
             self.root.simplify()
+        #self.check()    #final check
+
+    def check(self):
+        #check if used functions are defined
+        #remove unused functions
+        #remove unused variables
+        for node in self.nodes:
+            if isinstance(node, ScopeNode):
+                #has scope: delete unused items:
+                table = node.getSymbolTable()
+                toDelete = []
+                for name, record in table.table.items():
+                    if not  record.isUsed:
+                        toDelete.append(name)
+                for name in toDelete:
+                    table.remove(name)
+                    self.delNode()
 
     def addNode(self, ASTnode, pos=None):
         prevNode = None

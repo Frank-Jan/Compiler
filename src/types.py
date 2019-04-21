@@ -81,7 +81,7 @@ class POINTER(VOID):
         return self.__str__()
 
     def getBase(self):
-        return self.type.getType()
+        return self.type
 
     def __str__(self):
         return self.type.__str__() + "*"
@@ -99,7 +99,7 @@ class REFERENCE(VOID):
         return self.__str__()
 
     def getBase(self):
-        return self.type.getType()
+        return self.type
 
     def __str__(self):
         return self.type.__str__() + "&"

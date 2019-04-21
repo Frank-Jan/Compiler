@@ -15,7 +15,7 @@ class Record:
     def __init__(self, _type):
         self.type = _type
         self.llvmName = None
-
+        self.isUsed = False
     def isVar(self):
         return True
 
@@ -147,6 +147,9 @@ class SymbolTable:
                 raise Exception("Function: already declared with different signature")
                 return -2
 
+    #removes local record
+    def remove(self, name):
+        self.table.pop(name, None)
 
     # searches for symbol with the correct name
     def search(self, name):
