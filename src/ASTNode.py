@@ -356,6 +356,7 @@ class CodeBlockNode(ScopeNode):
     def __init__(self, maxChildren, ast, symboltable=None):
         ASTNode.__init__(self, 'CodeBlock', maxChildren, ast)
         self.returnStatements = []  # full return statements
+        self.endCode = False  # if code behind the while loop is reachable
 
     def simplify(self, scope):
         print("Simplify Codeblock")
@@ -370,6 +371,9 @@ class CodeBlockNode(ScopeNode):
         self.AST.delNode(self.children[0])
         del self.children[2]
         del self.children[0]
+
+        #is endCode if functionSyntax is endCode
+        self.endCode = funcSyntax.endCode
 
         # steal children of funcSyntax
         self.children = funcSyntax.children
@@ -472,28 +476,34 @@ class FuncSyntaxNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'FuncSyntax', maxChildren, ast)
         self.returnStatements = []
+        self.endCode = False
 
     def simplify(self, scope):
         print("Simplify FuncSyntaxNode")
         new_children = []
         for c in self.children:
-            if isinstance(c, FuncStatNode) or isinstance(c, FuncDefNode):
+            if self.endCode:
+                self.AST.delNode(c)
+            elif isinstance(c, FuncStatNode) or isinstance(c, FuncDefNode):
                 tmp = c.simplify(scope)
                 if tmp is not None:
                     new_children.append(tmp)
-                if tmp
                 if tmp is not c:
                     self.AST.delNode(c)
+                if isinstance(tmp, ReturnStatNode):
+                    self.endCode = True
             elif isinstance(c, CodeBlockNode):
                 # create new scope for CodeBlock
                 localScope = SymbolTable(scope)
-                self.returnStatements += c.simplify(localScope)
+                returnStat = c.simplify(localScope)
+                self.endCode = c.endCode
                 new_children.append(c)
             elif isinstance(c, LoopNode):
                 # needs new scope
                 localScope = SymbolTable(scope)
                 node = c.simplify(localScope)
                 self.returnStatements += node.returnStatements
+                self.endCode = node.endCode
                 new_children.append(node)
                 if node is not c:
                     self.AST.delNode(c)
@@ -562,7 +572,7 @@ class ProdNode(ArOpNode):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Prod', maxChildren, ast)
-        self.isMultiplication = True
+        self.multiplication = True
         self.left = None
         self.right = None
         self.returnVar = None
@@ -580,7 +590,7 @@ class ProdNode(ArOpNode):
             self.AST.printDotDebug(str(self.getCount()) + "Prod.dot")
             return newLeft
 
-        self.isMultiplication = (self.children[1].value == '*')
+        self.multiplication = (self.children[1].value == '*')
 
         oldRight = self.children[2]
         newRight = oldRight.simplify()
@@ -999,9 +1009,10 @@ class LoopNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'LoopNode', maxChildren, ast)
 
-    def simplify(self, scope=None):
+    #give local scope
+    def simplify(self, scope):
         print("Simplify LoopNode")
-        retNode = self.children[0].simplify()  # return while or ifelseLoop
+        retNode = self.children[0].simplify(scope)  # return while or ifelseLoop
         self.children = []
         return retNode
 
@@ -1013,22 +1024,32 @@ class WhileNode(ASTNode):
         self.cond = None
         self.block = None  # will be CodeblockNode or FuncStatNode
         self.returnStatements = []
+        self.endCode = False #if code behind the while loop is reachable
 
-    def simplify(self, scope=None):
+    def simplify(self, scope):
         print("Simplify WhileNode")
         self.cond = self.children[2].simplify()
         self.block = self.children[4]  # codeblock or functionstatement
+        localScope = SymbolTable(scope)
         if isinstance(self.block, CodeBlockNode):
-            self.returnStatements = self.block.simplify()
-        elif isinstance(self.block, ReturnStatNode):
-            self.returnStatements = [ReturnStatNode]
+            self.returnStatements = self.block.simplify(localScope)
+            self.endCode = self.block.endCode
+        elif isinstance(self.block, FuncStatNode):
+            tmp = self.block.simplify(localScope)
+            if tmp is not self.block:
+                self.AST.delNode(self.block)
+                self.block = tmp
+                self.children[4] = tmp
+            if isinstance(self.block, ReturnStatNode):
+                self.returnStatements = [self.block]
+                self.endCode = True
+        else:
+            printError("Forgot something in while simplify: " + str(type(self.block)))
+
 
         self.AST.delNode(self.children[0])
         self.AST.delNode(self.children[1])
         self.AST.delNode(self.children[3])
-        if len(self.children) == 4:
-            self.AST.delNode(self.children[4])
-            del self.children[4]
         del self.children[3]
         del self.children[1]
         del self.children[0]
@@ -1043,36 +1064,49 @@ class IfElseNode(ASTNode):
         self.ifBlock = None
         self.elseBlock = None
         self.returnStatements = []
+        self.endCode = False  # if code behind the while loop is reachable
 
-    def simplify(self, scope=None):
+    def simplify(self, scope):
         toDelete = []
         newChildren = []
         isIfBlock = True
+        ifBlockEndCode = False
+        elseBlockEndCode = False
         for c in self.children:
             if isinstance(c, TerNode):
                 if c.value == "else":
                     isIfBlock = False
                 toDelete.append(c)
             if isinstance(c, CondExpNode):
-                self.cond = c.simplify()
+                self.cond = c.simplify(scope)
                 newChildren.append(c)
             if isinstance(c, FuncStatNode):
                 if isIfBlock:
-                    self.ifBlock = c.simplify()
+                    localScope = SymbolTable(scope)
+                    self.ifBlock = c.simplify(localScope)
+                    ifBlockEndCode = isinstance(self.elseBlock, ReturnStatNode)
                 else:
-                    self.elseBlock = c.simplify()
+                    localScope = SymbolTable(scope)
+                    self.elseBlock = c.simplify(localScope)
+                    elseBlockEndCode = isinstance(self.elseBlock, ReturnStatNode)
                 newChildren.append(c)
             if isinstance(c, CodeBlockNode):
                 if isIfBlock:
                     self.ifBlock = c
+                    localScope = SymbolTable(scope)
+                    self.returnStatements.extend(c.simplify(localScope))
+                    ifBlockEndCode = self.ifBlock.endCode
                 else:
                     self.elseBlock = c
-                self.returnStatements.extend(c.simplify())
+                    localScope = SymbolTable(scope)
+                    self.returnStatements.extend(c.simplify(localScope))
+                    elseBlockEndCode = self.elseBlock.endCode
                 newChildren.append(c)
 
         self.children = newChildren
         for c in toDelete:
             self.AST.delNode(c)
+        self.endCode = (ifBlockEndCode and elseBlockEndCode)
         return self
 
 

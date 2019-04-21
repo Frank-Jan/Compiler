@@ -115,12 +115,12 @@ loop
     ;
 
 whileLoop
-    : WHILE '(' conditionalExpression ')'   (functionStatement ';' | codeBlock)
+    : WHILE '(' conditionalExpression ')'   (functionStatement | codeBlock)
     ;
 
 ifelseLoop
-    : IF '('conditionalExpression')' (functionStatement ';' | codeBlock)
-      (ELSE (functionStatement ';' | codeBlock))?
+    : IF '('conditionalExpression')' (functionStatement | codeBlock)
+      (ELSE (functionStatement | codeBlock))?
     ;
 
 

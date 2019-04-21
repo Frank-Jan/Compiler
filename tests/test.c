@@ -1,5 +1,7 @@
-void declFunc();
+int fun(){return 0;}
 
-int defFunc(int** i){
-    q;
+int main(){
+    int q = 0;
+    while(q == 4)
+        fun();
 }
