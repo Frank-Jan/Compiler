@@ -8,7 +8,7 @@ parent table reference
 call parent
 //error: throw exception
 """
-
+from src.ASTNode import *
 ALLSCOPES = []
 
 class Record:
@@ -16,6 +16,9 @@ class Record:
         self.type = _type
         self.llvmName = None
         self.isUsed = False
+        self.declarations = []  #all nodes with declarations of this value
+        self.definitions = None #all nodes with definitions of this value
+
     def isVar(self):
         return True
 
@@ -62,33 +65,28 @@ class SymbolTable:
 
     # add new variable/function
     # returns False if variable already exists in scope
-    def insertVariable(self, name, _type):
+    def insertVariable(self, name, _type, node=None):
         if not self.existLocal(name):
-            self.table[name] = Record(_type)
-            return True
-        raise Exception("Variable already declared or defined")
-        return False #name already exists
+            record = Record(_type)
+            self.table[name] = record
+            return;
+        if self.parent is not None:
+            raise Exception("Variable already declared or defined")
 
     # argumentList contains only types i.e. ["int", "float"]
     def defineFunction(self, name, returnType, argumentList):
-        print("\tSymboltable: declare function: ", returnType, " ", name, " ", argumentList)
         value =  self.getLocal(name)
         if value is None:
             print("\tvalue is None")
             self.table[name] = FunctionRecord(returnType, argumentList, True)   #define function
             return 0
         elif value.isVar():
-            print("\talready defined as var")
             raise Exception("Function: {} already declared or defined as variable")
-            return -1 #already defined/declared as variable
         elif value.defined:
             # functions is already defined
-            print("\talready defined")
             raise Exception("Function: already declared in this scope")
-            return -2
         else:
             if self.parent == None:
-                print("\tglobal scope")
                 #global scope: allow multiple declarations with one definition:
                 if value.type == returnType and value.argumentList == argumentList:
                     #definition same as declaration
@@ -96,14 +94,11 @@ class SymbolTable:
                     return 0
                 else:
                     #declaration and definition are different
-                    print("\tdifferent signature")
                     raise Exception("Function different signature")
-                    return -3
             else:
-                print("\tlocal scope")
+                # not in global scope: no double declarations or definitions allowed
                 raise Exception("Function: already declared or defined in this scope")
-                #not in global scope: no double declarations or definitions allowed
-                return -4
+
 
     def declareFunction(self, name, returnType, argumentList):
         print("\tSymboltable: declare function: ", returnType, " ", name, " ", argumentList)

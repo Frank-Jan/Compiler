@@ -1,9 +1,8 @@
 //#include <stdio.h>
+int main();
+int main();
 
 int main(){
-    int q;
-    if(4==6)
-        q = 4;
-    else
-        q = 5;
+    int i = 0;
+return 0;
 }

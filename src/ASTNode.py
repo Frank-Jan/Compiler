@@ -1,7 +1,8 @@
 import copy
-from src.types import *
+from src.Types import *
 from src.SymbolTable import SymbolTable
 from src.VarGen import *
+from src.SymbolTableHelperFunctions import *
 
 varGen = VarGen()
 
@@ -937,7 +938,10 @@ class VarDeclNode(ASTNode, Type):
         self.AST.delNode(self.children[1])
         self.children = []
         self.value = str(self.type) + " " + str(self.var)
-        scope.insertVariable(self.getName(), self.getType())
+
+        #check if declaration is possible
+
+        scope.insertVariable(self.getName(), self.getType(), self)
         return self
 
     def buildSymbolTable(self, symbolTable):
