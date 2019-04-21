@@ -479,7 +479,9 @@ class FuncSyntaxNode(ASTNode):
         for c in self.children:
             if isinstance(c, FuncStatNode) or isinstance(c, FuncDefNode):
                 tmp = c.simplify(scope)
-                new_children.append(tmp)
+                if tmp is not None:
+                    new_children.append(tmp)
+                if tmp
                 if tmp is not c:
                     self.AST.delNode(c)
             elif isinstance(c, CodeBlockNode):
@@ -500,6 +502,9 @@ class FuncSyntaxNode(ASTNode):
                 continue
             else:
                 printError("Forgot something in FuncSyntax simplify: ", type(c))
+        print("FuncSyntax children: ")
+        for c in new_children:
+            print("\t", type(c))
         self.children = new_children
         self.AST.printDotDebug(str(self.getCount()) + "FuncSyntax.dot")
         return self
@@ -871,7 +876,7 @@ class VarDeclNode(ASTNode, Type):
         return self.var.toLLVM() + " = alloca " + self.type.toLLVM() + ", align 4\n"  # %1 = alloca i32, align 4
 
 
-class FuncNode(ASTNode):
+class FuncNode(ASTNode, Type):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Func', maxChildren, ast)
@@ -880,13 +885,18 @@ class FuncNode(ASTNode):
         self.returnVar = None  # hulpvar om waarde te returnen
 
     def getType(self):
-        return VOID()
+        if self.isSimplified:
+            return self.type
+        raise Exception("error: FuncNode getType called before simplify")
 
     def getName(self):
-        return self.name
+        if self.isSimplified:
+            return self.name
+        raise Exception("error: FuncNode getName called before simplify")
 
-    def simplify(self, scope=None):
+    def simplify(self, scope):
         print("Simplify FuncNode")
+        self.isSimplified = True
         self.children[0].simplify()
         self.name = self.children[0].value
         for c in self.children[1:]:
@@ -898,6 +908,13 @@ class FuncNode(ASTNode):
             self.AST.delNode(c)
         self.children = [self.children[0]]
         self.children += self.arguments
+
+        #check if exist in scope:
+        value = scope.search(self.name)
+        if value is None:
+            raise Exception("error: function {} called before declaration".format(self.name))
+        if value.isVar():
+            raise Exception("error: {} is a variable not a function".format(self.name))
         self.AST.printDotDebug(str(self.getCount()) + "func.dot")
         return self
 
