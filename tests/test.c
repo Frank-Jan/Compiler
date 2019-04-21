@@ -1,16 +1,15 @@
-int func(){
-    return 0;
+#include <stdio.h>
+
+//int f(int*);
+
+int f(int i){
+    return 1;
 }
 
 int main(){
-    int i = 1;
-
-    if(i == 2){
-        while(i<4){
-            func();
-            }
-
-    }
-    else{
-    }
+    int i;
+    int k = i;
+    int j = 0;
+    return i;
 }
+

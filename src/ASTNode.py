@@ -1,6 +1,9 @@
 import copy
 from src.types import *
 from src.SymbolTable import SymbolTable
+from src.VarGen import *
+
+varGen = VarGen()
 
 llvmTypes = {'int': 'i32',
              'double': 'double'
@@ -222,7 +225,6 @@ class FuncDefNode(ASTNode, Type):
     def fillSymbolTable(self):
         scope = self.children[2].getSymbolTable()
 
-
     def toLLVM(self):
         curCode = "define " + llvmTypes[str(self.getType())] + " @" + self.fsign.toLLVM() + "{"
         curCode += self.block.toLLVM()
@@ -339,7 +341,7 @@ class CodeBlockNode(ScopeNode):
     def toLLVM(self):
         code = "\n"
         for child in self.children:
-             code += child.toLLVM() + "\n"
+            code += child.toLLVM() + "\n"
         return code
 
 
@@ -358,6 +360,9 @@ class ValueNode(ASTNode, Type):
         self.AST.printDotDebug(str(self.getCount()) + "Value.dot")
         return retNode
 
+    def toLLVM(self):
+        return self.value
+
 
 class LvalueNode(ASTNode, Type):
 
@@ -375,7 +380,7 @@ class LvalueNode(ASTNode, Type):
                 return None
             retNode.type = retNode.getType().getBase()
         else:
-            retNode = self.children[2].simplify()   #* and & cancel eachother in '*&'
+            retNode = self.children[2].simplify()  # * and & cancel eachother in '*&'
 
         self.children.remove(retNode)
         for c in self.children:
@@ -396,10 +401,10 @@ class RvalueNode(ASTNode, Type):
         if len(self.children) == 1:
             retNode = self.children[0].simplify()
         elif len(self.children) == 2:
-            retNode = self.children[1].simplify() #simplify lvalue node
+            retNode = self.children[1].simplify()  # simplify lvalue node
             retNode.type = POINTER(retNode.getType())
         else:
-            printError("error: unexpected number of children (", len(self.children) ,") in: ", type(RvalueNode))
+            printError("error: unexpected number of children (", len(self.children), ") in: ", type(RvalueNode))
             retNode = None
 
         if retNode in self.children:
@@ -409,6 +414,9 @@ class RvalueNode(ASTNode, Type):
         self.children = []
         self.AST.printDotDebug(str(self.getCount()) + "Rvalue.dot")
         return retNode
+
+    def toLLVM(self):
+        pass
 
 
 class FuncSyntaxNode(ASTNode):
@@ -539,11 +547,17 @@ class ProdNode(ArOpNode):
         self.AST.printDotDebug(str(self.getCount()) + "Prod.dot")
         return self
 
+    def toLLVM(self):
+        return "mul " + self.left.toLLVM() + ", " + self.right.toLLVM()
+
 
 class AddNode(ArOpNode):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Add', maxChildren, ast)
+        self.left = None
+        self.right = None
+        self.returnVar = None  # hulpVar to return
         self.add = True
 
     def isAddition(self):
@@ -578,6 +592,14 @@ class AddNode(ArOpNode):
             self.children[1] = newRight
         self.AST.printDotDebug(str(self.getCount()) + "Addnode.dot")
         return self
+
+    def toLLVM(self):
+        self.returnVar = varGen.getNewVar(varGen)
+        code = ""
+        code += self.left.toLLVM() + "\n"
+        code += self.right.toLLVM() + "\n"
+        code += self.returnVar + " = add " + self.left.returnVar + ", " + self.right.returnVar
+        return code
 
 
 class IdentNode(ASTNode):
@@ -639,6 +661,14 @@ class ReturnStatNode(ASTNode, Type):
         self.AST.printDotDebug(str(self.getCount()) + "ReturnStat.dot")
         return self
 
+    def toLLVM(self):
+        code = "ret "
+        for child in self.children:
+            if isinstance(child, FuncNode):
+                return child.toLLVM() + "\n" + "ret " + child.returnVar
+            code += child.toLLVM()  # + "\n"
+        return code
+
 
 class VarDefNode(ASTNode):
 
@@ -654,6 +684,12 @@ class VarDefNode(ASTNode):
         self.children[1] = node
         self.AST.printDotDebug(str(self.getCount()) + "vardef.dot")
         return self
+
+    def toLLVM(self):
+        code = self.children[0].toLLVM()
+        code += "store " + self.children[1].toLLVM() + ", " + self.children[0].type.toLLVM() + "* " + \
+                self.children[0].var.toLLVM()  # store i32 0, i32* %1
+        return code
 
 
 class GenDefNode(ASTNode):
@@ -672,8 +708,8 @@ class VarDeclNode(ASTNode):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'VarDecl', maxChildren, ast)
-        self.type = None  #Types
-        self.var = None   #VarNode itself
+        self.type = None  # Types
+        self.var = None  # VarNode itself
         self.size = 0
 
     def simplify(self):
@@ -699,7 +735,8 @@ class VarDeclNode(ASTNode):
 
     def toLLVM(self):
         print("VARDECL to LLVM")
-        return self.type.toLLVM() + " " + self.var.toLLVM()
+        return self.var.toLLVM() + " = alloca " + self.type.toLLVM() + ", align 4\n"  # %1 = alloca i32, align 4
+
 
 class FuncNode(ASTNode):
 
@@ -707,6 +744,7 @@ class FuncNode(ASTNode):
         ASTNode.__init__(self, 'Func', maxChildren, ast)
         self.name = None
         self.arguments = []
+        self.returnVar = None  # hulpvar om waarde te returnen
 
     def getType(self):
         return VOID()
@@ -719,7 +757,7 @@ class FuncNode(ASTNode):
         self.children[0].simplify()
         self.name = self.children[0].value
         for c in self.children[1:]:
-            if isinstance(c,ValueNode):
+            if isinstance(c, ValueNode):
                 self.arguments.append(c.simplify())
 
         toDelete = [item for item in self.children[1:] if item not in self.arguments]
@@ -729,6 +767,15 @@ class FuncNode(ASTNode):
         self.children += self.arguments
         self.AST.printDotDebug(str(self.getCount()) + "func.dot")
         return self
+
+    def toLLVM(self):
+        self.returnVar = varGen.getNewVar(varGen)
+        args = ""
+        for arg in self.arguments:
+            args += "i32 " + arg.toLLVM() + ", "
+        args = args[:-2]
+
+        return self.returnVar + " = call " + "i32 " + "@" + self.name + "(" + args + ")"  # symboltable.gettype
 
 
 class GenDeclNode(ASTNode):
@@ -742,7 +789,6 @@ class GenDeclNode(ASTNode):
         retNode = self.children[0].simplify()
         self.children = []
         return retNode
-
 
 
 class FuncDeclNode(ASTNode, Type):
@@ -884,6 +930,9 @@ class TerNode(ASTNode):  # leafs
         print("Simplify TerNode: ", self.value)
         return self.value
 
+    def toLLVM(self):
+        return self.value
+
 
 class VarNode(ASTNode):
 
@@ -916,6 +965,7 @@ class VarNode(ASTNode):
 
     def toLLVM(self):
         return "%" + self.value
+
 
 class LitNode(ASTNode, Type):
 
@@ -956,6 +1006,9 @@ class IntNode(TerNode, Type):
         self.children = []
         return self
 
+    def toLLVM(self):
+        return self.type.toLLVM() + " " + self.value
+
 
 class FloatNode(TerNode, Type):
 
@@ -971,6 +1024,10 @@ class FloatNode(TerNode, Type):
         self.children = []
         return self
 
+    def toLLVM(self):
+        return self.type.toLLVM() + " " + self.value
+
+
 class CharNode(TerNode, Type):
 
     def __init__(self, value, ast, pos):
@@ -984,6 +1041,10 @@ class CharNode(TerNode, Type):
             self.AST.delNode(c)
         self.children = []
         return self
+
+    def toLLVM(self):
+        return self.type.toLLVM() + " " + self.value
+
 
 # type/pointer/reference/literal nodes
 
@@ -1005,6 +1066,9 @@ class TypeSpecNode(Type, ASTNode):
         self.value = self.type
         return self.getType()
 
+    def toLLVM(self):
+        return self.type.toLLVM() + " " + self.value
+
 
 class TypeSpecFuncNode(Type, ASTNode):
 
@@ -1025,6 +1089,9 @@ class TypeSpecFuncNode(Type, ASTNode):
         return self.getType()
         # self.AST.delNode(self.children[0])
         # self.children = None
+
+    def toLLVM(self):
+        return self.type.toLLVM() + " " + self.value
 
 
 class TypeSpecBaseNode(Type, ASTNode):
@@ -1049,6 +1116,9 @@ class TypeSpecBaseNode(Type, ASTNode):
         # self.AST.delNode(self.children[0])
         # self.children = None
 
+    def toLLVM(self):
+        return self.type.toLLVM() + " " + self.value
+
 
 class TypeSpecReferenceNode(Type, ASTNode):
 
@@ -1067,6 +1137,9 @@ class TypeSpecReferenceNode(Type, ASTNode):
         print("Simplified TypeSpecReferenceNode to: ", self.getType())
         self.value = self.getType()
         return self.getType()
+
+    def toLLVM(self):
+        return self.type.toLLVM() + " " + self.value
 
 
 class TypeSpecPtrNode(Type, ASTNode):
@@ -1087,3 +1160,5 @@ class TypeSpecPtrNode(Type, ASTNode):
             # second child holds "*"
         return self.type
 
+    def toLLVM(self):
+        return self.type.toLLVM() + " " + self.value

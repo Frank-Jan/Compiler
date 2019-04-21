@@ -1,8 +1,8 @@
 from src.errors import printError
 
 llvmTypes = {'int': 'i32',
-             'double': 'double'
-             }
+             'double': 'double',
+             'void': 'void'}
 
 
 def toType(string):
