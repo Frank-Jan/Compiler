@@ -37,6 +37,10 @@ class ASTNode:
         for i in range(self.maxChildren):
             self.children.append(None)
 
+    def removeChild(self, child):
+        if child in self.children:
+            self.children.remove(child)
+
     def getCount(self):
         global counter
         counter += 1
@@ -255,11 +259,11 @@ class FuncDefNode(ASTNode, Type):
 
         self.block = self.children[2]
 
-        # simplify function signature and fill functionscope
+        #simplify function signature and fill functionscope
         self.fsign = self.children[1].simplify(functionScope, self.block)
 
-        # define function in scope
-        scope.defineFunction(self.getName(), self.getType(), self.fsign.types)
+        #define function in scope
+        scope.defineFunction(self.getName(), self.getType(), self.fsign.types, self)
 
         self.returnTypes = self.children[2].simplify(functionScope)  # simplify code block
 
@@ -375,6 +379,7 @@ class FuncSignDefNode(ASTNode):
         # insert variables of signature in functionscope
         for i in range(len(self.types)):
             self.varNames[i].parent = codeBlock
+            self.varNames[i].setType(self.types[i])
             functionscope.insertVariable(self.varNames[i].getName(), self.types[i])
 
         sign = '('
@@ -984,6 +989,7 @@ class FuncNode(ASTNode, Type):
         self.name = None
         self.arguments = []
         self.returnVar = None  # hulpvar om waarde te returnen
+        self.record = None # node to func definition
 
     def getType(self):
         if self.isSimplified:
@@ -1017,6 +1023,7 @@ class FuncNode(ASTNode, Type):
         if value.isVar():
             raise Exception("error: {} is a variable not a function".format(self.name))
         value.isUsed = True
+        self.record = value
         self.AST.printDotDebug(str(self.getCount()) + "func.dot")
         return self
 
@@ -1082,16 +1089,7 @@ class FuncDeclNode(ASTNode, Type):
         string += ")"
         print(string)
 
-        code = symbolTable.declareFunction(self.fsign.name, self.type, self.fsign.types)
-        if code == -1:
-            raise Exception(
-                "error: {} function already defined/declared as variable in local scope".format(self.fsign.name))
-        if code == -2:
-            raise Exception(
-                "error: {} function already defined/declared with different signature  in local scope".format(
-                    self.fsign.name))
-        if code == -3:
-            raise Exception("error: {} function already defined in local scope".format(self.fsign.name))
+        symbolTable.declareFunction(self.fsign.name, self.type, self.fsign.types, self)
         return symbolTable
 
     def toLLVM(self):
@@ -1300,6 +1298,7 @@ class VarNode(ASTNode, Type):
         # TerNode.__init__(self, value, ast, pos)
         ASTNode.__init__(self, value, 1, ast)
         self.name = value
+        self.record = None
 
     def getName(self):
         print("VarNode self name is called: ", self.name)
@@ -1331,6 +1330,7 @@ class VarNode(ASTNode, Type):
             raise Exception("{} is a function not a variable".format(self.name))
         self.type = value.getType()
         value.isUsed = True
+        self.record = value
         return self
 
     def toLLVM(self, load=False):
