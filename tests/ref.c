@@ -7,10 +7,8 @@ int f(int i){
 }
 
 int main(){
-    int o = (f(1) + f(2)) * f(3);
-    int i = f(1);
-    int k = i;
-    int j = 0;
+    int o = (f(1) - f(2)/f(2)) * f(3);
+    int i = f(o);
     return o;
 }
 

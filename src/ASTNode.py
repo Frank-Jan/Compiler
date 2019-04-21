@@ -557,13 +557,13 @@ class ProdNode(ArOpNode):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Prod', maxChildren, ast)
-        self.isMultiplication = True
+        self.multiplication = True
         self.left = None
         self.right = None
         self.returnVar = None
 
     def isMultiplication(self):
-        return self.isMultiplication
+        return self.multiplication
 
     def simplify(self, scope=None):
         print("Simplify ProdNode")
@@ -575,7 +575,7 @@ class ProdNode(ArOpNode):
             self.AST.printDotDebug(str(self.getCount()) + "Prod.dot")
             return newLeft
 
-        self.isMultiplication = (self.children[1].value == '*')
+        self.multiplication = (self.children[1].value == '*')
 
         oldRight = self.children[2]
         newRight = oldRight.simplify()
@@ -602,13 +602,23 @@ class ProdNode(ArOpNode):
         code = ""
         l = self.left.toLLVM()
         r = self.right.value  # het type mag niet nog is getoond worden
+        if isinstance(self.left, VarNode):
+            code += self.left.toLLVM(True)
+            l = self.left.getType().toLLVM() + " " + self.left.returnVar
+        if isinstance(self.right, VarNode):
+            code += self.right.toLLVM(True)
+            r = self.right.returnVar
         if isinstance(self.left, FuncNode) or isinstance(self.left, ArOpNode):
             code += self.left.toLLVM()
             l = self.left.getType().toLLVM() + " " + self.left.returnVar
         if isinstance(self.right, FuncNode) or isinstance(self.right, ArOpNode):
             code += self.right.toLLVM()
             r = self.right.returnVar
-        code += self.returnVar + " = mul " + l + ", " + r + "\n"
+        if self.isMultiplication():
+            op = "mul"
+        else:
+            op = "sdiv"
+        code += self.returnVar + " = " + op + " " + l + ", " + r + "\n"
         return code
 
 
@@ -661,13 +671,23 @@ class AddNode(ArOpNode):
         code = ""
         l = self.left.toLLVM()
         r = self.right.value  # het type mag niet nog is getoond worden
-        if isinstance(self.left, FuncNode) or isinstance(self.right, ArOpNode):
+        if isinstance(self.left, VarNode):
+            code += self.left.toLLVM(True)
+            l = self.left.getType().toLLVM() + " " + self.left.returnVar
+        if isinstance(self.right, VarNode):
+            code += self.right.toLLVM(True)
+            r = self.right.returnVar
+        if isinstance(self.left, FuncNode) or isinstance(self.left, ArOpNode):
             code += self.left.toLLVM()
             l = self.left.getType().toLLVM() + " " + self.left.returnVar
         if isinstance(self.right, FuncNode) or isinstance(self.right, ArOpNode):
             code += self.right.toLLVM()
             r = self.right.returnVar
-        code += self.returnVar + " = add " + l + ", " + r + "\n"
+        if self.isAddition():
+            op = "add"
+        else:
+            op = "sub"
+        code += self.returnVar + " = " + op + " " + l + ", " + r + "\n"
         return code
 
 
@@ -736,7 +756,7 @@ class ReturnStatNode(ASTNode, Type):
     def toLLVM(self):
         code = "ret "
         for child in self.children:
-            if isinstance(child, FuncNode):
+            if isinstance(child, FuncNode) or isinstance(child, ArOpNode):
                 return child.toLLVM() + "ret " + child.getType().toLLVM() + " " + child.returnVar
             elif isinstance(child, VarNode):
                 return child.toLLVM(True) + "ret " + child.getType().toLLVM() + " " + child.returnVar
@@ -886,12 +906,17 @@ class FuncNode(ASTNode):
 
     def toLLVM(self):
         self.returnVar = varGen.getNewVar(varGen)
+        code = ""
         args = ""
         for arg in self.arguments:
-            args += arg.toLLVM() + ", "
+            if isinstance(arg, VarNode):
+                code += arg.toLLVM(True)
+                args += arg.getType().toLLVM() + " " + arg.returnVar + ", "
+            else:
+                args += arg.toLLVM() + ", "
         args = args[:-2]
 
-        return self.returnVar + " = call " + self.getType().toLLVM() + " " + "@" + self.name + "(" + args + ")\n"  # symboltable.gettype
+        return code + self.returnVar + " = call " + self.getType().toLLVM() + " " + "@" + self.name + "(" + args + ")\n"  # symboltable.gettype
 
 
 class GenDeclNode(ASTNode):
@@ -1087,7 +1112,7 @@ class VarNode(ASTNode):
         return self.name
 
     def getType(self):  # linken met symbol table
-        return VOID()
+        return INT()
 
     def simplify(self, scope=None):
         for c in self.children:
