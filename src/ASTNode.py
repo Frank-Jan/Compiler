@@ -249,14 +249,6 @@ class FuncDefNode(ASTNode, Type):
         self.block = self.children[2]
 
         #check if returnstatements are correct:
-        print("Function definition")
-        print("return type:")
-        print("\t", self.getType().__str__())
-        print("return statements:", len(self.block.returnStatements))
-        for r in self.block.returnStatements:
-            print("\t", r.children[0].getType())
-        print("--")
-
         if self.type != VOID() and len(self.block.returnStatements) == 0:
             #expected return statements:
             raise Exception("error: Expected return statements")
