@@ -379,3 +379,13 @@ class Listener(c_subsetListener):
     # Exit a parse tree produced by c_subsetParser#typeSpecFunc.
     def exitTypeSpecFunc(self, ctx:c_subsetParser.TypeSpecFuncContext):
         pass
+
+    # Enter a parse tree produced by c_subsetParser#stdio.
+    def enterStdio(self, ctx:c_subsetParser.StdioContext):
+        self.AST.addNode(StdioNode(ctx.getText(), self.AST, (ctx.start.line, ctx.start.column)))
+        #self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+        pass
+
+    # Exit a parse tree produced by c_subsetParser#stdio.
+    def exitStdio(self, ctx:c_subsetParser.StdioContext):
+        pass

@@ -13,7 +13,7 @@ functionSyntax
 generalStatement
     : generalDefinition ';'?
     | generalDeclaration ';'
-    | INCLUDESTDIO
+    | stdio
     ;
 
 functionStatement
@@ -129,27 +129,10 @@ codeBlock
     :   '{' functionSyntax '}'
     ;
 
-
-//Identifier
-//identifier // id is a reserved keyword!!!
-//    : dereference
-//    | reference
-//    | variable
-//    | function
-//    | literal
-//    ;
-//
-//dereference_right
-//    : dereference_left
-//    | '*' function
-//    | '*' dereference_right
-//    ;
-
 value
     : lvalue
     | rvalue
     ;
-
 
 lvalue
     : variable
@@ -228,6 +211,10 @@ typeSpecFunc
     : typeSpecBase
     | typeSpecPointer
     | typeSpecReference
+    ;
+
+stdio
+    : INCLUDESTDIO
     ;
 
 //Things to skip:

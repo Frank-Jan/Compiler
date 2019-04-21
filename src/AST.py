@@ -16,6 +16,9 @@ class AST:
         leftnodes = []
         node = self.nodes[0]  # append = push
 
+        for c in nodes:
+            print(type(c))
+
         while not len(nodes) == 0:  # while not all nodes are simplified
             node = nodes.pop()  # take last node
 

@@ -139,6 +139,7 @@ class RootNode(ScopeNode):
         self.AST.printDotDebug(str(self.getCount()) + "BaseSimplify.dot")
         return self
 
+
 class GenStatNode(ASTNode):
 
     def __init__(self, maxChildren, ast):
@@ -148,7 +149,8 @@ class GenStatNode(ASTNode):
         # only children need to simplify
         retNode = self.children[0].simplify()
         self.AST.printDotDebug(str(self.getCount()) + "GenStatNode.dot")
-        self.AST.delNode(self.children[0])
+        if retNode is not self.children[0]:
+            self.AST.delNode(self.children[0])
         self.children = []
         return retNode
 
@@ -1162,3 +1164,12 @@ class TypeSpecPtrNode(Type, ASTNode):
 
     def toLLVM(self):
         return self.type.toLLVM() + " " + self.value
+
+
+#includes:
+class StdioNode(TerNode):
+    def __init__(self, value, ast, pos):
+        TerNode.__init__(self, '#include <stdio>',ast,pos)
+
+    def simplify(self):
+        return self
