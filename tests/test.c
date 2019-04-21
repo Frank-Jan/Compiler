@@ -1,3 +1,5 @@
-int funcName(char c, int i){
-    int a;
+void declFunc();
+
+int defFunc(int** i){
+    q;
 }
