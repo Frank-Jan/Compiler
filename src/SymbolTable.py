@@ -9,6 +9,7 @@ call parent
 //error: throw exception
 """
 
+ALLSCOPES = []
 
 class Record:
     def __init__(self, _type):
@@ -54,6 +55,8 @@ class FunctionRecord(Record):
 
 class SymbolTable:
     def __init__(self, parent = None):
+        global ALLSCOPES
+        ALLSCOPES.append(self)
         self.parent = parent    #parent sy   mbol table
         self.table = dict()
 
@@ -63,6 +66,7 @@ class SymbolTable:
         if not self.existLocal(name):
             self.table[name] = Record(_type)
             return True
+        raise Exception("Variable already declared or defined")
         return False #name already exists
 
     # argumentList contains only types i.e. ["int", "float"]
@@ -75,10 +79,12 @@ class SymbolTable:
             return 0
         elif value.isVar():
             print("\talready defined as var")
+            raise Exception("Function: {} already declared or defined as variable")
             return -1 #already defined/declared as variable
         elif value.defined:
             # functions is already defined
             print("\talready defined")
+            raise Exception("Function: already declared in this scope")
             return -2
         else:
             if self.parent == None:
@@ -91,9 +97,11 @@ class SymbolTable:
                 else:
                     #declaration and definition are different
                     print("\tdifferent signature")
+                    raise Exception("Function different signature")
                     return -3
             else:
                 print("\tlocal scope")
+                raise Exception("Function: already declared or defined in this scope")
                 #not in global scope: no double declarations or definitions allowed
                 return -4
 
@@ -106,6 +114,7 @@ class SymbolTable:
             return 0
         elif value.isVar():
             print("\tvalue already var")
+            raise Exception("Function: already declared or defined as variable in this scope")
             return -1 # name already defined as variable
         elif self.parent is None:
             print("\tglobal scope")
@@ -117,10 +126,12 @@ class SymbolTable:
             else:
                 print("\tdifferent signature")
                 # different function signature
+                raise Exception("Function different signature")
                 return -2
         elif value.defined:
             print("\tlocal scope & defined already")
             # not in global scope and function already defined
+            raise Exception("Function: already defined in this scope")
             return -3
         else:
             print("\tlocal scope && not defined")
@@ -133,6 +144,7 @@ class SymbolTable:
             else:
                 # different function signature
                 print("\tdifferent signature")
+                raise Exception("Function: already declared with different signature")
                 return -2
 
 

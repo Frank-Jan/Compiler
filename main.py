@@ -5,6 +5,7 @@ from src.grammars.c_subsetLexer import c_subsetLexer
 from src.grammars.c_subsetParser import c_subsetParser
 from src.grammars.c_subsetListener import c_subsetListener
 from src.Listener import Listener
+from src.SymbolTable import ALLSCOPES
 # from src.DebugListener import DebugListener
 from src.ASTNode import *
 from src.VarGen import *
@@ -35,18 +36,26 @@ def testFile(argv):
     walker.walk(listener, tree)
     ast = listener.getAST()
     ast.printDot("derivationTree.dot")
-    # ast.simplify()
-    try:
-        ast.simplify()
-    except Exception as error:
-        printError(error)
+    ast.simplify()
+
+    # try:
+    #     ast.simplify()
+    # except Exception as error:
+    #     printError(error)
+
     ast.printDot("AST.dot")
+
     # except:
     #     print("Error creating AST:\n", sys.exc_info()[0])
     #     return 1
     print("\tWritten AST to AST.dot")
 
-
+    global ALLSCOPES
+    print("ALL SCOPES: ")
+    for s in ALLSCOPES:
+        print("=============================================")
+        print(s)
+    print("=============================================")
 
 
     # f = open("tests/test.ll", "w+")
