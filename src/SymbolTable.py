@@ -17,7 +17,7 @@ class Record:
         self.llvmName = None
         self.isUsed = False
         self.declarations = []  #all nodes with declarations of this value
-        self.definitions = None #all nodes with definitions of this value
+        self.definition = None #all nodes with definitions of this value
 
     def isVar(self):
         return True
@@ -36,10 +36,14 @@ class Record:
 
 # functionRecord holds functions with the same name i.e. both "int function()" and "int function(int)"
 class FunctionRecord(Record):
-    def __init__(self, returnType, argumentList , defined = False):
+    def __init__(self, returnType, argumentList , defined, node):
         super().__init__(returnType)
         self.argumentList = argumentList  # holds all argument lists
-        self.defined = defined
+        if defined:
+            self.definition = node   #node who defined him
+        else:
+            self.declarations.append(node)  #node who declared function
+
 
     def isVar(self):
         return False
@@ -74,11 +78,11 @@ class SymbolTable:
             raise Exception("Variable already declared or defined")
 
     # argumentList contains only types i.e. ["int", "float"]
-    def defineFunction(self, name, returnType, argumentList):
+    def defineFunction(self, name, returnType, argumentList, node):
         value =  self.getLocal(name)
         if value is None:
             print("\tvalue is None")
-            self.table[name] = FunctionRecord(returnType, argumentList, True)   #define function
+            self.table[name] = FunctionRecord(returnType, argumentList, True, node)   #define function
             return 0
         elif value.isVar():
             raise Exception("Function: {} already declared or defined as variable")
@@ -90,7 +94,9 @@ class SymbolTable:
                 #global scope: allow multiple declarations with one definition:
                 if value.type == returnType and value.argumentList == argumentList:
                     #definition same as declaration
-                    self.table[name] = FunctionRecord(returnType, argumentList, True) #define function
+                    value.defined = True
+                    value.definition = node
+                    # self.table[name] = FunctionRecord(returnType, argumentList, True, node) #define function
                     return 0
                 else:
                     #declaration and definition are different
@@ -100,12 +106,12 @@ class SymbolTable:
                 raise Exception("Function: already declared or defined in this scope")
 
 
-    def declareFunction(self, name, returnType, argumentList):
+    def declareFunction(self, name, returnType, argumentList, node):
         print("\tSymboltable: declare function: ", returnType, " ", name, " ", argumentList)
         value = self.getLocal(name)
         if value is None:
             print("\tvalue is None")
-            self.table[name] = FunctionRecord(returnType, argumentList, False) #declare function
+            self.table[name] = FunctionRecord(returnType, argumentList, False, node) #declare function
             return 0
         elif value.isVar():
             print("\tvalue already var")
@@ -117,6 +123,7 @@ class SymbolTable:
             if value.getType() == returnType and value.argumentList == argumentList:
                 # declaration same as previous declarations/definition
                 # already declared/defined
+                value.declarations.append(node)
                 return 0
             else:
                 print("\tdifferent signature")
@@ -135,6 +142,7 @@ class SymbolTable:
             if value.getType() == returnType and value.argumentList == value.argumentList:
                 # declaration same as previous declarations/definition
                 # already declared/defined
+                value.declarations.append(node)
                 return 0
             else:
                 # different function signature
@@ -188,5 +196,5 @@ class SymbolTable:
         string = "SYMBOLTABLE:\t" + str(id(self))
         string += "\nPARENT:\t\t\t" + str(id(self.parent))
         for key,value in self.table.items():
-            string += '\n{:<20}|{:<20}'.format(str(key), str(value))
+            string += '\n{:<20}|{:<20}|{:<5}|{:<5}'.format(str(key), str(value),str(len(value.declarations)),str(value.definition is not None))
         return string
