@@ -1,6 +1,6 @@
 from src.ASTNode import *
 
-DEBUG = True
+DEBUG = False
 
 class AST:
 

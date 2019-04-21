@@ -1,14 +1,12 @@
-id = 0
-
 class VarGen:
 
     def __init__(self):
         self.name = '%var'
+        self.idCounter = 0
 
     @staticmethod
     def getNewVar(self):
-        global id
-        id += 1
-        return self.name + str(id)
+        self.idCounter += 1
+        return self.name + str(self.idCounter)
 
 
