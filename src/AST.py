@@ -45,9 +45,9 @@ class AST:
         # self.check()    #final check
 
     def check(self):
+        #TODO: remove unused functions
+        #TODO: remove unused variables
         #check if used functions are defined
-        #remove unused functions
-        #remove unused variables
         for node in self.nodes:
             if isinstance(node, ScopeNode):
                 #has scope: delete unused items:
@@ -80,7 +80,8 @@ class AST:
 
         if not prevNode.isLeaf():
             prevNode.children[pos] = ASTnode
-            ASTnode.parent = (prevNode, pos)
+            ASTnode.parent = prevNode
+            # ASTnode.parent = (prevNode, pos)
         self.nodes.append(ASTnode)
 
     def getSymbolTable(self):

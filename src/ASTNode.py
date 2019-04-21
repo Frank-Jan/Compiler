@@ -2,7 +2,6 @@ import copy
 from src.Types import *
 from src.SymbolTable import SymbolTable
 from src.VarGen import *
-from src.SymbolTableHelperFunctions import *
 
 varGen = VarGen()
 
@@ -240,14 +239,15 @@ class FuncDefNode(ASTNode, Type):
         else:
             self.setType(self.children[0].simplify(scope))  # first child is TypeSpecNode
 
+        self.block = self.children[2]
+
         #simplify function signature and fill functionscope
-        self.fsign = self.children[1].simplify(functionScope)
+        self.fsign = self.children[1].simplify(functionScope,self.block)
 
         #define function in scope
         scope.defineFunction(self.getName(), self.getType(), self.fsign.types)
 
         self.returnTypes = self.children[2].simplify(functionScope)  # simplify code block
-        self.block = self.children[2]
 
         #check if returnstatements are correct:
         if self.type != VOID() and len(self.block.returnStatements) == 0:
@@ -343,7 +343,7 @@ class FuncSignDefNode(ASTNode):
         raise(Exception("error: FuncSignNode getName call before simplify"))
 
     #give a local scope
-    def simplify(self, functionscope):
+    def simplify(self, functionscope, codeBlock):
         print("Simplify FuncSignDefNode")
         self.isSimplified = True
         self.name = self.children[0].simplifyAsName()
@@ -359,6 +359,7 @@ class FuncSignDefNode(ASTNode):
 
         #insert variables of signature in functionscope
         for i in range(len(self.types)):
+            self.varNames.parent = self.codeBlock
             functionscope.insertVariable(self.varNames[i].getName(), self.types[i])
 
         sign = '('
