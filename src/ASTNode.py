@@ -153,12 +153,12 @@ class AssignNode(ASTNode):
         self.left = None  # right node
         self.right = None  # left node
 
-    def simplify(self, scope=None):
+    def simplify(self, scope):
         print("Simplify AssignNode")
         if len(self.children) != 2:
             printError("AssignNode doesn't have 2 children: ", len(self.children))
-        self.left = self.children[0].simplify()
-        self.right = self.children[1].simplify()  # assignRight wil return funcNode or ...
+        self.left = self.children[0].simplify(scope)
+        self.right = self.children[1].simplify(scope)  # assignRight wil return funcNode or ...
         self.AST.delNode(self.children[0])
         self.AST.delNode(self.children[1])
         self.children[0] = self.left
@@ -447,13 +447,13 @@ class RvalueNode(ASTNode, Type):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Rvalue', maxChildren, ast)
 
-    def simplify(self, scope=None):
+    def simplify(self, scope):
         print("Simplify RvalueNode")
         retNode = None
         if len(self.children) == 1:
-            retNode = self.children[0].simplify()
+            retNode = self.children[0].simplify(scope)
         elif len(self.children) == 2:
-            retNode = self.children[1].simplify()  # simplify lvalue node
+            retNode = self.children[1].simplify(scope)  # simplify lvalue node
             retNode.type = POINTER(retNode.getType())
         else:
             printError("error: unexpected number of children (", len(self.children), ") in: ", type(RvalueNode))
@@ -891,7 +891,7 @@ class FuncNode(ASTNode, Type):
         self.name = self.children[0].value
         for c in self.children[1:]:
             if isinstance(c, ValueNode):
-                self.arguments.append(c.simplify())
+                self.arguments.append(c.simplify(scope))
 
         toDelete = [item for item in self.children[1:] if item not in self.arguments]
         for c in toDelete:
@@ -1034,18 +1034,8 @@ class WhileNode(ASTNode):
         if isinstance(self.block, CodeBlockNode):
             self.returnStatements = self.block.simplify(localScope)
             self.endCode = self.block.endCode
-        elif isinstance(self.block, FuncStatNode):
-            tmp = self.block.simplify(localScope)
-            if tmp is not self.block:
-                self.AST.delNode(self.block)
-                self.block = tmp
-                self.children[4] = tmp
-            if isinstance(self.block, ReturnStatNode):
-                self.returnStatements = [self.block]
-                self.endCode = True
         else:
             printError("Forgot something in while simplify: " + str(type(self.block)))
-
 
         self.AST.delNode(self.children[0])
         self.AST.delNode(self.children[1])

@@ -1,7 +1,9 @@
 int fun(){return 0;}
 
 int main(){
-    int q = 0;
-    while(q == 4)
-        fun();
+    int q;
+    if(4==6)
+        q = 4;
+    else
+        q = 5;
 }
