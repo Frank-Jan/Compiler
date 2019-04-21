@@ -114,7 +114,7 @@ class RootNode(ScopeNode):
     def setParent(self, parentScope):
         pass  # is the highest parent (global scope)
 
-    def simplify(self):
+    def simplify(self, scope = None):
         toDelete = []
         newChildren = []
         for c in self.children:
@@ -153,7 +153,7 @@ class AssignNode(ASTNode):
         self.left = None  # right node
         self.right = None  # left node
 
-    def simplify(self, scope=None):
+    def simplify(self, scope):
         print("Simplify AssignNode")
         if len(self.children) != 2:
             printError("AssignNode doesn't have 2 children: ", len(self.children))
@@ -305,13 +305,13 @@ class FuncSignDefNode(ASTNode):
     def simplify(self, functionscope):
         print("Simplify FuncSignDefNode")
         self.isSimplified = True
-        self.children[0].simplify(scope)
+        self.children[0].simplify(functionscope)
         self.name = self.children[0].getName()  # function name
 
         toDelete = []  # delete useless Ternodes ('(' ')' ',' variable)
         for c in self.children[1:]:
             if isinstance(c, TypeSpecFuncNode):
-                self.types.append(c.simplify(scope))
+                self.types.append(c.simplify(functionscope))
             elif isinstance(c, VarNode):
                 self.varNames.append(c)
             else:
@@ -1059,18 +1059,8 @@ class WhileNode(ASTNode):
         if isinstance(self.block, CodeBlockNode):
             self.returnStatements = self.block.simplify(localScope)
             self.endCode = self.block.endCode
-        elif isinstance(self.block, FuncStatNode):
-            tmp = self.block.simplify(localScope)
-            if tmp is not self.block:
-                self.AST.delNode(self.block)
-                self.block = tmp
-                self.children[4] = tmp
-            if isinstance(self.block, ReturnStatNode):
-                self.returnStatements = [self.block]
-                self.endCode = True
         else:
             printError("Forgot something in while simplify: " + str(type(self.block)))
-
 
         self.AST.delNode(self.children[0])
         self.AST.delNode(self.children[1])
