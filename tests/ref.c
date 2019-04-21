@@ -7,10 +7,10 @@ int f(int i){
 }
 
 int main(){
-//    int o = 1 + 1;
+    int o;
     int i = f(1);
     int k = i;
     int j = 0;
-    return i;
+    return j;
 }
 
