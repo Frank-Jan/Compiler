@@ -345,6 +345,8 @@ class CodeBlockNode(ScopeNode):
         funcSyntax.children = []
         self.AST.delNode(funcSyntax)
 
+        print("CODEBLOCK SCOPE:")
+        print(scope)
         return self.returnStatements  # simplify FuncSyntax node and return return statements
 
     def getSymbolTable(self):
@@ -441,18 +443,29 @@ class FuncSyntaxNode(ASTNode):
         print("Simplify FuncSyntaxNode")
         new_children = []
         for c in self.children:
-            if isinstance(c, FuncStatNode):
-                new_children.append(c.simplify(scope))
-                self.AST.delNode(c)
+            if isinstance(c, FuncStatNode) or isinstance(c, FuncDefNode):
+                tmp = c.simplify(scope)
+                new_children.append(tmp)
+                if tmp is not c:
+                    self.AST.delNode(c)
             elif isinstance(c, CodeBlockNode):
+                #create new scope for CodeBlock
                 localScope = SymbolTable(scope)
                 self.returnStatements += c.simplify(localScope)
                 new_children.append(c)
             elif isinstance(c, LoopNode):
-                node = c.simplify(scope)
+                #needs new scope
+                localScope = SymbolTable(scope)
+                node = c.simplify(localScope)
                 self.returnStatements += node.returnStatements
                 new_children.append(node)
+                if node is not c:
+                    self.AST.delNode(c)
+            elif isinstance(c, TerNode):
                 self.AST.delNode(c)
+                continue
+            else:
+                printError("Forgot something in FuncSyntax simplify: ", type(c))
         self.children = new_children
         self.AST.printDotDebug(str(self.getCount()) + "FuncSyntax.dot")
         return self
@@ -475,11 +488,10 @@ class FuncStatNode(ASTNode):
     def simplify(self, scope=None):
         print("Simplify FuncStatNode")
         if isinstance(self.children[0], VarNode) or isinstance(self.children[0], LitNode):
-            # print("")
             self.AST.delNode(self.children[0])
             del self.children[0]
             return None
-        ret = self.children[0].simplify()
+        ret = self.children[0].simplify(scope)
         del self.children[0]
         self.AST.printDotDebug(str(self.getCount()) + "Funcstat.dot")
         return ret
@@ -498,9 +510,10 @@ class ArOpNode(ASTNode, Type):
             print("\treplace child")
             self.AST.delNode(self.children[0])
             print("ArOpNode Final child: ", type(node), " ", len(node.children), " ", (node in self.AST.nodes))
-            self.children[0] = node
+            # self.children[0] = node
         self.AST.printDotDebug(str(self.getCount()) + "ArOpNode.dot")
-        return self
+        self.children = []
+        return node
 
 
 class ProdNode(ArOpNode):
@@ -654,6 +667,9 @@ class ReturnStatNode(ASTNode, Type):
             node = self.children[0].simplify()
             if isinstance(self.children[0], FuncNode) or isinstance(self.children[0], ArOpNode):
                 self.type = None
+                if node is not self.children[0]:
+                    self.AST.delNode(self.children[0])
+                self.children[0] = node
             # can't take type because a function's output might be returned
             if isinstance(node, IntNode) or isinstance(node, FloatNode) or isinstance(node, CharNode):
                 self.AST.delNode(self.children[0])
@@ -685,6 +701,9 @@ class VarDefNode(ASTNode):
         node = self.children[1].simplify()  # AssignRightNode
         self.AST.delNode(self.children[1])
         self.children[1] = node
+
+        #add self to scope:
+        # scope.insertVariable()
         self.AST.printDotDebug(str(self.getCount()) + "vardef.dot")
         return self
 
