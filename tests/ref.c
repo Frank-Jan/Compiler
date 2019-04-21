@@ -2,15 +2,17 @@
 
 //int f(int*);
 
-int f(int i){
-    return i;
-}
+
+
 
 int main(){
-    int o = (f(1) + f(2)) * f(3);
-    int i = f(1);
+    int i = f(3, 0);
+    int o = (f(i, 0) - f(2, 0)/f(2, 0)) * f(3, 0) + 4 -0*32 ;
     int k = i;
     int j = 0;
+    int f(int i, int o){
+    return i + o/(i -0);
+    }
     return o;
 }
 
