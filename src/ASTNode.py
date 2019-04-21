@@ -1096,15 +1096,17 @@ class IfElseNode(ASTNode):
                 self.cond = c.simplify(scope)
                 newChildren.append(c)
             if isinstance(c, FuncStatNode):
+                localScope = SymbolTable(scope)
+                tmp = c.simplify(localScope)
                 if isIfBlock:
-                    localScope = SymbolTable(scope)
-                    self.ifBlock = c.simplify(localScope)
-                    ifBlockEndCode = isinstance(self.elseBlock, ReturnStatNode)
+                    self.ifBlock = tmp
+                    ifBlockEndCode = isinstance(tmp, ReturnStatNode)
                 else:
-                    localScope = SymbolTable(scope)
-                    self.elseBlock = c.simplify(localScope)
-                    elseBlockEndCode = isinstance(self.elseBlock, ReturnStatNode)
-                newChildren.append(c)
+                    self.elseBlock = tmp
+                    elseBlockEndCode = isinstance(tmp, ReturnStatNode)
+                if tmp is not c:
+                    self.AST.delNode(c)
+                newChildren.append(tmp)
             if isinstance(c, CodeBlockNode):
                 if isIfBlock:
                     self.ifBlock = c
