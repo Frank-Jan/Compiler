@@ -53,7 +53,7 @@ class AST:
                 #has scope: delete unused items:
                 table = node.getSymbolTable()
                 for name,record in table.table.items():
-                    if record.isUsed:
+                    if record.isUsed and not record.isVar():
                         if record.definition is None:
                             raise Exception("error: function {} is used but not defined".format(name))
 
