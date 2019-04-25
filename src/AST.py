@@ -9,6 +9,7 @@ class AST:
         self.id = 0
         self.currentNode = 0
         self.root = None   #ScopeNode (should be from Listener.enterCSyntax())
+        self.stdio = False
 
     def __iter__(self):
         nodes = [self.nodes[0]]  # python-list is a stack

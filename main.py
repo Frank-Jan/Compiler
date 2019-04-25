@@ -62,7 +62,7 @@ def testFile(argv):
     text = "\n\n"
 
     for node in ast:
-        if isinstance(node, FuncDeclNode) or isinstance(node, FuncDefNode):
+        if isinstance(node, FuncDeclNode) or isinstance(node, FuncDefNode) or isinstance(node, StdioNode):
             text += node.toLLVM() + "\n\n"
         # elif isinstance(node, IfElseNode):
         #     text += node.toLLVM() + "\n\n"

@@ -4,10 +4,14 @@ llvmTypes = {'int': 'i32',
              'float': 'float',
              'char': 'i8',
              'void': 'void'}
+
 opTypes = {'==': 'eq',
              '>': 'sgt',
              '<': 'slt'}
 
+printTypes = {'int': '@str-i',
+             'float': '@str-f',
+             'char': '@str-c'}
 
 def toType(string):
     if string == "void":

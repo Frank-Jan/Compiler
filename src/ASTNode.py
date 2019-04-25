@@ -259,10 +259,10 @@ class FuncDefNode(ASTNode, Type):
 
         self.block = self.children[2]
 
-        #simplify function signature and fill functionscope
+        # simplify function signature and fill functionscope
         self.fsign = self.children[1].simplify(functionScope, self.block)
 
-        #define function in scope
+        # define function in scope
         scope.defineFunction(self.getName(), self.getType(), self.fsign.types, self)
 
         self.returnTypes = self.children[2].simplify(functionScope)  # simplify code block
@@ -287,7 +287,7 @@ class FuncDefNode(ASTNode, Type):
         return scope
 
     def toLLVM(self):
-        curCode = "define " + llvmTypes[str(self.getType())] + " @" + self.fsign.toLLVM() + "{\n"
+        curCode = "define " + self.getType().toLLVM() + " @" + self.fsign.toLLVM() + "{\n"
         code = ""
         returnVars = []
         for i in range(len(self.fsign.types)):
@@ -989,7 +989,7 @@ class FuncNode(ASTNode, Type):
         self.name = None
         self.arguments = []
         self.returnVar = None  # hulpvar om waarde te returnen
-        self.record = None # node to func definition
+        self.record = None  # node to func definition
 
     def getType(self):
         if self.isSimplified:
@@ -1034,15 +1034,23 @@ class FuncNode(ASTNode, Type):
         self.returnVar = varGen.getNewVar(varGen)
         code = ""
         args = ""
+        type = ""
         for arg in self.arguments:
             if isinstance(arg, VarNode):
                 code += arg.toLLVM(True)
+                type = arg.getType()
                 args += arg.getType().toLLVM() + " " + arg.returnVar + ", "
             else:
                 args += arg.toLLVM() + ", "
         args = args[:-2]
 
-        return code + self.returnVar + " = call " + self.getType().toLLVM() + " " + "@" + self.name + "(" + args + ")\n"  # symboltable.gettype
+        stat = code + self.returnVar + " = call " + self.getType().toLLVM() + " "
+        if self.name == "printf" or self.name == "scanf":
+            load = arg.toLLVM(True)
+            return load + stat + "(i8*, ...) @" + self.name + "(" + "i8* getelementptr inbounds ([3 x i8], [3 x i8]* " + \
+                   printTypes[str(type)] + ", i32 0, i32 0), " + type.toLLVM() + " " + arg.returnVar + ")"
+        else:
+            return stat + "@" + self.name + "(" + args + ")\n"  # symboltable.gettype
 
 
 class GenDeclNode(ASTNode):
@@ -1406,6 +1414,7 @@ class FloatNode(TerNode, Type):
         return self
 
     def floatToLLVMHex(self, float):
+        # fl = str(hex(unpack('<Q', pack('<d', float(self.value)))[0])).upper()  # llvm wants double hexa value
         single_precision_rep = pack('>f', float)
         single_precision_val = unpack(">f", single_precision_rep)[0]
         double_val = pack('>d', single_precision_val)
@@ -1414,8 +1423,7 @@ class FloatNode(TerNode, Type):
 
     def toLLVM(self):
         # python float = c double
-        fl = str(self.floatToLLVMHex(float(self.value)))
-        # fl = str(hex(unpack('<Q', pack('<d', float(self.value)))[0])).upper()  # llvm wants double hexa value
+        fl = str(self.floatToLLVMHex(float(self.value))).upper()
         return self.type.toLLVM() + " " + fl
 
 
@@ -1562,6 +1570,14 @@ class TypeSpecPtrNode(Type, ASTNode):
 class StdioNode(TerNode):
     def __init__(self, value, ast, pos):
         TerNode.__init__(self, '#include <stdio>', ast, pos)
+        ast.stdio = True
 
     def simplify(self, scope=None):
         return self
+
+    def toLLVM(self):
+        code = "@str-i = private unnamed_addr constant [3 x i8] c\"%i\\00\", align 1\n" \
+                "@str-f = private unnamed_addr constant [3 x i8] c\"%f\\00\", align 1\n" \
+                "@str-c = private unnamed_addr constant [3 x i8] c\"%c\\00\", align 1\n\n" \
+                "declare i32 @printf(i8*, ...)\n\n"
+        return code
