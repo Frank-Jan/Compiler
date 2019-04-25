@@ -1405,9 +1405,17 @@ class FloatNode(TerNode, Type):
         self.children = []
         return self
 
+    def floatToLLVMHex(self, float):
+        single_precision_rep = pack('>f', float)
+        single_precision_val = unpack(">f", single_precision_rep)[0]
+        double_val = pack('>d', single_precision_val)
+        double_hex = "0x" + double_val.hex()
+        return double_hex
+
     def toLLVM(self):
         # python float = c double
-        fl = str(hex(unpack('<Q', pack('<d', float(self.value)))[0])).upper()  # llvm wants double hexa value
+        fl = str(self.floatToLLVMHex(float(self.value)))
+        # fl = str(hex(unpack('<Q', pack('<d', float(self.value)))[0])).upper()  # llvm wants double hexa value
         return self.type.toLLVM() + " " + fl
 
 
