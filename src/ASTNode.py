@@ -8,6 +8,7 @@ varGen = VarGen()
 
 counter = 0  # counter to make sure all print debug filenames are unique
 
+buildinFunctions = ["printf", "scanf"]
 
 class Type:
     # for nodes who have a type/return type
@@ -296,11 +297,11 @@ class FuncDefNode(ASTNode, Type):
         self.AST.printDotDebug(str(self.getCount()) + "FuncDef.dot")
         return self
 
-    def buildSymbolTable(self, scope):
-        functionScope = SymbolTable(scope)
-        self.fsign.buildSymbolTable(functionScope)
-        self.block.buildSymbolTable(functionScope)
-        return scope
+    # def buildSymbolTable(self, scope):
+    #     functionScope = SymbolTable(scope)
+    #     self.fsign.buildSymbolTable(functionScope)
+    #     self.block.buildSymbolTable(functionScope)
+    #     return scope
 
     def toLLVM(self):
         curCode = "define " + self.getType().toLLVM() + " @" + self.fsign.toLLVM() + "{\n"
@@ -336,6 +337,9 @@ class FuncSignNode(ASTNode):
         print("Simplify FuncSignNode")
         self.isSimplified = True
         self.name = self.children[0].simplifyAsName(scope).getName()  # function name
+
+        if self.name in buildinFunctions:
+            raise Exception("error: {} already a built-in function".format(self.name))
 
         toDelete = []  # delete useless Ternodes ('(' ')' ',' variable)
         for c in self.children[1:]:
@@ -382,6 +386,9 @@ class FuncSignDefNode(ASTNode):
         print("Simplify FuncSignDefNode")
         self.isSimplified = True
         self.name = self.children[0].simplifyAsName(functionscope).getName()
+
+        if self.name in buildinFunctions:
+            raise Exception("error: {} already a built-in function".format(self.name))
 
         toDelete = []  # delete useless Ternodes ('(' ')' ',' variable)
         for c in self.children[1:]:
@@ -913,15 +920,6 @@ class VarDefNode(ASTNode):
                     raise Exception("error: types dont match in var definition: "
                                     "{} and {}".format(varDecl.getType().getBase(), assignRight.getType()))
             else:
-                if isinstance(assignRight, VarNode):
-                    print(assignRight.getName(), "Variable")
-                elif isinstance(assignRight, FuncNode):
-                    print(assignRight.getName(), "Function")
-                    print(assignRight.getType())
-                    print(scope)
-                    print(scope.getParent())
-                else:
-                    print(assignRight.getName, "Unknown")
                 raise Exception("error: types dont match in var definition: "
                                 "{} and {}".format(varDecl.getType(), assignRight.getType()))
         self.AST.printDotDebug(str(self.getCount()) + "vardef.dot")
@@ -1634,7 +1632,6 @@ class StdioNode(TerNode):
         # add printf(char* format,...)
         # add scanf(const char* format,...)
         scope.defineFunction("printf",INT(), [POINTER(CHAR())], self)
-
         scope.defineFunction("scanf", INT(), [POINTER(CHAR())], self)
         return self
 
@@ -1655,3 +1652,59 @@ class NameNode(TerNode):
 
     def simplify(self, scope):
         return self.name
+
+
+class PrintfNode(ASTNode):
+
+    def __init__(self, maxChildren, ast):
+        ASTNode.__init__(self, 'FuncDef', maxChildren, ast)
+        Type.__init__(self, INT())  # default return value of a function is integer
+        self.fsign = None  # function signature
+        self.block = None  # easy acces to code block
+
+    def getName(self):
+        return self.fsign.getName()
+
+    def setType(self, type):  # set return type
+        self.type = type
+
+    def getType(self):
+        if self.isSimplified:
+            return self.type
+        raise Exception("error: FuncDefNode getType called before simplify")
+
+    # give scope where function is defined
+    def simplify(self, scope):
+        self.isSimplified = True
+        print("Simplify: FuncDefNode")
+        functionScope = SymbolTable(scope)
+        if isinstance(self.children[0], TerNode):
+            # TerNode will have void as value
+            self.setType(VOID())
+        else:
+            self.setType(self.children[0].simplify(scope))  # first child is TypeSpecNode
+
+        self.block = self.children[2]
+
+        # simplify function signature and fill functionscope
+        self.fsign = self.children[1].simplify(functionScope, self.block)
+
+        print("FuncDefNode type: ", self.getType())
+
+        # define function in scope
+        scope.defineFunction(self.getName(), self.getType(), self.fsign.types, self)
+
+        self.returnTypes = self.children[2].simplify(functionScope)  # simplify code block
+
+        # check if returnstatements are correct:
+        if self.type != VOID() and len(self.block.returnStatements) == 0:
+            # expected return statements:
+            raise Exception("error: Expected return statements")
+
+        for r in self.block.returnStatements:
+            if r.getType() != self.getType():
+                raise Exception("error: Wrong return type in function: returns: {}, expected {}"
+                                .format(str(r.getType()), str(self.getType())))
+
+        self.AST.printDotDebug(str(self.getCount()) + "FuncDef.dot")
+        return self

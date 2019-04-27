@@ -13,6 +13,7 @@ functionSyntax
 generalStatement
     : generalDefinition ';'?
     | generalDeclaration ';'
+    | generalVarDefinition ';'
     | stdio
     ;
 
@@ -53,6 +54,10 @@ functionSignatureDefinition
 
 generalDefinition
     : functionDefinition
+    ;
+
+generalVarDefinition
+    : variableDeclaration '=' literal
     ;
 
 variableDeclaration
@@ -149,6 +154,7 @@ rvalue
 
 function
     : printf
+    | scanf
     | variable '(' ')'
     | variable ('(' (value)(',' value)* ')')
     ;
@@ -219,7 +225,11 @@ stdio
     ;
 
 printf
-    : 'printf' '(' format_ ioArglist? ')'
+    : 'printf' '(' format_out ioArglist? ')'
+    ;
+
+scanf
+    : 'scanf' '(' format_in ioArglist? ')'
     ;
 
 ioArglist
@@ -230,17 +240,24 @@ ioArg
     : value
     ;
 
-format_
-    : '"' (LETTER | FORMAT_CHAR)* '"'
+format_out
+    : '"' string_output '"'
+    ;
+
+format_in
+    : '"' string_input '"'
     ;
 
 string_input
+    : (LETTER | ('%' FORMAT_CHAR))*
+    ;
+
+string_output
     : (LETTER | ('%' width FORMAT_CHAR))*
     ;
 
 width
     : DIGIT*
-    | DIGIT* '.' DIGIT*
     ;
 
 //Viable name compositions

@@ -37,6 +37,9 @@ class VOID:
     def getAlign(self):
         return ""
 
+    def getDepth(self):
+        return 0
+
     def __str__(self):
         return "void"
 
@@ -102,6 +105,9 @@ class POINTER(VOID):
 
     def getAlign(self):
         return ", align 8"
+
+    def getDepth(self):
+        return self.type.getDepth() + 1
 
     def getBase(self):
         return self.type
