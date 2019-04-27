@@ -10,10 +10,12 @@ counter = 0  # counter to make sure all print debug filenames are unique
 
 buildinFunctions = ["printf", "scanf"]
 
+
 class Type:
     # for nodes who have a type/return type
     def __init__(self, type=VOID()):
         self.type = type
+        self.deref = 1
 
     def getType(self):
         return self.type  # returns full type (i.e. int ** or char)
@@ -21,6 +23,22 @@ class Type:
     def setType(self, childType):
         self.type = childType
 
+# A en B have to be of class Type
+def compareTypes(A,B):
+    return dereferenceType(A) == dereferenceType(B)
+
+def dereferenceType(node):
+    if isinstance(node, Type):
+        tmp = copy.copy(node.deref)
+        type_ = copy.copy(node.getType())
+        if isinstance(type_, REFERENCE):
+            type_ = POINTER(type_.getBase())
+        while tmp > 1:
+            tmp -= 1
+            if isinstance(type_, POINTER):
+                type_ = type_.getBase()
+            else:
+                raise Exception("error: dereferencing non-pointer {}".format(node.getName()))
 
 class ASTNode:
 
@@ -169,6 +187,7 @@ class AssignNode(ASTNode):
             printError("AssignNode doesn't have 2 children: ", len(self.children))
         self.left = self.children[0].simplify(scope)
         self.right = self.children[1].simplify(scope)  # assignRight wil return funcNode or ...
+
         self.AST.delNode(self.children[0])
         self.AST.delNode(self.children[1])
         self.children[0] = self.left
@@ -180,23 +199,27 @@ class AssignNode(ASTNode):
         # check if declared or defined in symboltable:
         self.left.checkDeclaration(scope)
         # check if left and right have the same type:
-        if self.left.getType() != self.right.getType():
-            if isinstance(self.left.getType(), POINTER) and isinstance(self.right.getType(), REFERENCE):
-                if self.left.getType().getBase() != self.right.getType().getBase():
-                    raise Exception("error: assigning two different types: "
-                                    "{}({}) and {}({})".format(self.left.getType().getBase(),self.left.getName(), self.right.getType(), self.right.getName()))
-            else:
-                if isinstance(self.right, VarNode):
-                    print(self.right.getName(), "Variable")
-                elif isinstance(self.right, FuncNode):
-                    print(self.right.getName(), "Function")
-                    print(self.right.getType())
-                    print(scope)
-                    print(scope.getParent())
-                else:
-                    print(self.right.getName, "Unknown")
-                raise Exception("error: assigning two different types: "
-                                    "{}({}) and {}({})".format(self.left.getType(),self.left.getName(), self.right.getType(), self.right.getName()))
+        if not compareTypes(self.left, self.right):
+            raise Exception("error: assigning two different types: "
+                            "{}({}) and {}({})".format(self.left.getType().getBase(),self.left.getName(), self.right.getType(), self.right.getName()))
+
+        # if self.left.getType() != self.right.getType():
+        #     if isinstance(self.left.getType(), POINTER) and isinstance(self.right.getType(), REFERENCE):
+        #         if self.left.getType().getBase() != self.right.getType().getBase():
+        #             raise Exception("error: assigning two different types: "
+        #                             "{}({}) and {}({})".format(self.left.getType().getBase(),self.left.getName(), self.right.getType(), self.right.getName()))
+        #     else:
+        #         if isinstance(self.right, VarNode):
+        #             print(self.right.getName(), "Variable")
+        #         elif isinstance(self.right, FuncNode):
+        #             print(self.right.getName(), "Function")
+        #             print(self.right.getType())
+        #             print(scope)
+        #             print(scope.getParent())
+        #         else:
+        #             print(self.right.getName, "Unknown")
+        #         raise Exception("error: assigning two different types: "
+        #                             "{}({}) and {}({})".format(self.left.getType(),self.left.getName(), self.right.getType(), self.right.getName()))
 
         self.AST.printDotDebug(str(self.getCount()) + "Assign.dot")
         return self
@@ -239,6 +262,9 @@ class AssignRightNode(ASTNode, Type):
         self.children = []
 
         self.type = node.getType()
+        if isinstance(node.getType(), REFERENCE):
+            self.type = POINTER(node.getType().getBase())
+
         self.AST.printDotDebug(str(self.getCount()) + "AssignRight.dot")
         return node
 
@@ -507,15 +533,16 @@ class LvalueNode(ASTNode, Type):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Lvalue', maxChildren, ast)
 
-    def simplify(self, scope=None):
+    def simplify(self, scope):
         print("Simplify LvalueNode")
         if len(self.children) == 1:
             retNode = self.children[0].simplify(scope)
         elif len(self.children) == 2:
             retNode = self.children[1].simplify(scope)
             if not isinstance(retNode.getType(), POINTER):
-                printError("error: dereferencing non-pointer")
-                return None
+                raise Exception("error: dereferencing non-pointer")
+                # printError("error: dereferencing non-pointer")
+                return
             retNode.deref += 1
         else:
             retNode = self.children[2].simplify(scope)  # * and & cancel eachother in '*&'
@@ -1015,6 +1042,7 @@ class FuncNode(ASTNode, Type):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Func', maxChildren, ast)
+        Type.__init__(self, INT())
         self.name = None
         self.arguments = []
         self.returnVar = None  # hulpvar om waarde te returnen
@@ -1346,7 +1374,6 @@ class VarNode(ASTNode, Type):
         Type.__init__(self, VOID())
         self.name = None
         self.record = None
-        self.deref = 1
         self.returnVar = None
         self.returnType = None
 

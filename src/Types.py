@@ -150,7 +150,7 @@ class REFERENCE(VOID):
         return self.type.toLLVM() + "*"
 
     def __str__(self):
-        return self.type.__str__() + "&"
+        return "&" + self.type.__str__()
 
 
 # class DEREFERENCE(VOID):
