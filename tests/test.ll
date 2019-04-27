@@ -1,26 +1,35 @@
 
 
+@str-i = private unnamed_addr constant [3 x i8] c"%i\00", align 1
+@str-f = private unnamed_addr constant [3 x i8] c"%f\00", align 1
+@str-c = private unnamed_addr constant [3 x i8] c"%c\00", align 1
+
+declare i32 @printf(i8*, ...)
+
+
+
 define i32 @main(){
 
 %i = alloca i32, align 4
-store i32 2, i32* %i, align 4
+store i32 0, i32* %i, align 4
 
-br label %label5
-label5:
-%var-7 = load i32, i32* %i, align 4
-%var-6 = icmp slt i32 1, %var-7
-br i1 %var-6, label %label3, label %label4
+%j = alloca i32, align 4
+store i32 2, i32* %j, align 4
 
-label3:
+%q = alloca i8, align 1
+store i8 99, i8* %q, align 1
 
-%var-10 = load i32, i32* %i, align 4
-%var-8 = sub i32 %var-10, 1
-store i32 %var-8, i32* %i
+%c = alloca i8*, align 8
 
-br label %label5
-label4:
+%e = alloca i32, align 4
+%var-10 = load i32, i32* %j, align 4
+store i32 %var-10, i32* %e, align 4
 
-%var-13 = load i32, i32* %i, align 4
-ret i32 %var-13
+%var-12 = load i32, i32* %j, align 4
+store i32 %var-12, i32* %i, align 4
+
+store i8* %q, i8** %c, align 8
+
+ret i32 0
 }
 

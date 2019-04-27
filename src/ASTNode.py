@@ -6,9 +6,6 @@ from struct import *
 
 varGen = VarGen()
 
-llvmTypes = {'int': 'i32',
-             'double': 'double'
-             }
 counter = 0  # counter to make sure all print debug filenames are unique
 
 
@@ -192,14 +189,16 @@ class AssignNode(ASTNode):
         return self
 
     def toLLVM(self):
-        code = self.right.toLLVM()
-        self.returnVar = VarGen.getNewVar(varGen)
-        symbolTable = self.getSymbolTable()
-        record = symbolTable.search(self.left.value)
-        if record is None:
-            raise Exception("error: VarNode has no record in symbolTable")
-        type = record.getType().toLLVM()
-        code += "store " + type + " " + self.right.returnVar + ", " + type + "* " + self.left.toLLVM()  # store i32 %8, i32* %2, align 4
+        code = self.right.toLLVM(True)
+        #self.returnVar = VarGen.getNewVar(varGen)
+        # symbolTable = self.getSymbolTable()
+        # record = symbolTable.search(self.left.value)
+        # if record is None:
+        #     raise Exception("error: VarNode has no record in symbolTable")
+        # type = record.getType().toLLVM()
+        type = self.right.getType().toLLVM()
+        align = self.right.getType().getAlign()
+        code += "store " + type + " " + self.right.returnVar + ", " + type + "* " + self.left.toLLVM() + align + "\n"  # store i32 %8, i32* %2, align 4
         return code
 
 
@@ -895,7 +894,7 @@ class VarDefNode(ASTNode):
 
     def toLLVM(self):
         node = self.children[1]
-        code = self.children[0].toLLVM()
+        code = self.children[0].toLLVM(False)
         var = self.children[1].toLLVM()
         if isinstance(node, VarNode):
             code += node.toLLVM(True)
@@ -907,6 +906,8 @@ class VarDefNode(ASTNode):
         align = 4
         if isinstance(node, CharNode):
             align = 1
+        elif isinstance(node, TypeSpecPtrNode):
+            align = 8
         code += "store " + var + ", " + self.children[0].type.toLLVM() + "* " + \
                 self.children[0].var.toLLVM() + ", align " + str(align) + "\n"
         return code
@@ -973,13 +974,16 @@ class VarDeclNode(ASTNode, Type):
         if not symbolTable.insertVariable(self.var.value, self.type):
             raise Exception("error: {} already defined/declared in local scope".format(self.var.value))
 
-    def toLLVM(self):
+    def toLLVM(self, init=True):
         print("VARDECL to LLVM")
-        align = 4
-        if self.type == CHAR():
-            align = 1
-        return self.var.toLLVM() + " = alloca " + self.type.toLLVM() + ", align " + str(
-            align) + "\n"  # %1 = alloca i32, align 4
+        type = self.getType()
+        # %1 = alloca i32, align 4
+        code = self.var.toLLVM() + " = alloca " + self.type.toLLVM() + type.getAlign() + "\n"
+        # if init = True, initialize standard on 0
+        if init and not isinstance(type, POINTER):
+            code += "store " + self.type.toLLVM() + " 0, " + self.type.toLLVM() + "* " + \
+                    self.var.toLLVM() + type.getAlign() + "\n"
+        return code
 
 
 class FuncNode(ASTNode, Type):
@@ -1046,8 +1050,7 @@ class FuncNode(ASTNode, Type):
 
         stat = code + self.returnVar + " = call " + self.getType().toLLVM() + " "
         if self.name == "printf" or self.name == "scanf":
-            load = arg.toLLVM(True)
-            return load + stat + "(i8*, ...) @" + self.name + "(" + "i8* getelementptr inbounds ([3 x i8], [3 x i8]* " + \
+            return stat + "(i8*, ...) @" + self.name + "(" + "i8* getelementptr inbounds ([3 x i8], [3 x i8]* " + \
                    printTypes[str(type)] + ", i32 0, i32 0), " + type.toLLVM() + " " + arg.returnVar + ")"
         else:
             return stat + "@" + self.name + "(" + args + ")\n"  # symboltable.gettype
@@ -1351,7 +1354,11 @@ class VarNode(ASTNode, Type):
         self.returnVar = varGen.getNewVar(varGen)
 
         if load:  # %6 = load i32, i32* %2, align 4
-            return self.returnVar + " = load " + type + ", " + type + "* %" + self.value + ", align 4\n"
+            if isinstance(self.getType(), POINTER):
+                self.returnVar = "%" + self.value
+                return "" # want heeft geen load nodig
+            else:
+                return self.returnVar + " = load " + type + ", " + type + "* %" + self.value + self.getType().getAlign() + "\n"
         else:
             return "%" + self.value  # %6
 
@@ -1423,7 +1430,7 @@ class FloatNode(TerNode, Type):
 
     def toLLVM(self):
         # python float = c double
-        fl = str(self.floatToLLVMHex(float(self.value))).upper()
+        fl = str(self.floatToLLVMHex(float(self.value)))
         return self.type.toLLVM() + " " + fl
 
 
@@ -1577,7 +1584,7 @@ class StdioNode(TerNode):
 
     def toLLVM(self):
         code = "@str-i = private unnamed_addr constant [3 x i8] c\"%i\\00\", align 1\n" \
-                "@str-f = private unnamed_addr constant [3 x i8] c\"%f\\00\", align 1\n" \
-                "@str-c = private unnamed_addr constant [3 x i8] c\"%c\\00\", align 1\n\n" \
-                "declare i32 @printf(i8*, ...)\n\n"
+               "@str-f = private unnamed_addr constant [3 x i8] c\"%f\\00\", align 1\n" \
+               "@str-c = private unnamed_addr constant [3 x i8] c\"%c\\00\", align 1\n\n" \
+               "declare i32 @printf(i8*, ...)\n\n"
         return code

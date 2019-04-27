@@ -34,6 +34,9 @@ class VOID:
     def getType(self):
         return 0
 
+    def getAlign(self):
+        return ""
+
     def __str__(self):
         return "void"
 
@@ -49,6 +52,9 @@ class CHAR(VOID):
     def getType(self):
         return 1
 
+    def getAlign(self):
+        return ", align 1"
+
     def __str__(self):
         return "char"
 
@@ -61,6 +67,9 @@ class INT(VOID):
     def getType(self):
         return 2
 
+    def getAlign(self):
+        return ", align 4"
+
     def __str__(self):
         return "int"
 
@@ -72,6 +81,9 @@ class INT(VOID):
 class FLOAT(VOID):
     def getType(self):
         return 3
+
+    def getAlign(self):
+        return ", align 4"
 
     def __str__(self):
         return "float"
@@ -87,6 +99,9 @@ class POINTER(VOID):
 
     def getType(self):
         return self.__str__()
+
+    def getAlign(self):
+        return ", align 8"
 
     def getBase(self):
         return self.type
@@ -105,6 +120,9 @@ class REFERENCE(VOID):
 
     def getType(self):
         return self.__str__()
+
+    def getAlign(self):
+        return ""
 
     def getBase(self):
         return self.type
