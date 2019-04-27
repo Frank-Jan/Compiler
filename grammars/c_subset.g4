@@ -57,7 +57,7 @@ generalDefinition
 
 variableDeclaration
     : typeSpec variable //normal variables and pointers
-    | typeSpec variable '['Digit+']'    //arrays
+    | typeSpec variable '['DIGIT+']'    //arrays
     ;
 
 functionDeclaration
@@ -148,7 +148,8 @@ rvalue
     ;
 
 function
-    : variable '(' ')'
+    : printf
+    | variable '(' ')'
     | variable ('(' (value)(',' value)* ')')
     ;
 
@@ -160,7 +161,7 @@ functionSignature
     ;
 
 variable
-    : NAME
+    : name
     ;
 
 literal
@@ -169,19 +170,19 @@ literal
     | float_
     ;
 char
-    : Char
+    : ('\'' ( DIGIT | LETTER ) '\'')
     ;
 
 integer
-    : Digit+
-    | '-'Digit+
+    : DIGIT+
+    | '-'DIGIT+
     ;
     
 float_  //'_'added because conflict with target language (python3) 
-    : (Digit+) '.' (Digit*)
-    | '-.' (Digit)
-    | '.' (Digit+)
-    | '-' (Digit+) '.' (Digit*)
+    : (DIGIT+) '.' (DIGIT*)
+    | '-.' (DIGIT)
+    | '.' (DIGIT+)
+    | '-' (DIGIT+) '.' (DIGIT*)
     ;    
 
 //Type specifiers
@@ -217,8 +218,36 @@ stdio
     : INCLUDESTDIO
     ;
 
+printf
+    : 'printf' '(' format_ ioArglist? ')'
+    ;
+
+ioArglist
+    : ',' ioArg ioArglist?
+    ;
+
+ioArg
+    : value
+    ;
+
+format_
+    : '"' (LETTER | FORMAT_CHAR)* '"'
+    ;
+
+string_input
+    : (LETTER | ('%' width FORMAT_CHAR))*
+    ;
+
+width
+    : DIGIT*
+    | DIGIT* '.' DIGIT*
+    ;
+
+//Viable name compositions
+name : (LETTER | '_')(LETTER | DIGIT | '_')*;
+
 //Things to skip:
-WS
+WhiteSpace
    : [ \t\r\n] -> skip
    ;
 

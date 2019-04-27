@@ -26,12 +26,10 @@ SWITCH : 'switch';
 CASE : 'case';
 DEFAULT : 'default';
 
-Digit : [0-9] ;
-    
-Char : ('\'' ( [a-z] | [A-Z] | [0-9] | ' ') '\'');
+DIGIT : [0-9];
+LETTER : ( [a-z] | [A-Z] );
 
-//Viable name compositions
-NAME : ([a-z] | [A-Z] | '_')([a-z] | [A-Z] | '_' | [0-9])*;
+FORMAT_CHAR : '%s' | '%i' | '%d' | '%c';
 
 //includes
 INCLUDESTDIO : '#include <stdio.h>';

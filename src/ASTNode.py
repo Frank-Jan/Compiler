@@ -173,6 +173,10 @@ class AssignNode(ASTNode):
         self.left.parent = self
         self.right.parent = self
 
+        #check if left side is declared/defined and a variable
+        # check if declared or defined in symboltable:
+
+
         # check if left and right have the same type:
         if self.left.getType() != self.right.getType():
             if isinstance(self.left.getType(), REFERENCE):
@@ -217,6 +221,9 @@ class AssignRightNode(ASTNode, Type):
         self.isSimplified = True
         print("Simplify AssignRightNode")
         node = self.children[1].simplify(scope)
+        if isinstance(node, VarNode):
+            node.checkDeclaration(scope)
+
         if node is not self.children[1]:
             self.AST.delNode(self.children[1])
         self.AST.delNode(self.children[0])
@@ -319,7 +326,7 @@ class FuncSignNode(ASTNode):
     def simplify(self, scope=None):
         print("Simplify FuncSignNode")
         self.isSimplified = True
-        self.name = self.children[0].simplifyAsName()  # function name
+        self.name = self.children[0].simplifyAsName(scope)  # function name
 
         toDelete = []  # delete useless Ternodes ('(' ')' ',' variable)
         for c in self.children[1:]:
@@ -365,7 +372,7 @@ class FuncSignDefNode(ASTNode):
     def simplify(self, functionscope, codeBlock):
         print("Simplify FuncSignDefNode")
         self.isSimplified = True
-        self.name = self.children[0].simplifyAsName()
+        self.name = self.children[0].simplifyAsName(functionscope)
 
         toDelete = []  # delete useless Ternodes ('(' ')' ',' variable)
         for c in self.children[1:]:
@@ -378,6 +385,7 @@ class FuncSignDefNode(ASTNode):
 
         # insert variables of signature in functionscope
         for i in range(len(self.types)):
+            self.varNames[i].simplify(functionscope)
             self.varNames[i].parent = codeBlock
             self.varNames[i].setType(self.types[i])
             functionscope.insertVariable(self.varNames[i].getName(), self.types[i])
@@ -949,11 +957,11 @@ class VarDeclNode(ASTNode, Type):
             # no array
             self.size = 1
             self.type = self.children[0].simplify(scope)
-            self.var = self.children[1]
+            self.var = self.children[1].simplify(scope)
         else:
             self.size = self.children[3].value
             self.type = self.children[0].simplify(scope)
-            self.var = self.children[1]
+            self.var = self.children[1].simplify(scope)
             self.AST.delNode(self.children[2])  # '('
             self.AST.delNode(self.children[3])  # DIGIT
             self.AST.delNode(self.children[4])  # ')'
@@ -962,8 +970,6 @@ class VarDeclNode(ASTNode, Type):
         self.AST.delNode(self.children[1])
         self.children = []
         self.value = str(self.type) + " " + str(self.var)
-
-        # check if declaration is possible
 
         scope.insertVariable(self.getName(), self.getType(), self)
         return self
@@ -1075,7 +1081,7 @@ class FuncDeclNode(ASTNode, Type):
     def setType(self, type):  # set return type
         self.type = type
 
-    def simplify(self, scope=None):
+    def simplify(self, scope):
         if isinstance(self.children[0], TerNode):
             # TerNode will have void as value
             self.setType(VOID())
@@ -1302,23 +1308,37 @@ class TerNode(ASTNode):  # leafs
 
 class VarNode(ASTNode, Type):
 
-    def __init__(self, value, ast, pos):
+    def __init__(self, maxChildren, ast):
         # TerNode.__init__(self, value, ast, pos)
-        ASTNode.__init__(self, value, 1, ast)
-        self.name = value
+        ASTNode.__init__(self, 'Variable Name', maxChildren, ast)
+        self.name = None
         self.record = None
 
     def getName(self):
-        print("VarNode self name is called: ", self.name)
-        return self.name
+        if self.isSimplified:
+            return self.name
+        raise Exception("error: VarNode getName called before simplify")
 
     def getType(self):  # linken met symbol table
         if self.isSimplified:
             return self.type
         raise Exception("error: VarNode getType called before simplify")
 
+    def checkDeclaration(self, scope):
+        value = scope.search(self.getName())
+
+        if value is None:
+            raise Exception("Variable {} used before declaration".format(self.getName()))
+        if not value.isVar():
+            raise Exception("{} is a function not a variable".format(self.getName()))
+        self.type = value.getType()
+        value.isUsed = True
+        self.record = value
+
     # simplify as function name
-    def simplifyAsName(self):
+    def simplifyAsName(self,scope):
+        self.isSimplified = True
+        self.name = self.children[0].simplify(scope)
         for c in self.children:
             self.AST.delNode(c)
         self.children = []
@@ -1326,19 +1346,11 @@ class VarNode(ASTNode, Type):
 
     def simplify(self, scope):
         self.isSimplified = True
+        self.name = self.children[0].simplify(scope)
+
         for c in self.children:
             self.AST.delNode(c)
         self.children = []
-
-        # check if declared or defined in symboltable:
-        value = scope.search(self.value)
-        if value is None:
-            raise Exception("Variable {} used before declaration".format(self.name))
-        if not value.isVar():
-            raise Exception("{} is a function not a variable".format(self.name))
-        self.type = value.getType()
-        value.isUsed = True
-        self.record = value
         return self
 
     def toLLVM(self, load=False):
@@ -1570,9 +1582,14 @@ class TypeSpecPtrNode(Type, ASTNode):
 class StdioNode(TerNode):
     def __init__(self, value, ast, pos):
         TerNode.__init__(self, '#include <stdio>', ast, pos)
-        ast.stdio = True
+        ast.stdio = True    #depricated?
 
-    def simplify(self, scope=None):
+    def simplify(self, scope):
+        # add printf(char* format,...)
+        # add scanf(const char* format,...)
+        scope.defineFunction("printf",INT(), [POINTER(CHAR())], self)
+
+        scope.defineFunction("scanf", INT(), [POINTER(CHAR())], self)
         return self
 
     def toLLVM(self):
@@ -1581,3 +1598,14 @@ class StdioNode(TerNode):
                 "@str-c = private unnamed_addr constant [3 x i8] c\"%c\\00\", align 1\n\n" \
                 "declare i32 @printf(i8*, ...)\n\n"
         return code
+
+class NameNode(TerNode):
+    def __init__(self, value, ast, pos):
+        TerNode.__init__(self, value, ast, pos)
+        self.name = value
+
+    def getName(self):
+        return self.name
+
+    def simplify(self, scope):
+        return self.name

@@ -117,6 +117,7 @@ class Listener(c_subsetListener):
     # Enter a parse tree produced by c_subsetParser#variableDeclaration.
     def enterVariableDeclaration(self, ctx: c_subsetParser.VariableDeclarationContext):
         self.AST.addNode(VarDeclNode(len(ctx.children), self.AST))
+
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Exit a parse tree produced by c_subsetParser#variableDeclaration.
@@ -290,7 +291,7 @@ class Listener(c_subsetListener):
 
     # Enter a parse tree produced by c_subsetParser#variable.
     def enterVariable(self, ctx: c_subsetParser.VariableContext):
-        self.AST.addNode(VarNode(ctx.getText(), self.AST, (ctx.start.line, ctx.start.column)))
+        self.AST.addNode(VarNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Exit a parse tree produced by c_subsetParser#variable.
@@ -383,9 +384,67 @@ class Listener(c_subsetListener):
     # Enter a parse tree produced by c_subsetParser#stdio.
     def enterStdio(self, ctx:c_subsetParser.StdioContext):
         self.AST.addNode(StdioNode(ctx.getText(), self.AST, (ctx.start.line, ctx.start.column)))
-        #self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
         pass
 
     # Exit a parse tree produced by c_subsetParser#stdio.
     def exitStdio(self, ctx:c_subsetParser.StdioContext):
+        pass
+
+    # Enter a parse tree produced by c_subsetParser#printf.
+    def enterPrintf(self, ctx: c_subsetParser.PrintfContext):
+
+        pass
+
+    # Exit a parse tree produced by c_subsetParser#printf.
+    def exitPrintf(self, ctx: c_subsetParser.PrintfContext):
+        pass
+
+    # Enter a parse tree produced by c_subsetParser#ioArglist.
+    def enterIoArglist(self, ctx: c_subsetParser.IoArglistContext):
+
+        pass
+
+    # Exit a parse tree produced by c_subsetParser#ioArglist.
+    def exitIoArglist(self, ctx: c_subsetParser.IoArglistContext):
+        pass
+
+    # Enter a parse tree produced by c_subsetParser#ioArg.
+    def enterIoArg(self, ctx: c_subsetParser.IoArgContext):
+        pass
+
+    # Exit a parse tree produced by c_subsetParser#ioArg.
+    def exitIoArg(self, ctx: c_subsetParser.IoArgContext):
+        pass
+
+    # Enter a parse tree produced by c_subsetParser#format_.
+    def enterFormat_(self, ctx: c_subsetParser.Format_Context):
+        pass
+
+    # Exit a parse tree produced by c_subsetParser#format_.
+    def exitFormat_(self, ctx: c_subsetParser.Format_Context):
+        pass
+
+    # Enter a parse tree produced by c_subsetParser#string_input.
+    def enterString_input(self, ctx: c_subsetParser.String_inputContext):
+        pass
+
+    # Exit a parse tree produced by c_subsetParser#string_input.
+    def exitString_input(self, ctx: c_subsetParser.String_inputContext):
+        pass
+
+    # Enter a parse tree produced by c_subsetParser#width.
+    def enterWidth(self, ctx: c_subsetParser.WidthContext):
+        pass
+
+    # Exit a parse tree produced by c_subsetParser#width.
+    def exitWidth(self, ctx: c_subsetParser.WidthContext):
+        pass
+
+    # Enter a parse tree produced by c_subsetParser#name.
+    def enterName(self, ctx: c_subsetParser.NameContext):
+        self.AST.addNode(NameNode(ctx.getText(), self.AST, (ctx.start.line, ctx.start.column)))
+        pass
+
+    # Exit a parse tree produced by c_subsetParser#name.
+    def exitName(self, ctx: c_subsetParser.NameContext):
         pass
