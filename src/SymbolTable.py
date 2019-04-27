@@ -75,7 +75,7 @@ class SymbolTable:
         if not self.existLocal(name):
             record = Record(_type)
             self.table[name] = record
-            return;
+            return
         if self.parent is not None:
             raise Exception("Variable already declared or defined")
 
