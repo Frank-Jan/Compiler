@@ -225,40 +225,45 @@ stdio
     ;
 
 printf
-    : 'printf' '(' format_out ioArglist? ')'
+    : 'printf' '(' printFormat ioArglist? ')'
     ;
 
 scanf
-    : 'scanf' '(' format_in ioArglist? ')'
+    : 'scanf' '(' lvalue ioArglist? ')'
     ;
 
-ioArglist
-    : ',' ioArg ioArglist?
-    ;
-
-ioArg
+printFormat
     : value
     ;
 
-format_out
-    : '"' string_output '"'
+ioArglist
+    : ',' value ioArglist?
     ;
 
-format_in
-    : '"' string_input '"'
-    ;
-
-string_input
-    : (LETTER | ('%' FORMAT_CHAR))*
-    ;
-
-string_output
-    : (LETTER | ('%' width FORMAT_CHAR))*
-    ;
-
-width
-    : DIGIT*
-    ;
+//format_out
+//    :  string_output
+//    ;
+//
+//format_in
+//    : '%' LETTER
+//    | FORMAT_CHAR
+//    ;
+//
+//format_out
+//    : '%' width LETTER
+//    ;
+//
+//string_input
+//    : '"' (LETTER | format_in)* '"'
+//    ;
+//
+//string_output
+//    : '"' (LETTER | format_out)* '"'
+//    ;
+//
+//width
+//    : DIGIT+
+//    ;
 
 //Viable name compositions
 name : (LETTER | '_')(LETTER | DIGIT | '_')*;
