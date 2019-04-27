@@ -172,23 +172,21 @@ class AssignNode(ASTNode):
 
         #check if left side is declared/defined and a variable
         # check if declared or defined in symboltable:
-
-
+        self.left.checkDeclaration(scope)
         # check if left and right have the same type:
         if self.left.getType() != self.right.getType():
-            # if isinstance(self.left.getType(), REFERENCE):
-            #     if self.left.getType().getBase() != self.right.getType():
-            #         raise Exception("error: assigning two different types: "
-            #                         "{} and {}".format(self.left.getType().getBase(), self.right.getType()))
-            if isinstance(self.right.getType(), REFERENCE):
-                if isinstance(self.left.getType(), POINTER):
-                    if self.left.getType().getBase() != self.right.getType().getBase():
-                        raise Exception("error: assigning two different types: "
-                                        "{} and {}".format(self.left.getType().getBase(), self.right.getType()))
-                else:
+            if isinstance(self.left.getType(), POINTER) and isinstance(self.right.getType(), REFERENCE):
+                if self.left.getType().getBase() != self.right.getType().getBase():
                     raise Exception("error: assigning two different types: "
                                     "{} and {}".format(self.left.getType().getBase(), self.right.getType()))
             else:
+                if isinstance(self.right, VarNode):
+                    print(self.right.getName(), "Variable")
+                elif isinstance(self.right, FuncNode):
+                    print(self.right.getName(), "Function")
+                    print(self.)
+                else:
+                    print(self.right.getName, "Unknown")
                 raise Exception("error: assigning two different types: "
                                 "{} and {}".format(self.left.getType(), self.right.getType()))
 
@@ -228,8 +226,8 @@ class AssignRightNode(ASTNode, Type):
         self.isSimplified = True
         print("Simplify AssignRightNode")
         node = self.children[1].simplify(scope)
-        if isinstance(node, VarNode):
-            node.checkDeclaration(scope)
+        # if isinstance(node, VarNode):
+        #     node.checkDeclaration(scope)
 
         if node is not self.children[1]:
             self.AST.delNode(self.children[1])
@@ -333,7 +331,7 @@ class FuncSignNode(ASTNode):
     def simplify(self, scope=None):
         print("Simplify FuncSignNode")
         self.isSimplified = True
-        self.name = self.children[0].simplifyAsName(scope)  # function name
+        self.name = self.children[0].simplifyAsName(scope).getName()  # function name
 
         toDelete = []  # delete useless Ternodes ('(' ')' ',' variable)
         for c in self.children[1:]:
@@ -379,7 +377,7 @@ class FuncSignDefNode(ASTNode):
     def simplify(self, functionscope, codeBlock):
         print("Simplify FuncSignDefNode")
         self.isSimplified = True
-        self.name = self.children[0].simplifyAsName(functionscope)
+        self.name = self.children[0].simplifyAsName(functionscope).getName()
 
         toDelete = []  # delete useless Ternodes ('(' ')' ',' variable)
         for c in self.children[1:]:
@@ -391,8 +389,10 @@ class FuncSignDefNode(ASTNode):
                 toDelete.append(c)
 
         # insert variables of signature in functionscope
+        print(self.name, ": Insert varnames functionscope")
         for i in range(len(self.types)):
-            self.varNames[i].simplify(functionscope)
+            print(self.varNames[i])
+            self.varNames[i].simplifyAsName(functionscope)
             self.varNames[i].parent = codeBlock
             self.varNames[i].setType(self.types[i])
             functionscope.insertVariable(self.varNames[i].getName(), self.types[i])
@@ -423,6 +423,7 @@ class FuncSignDefNode(ASTNode):
             self.newNames.append(varGen.getNewVar(varGen))
             args += " " + self.newNames[i] + ", "
         args = args[:-2]
+        print(self.name, "|", type(self.name))
         curCode = self.name + "(" + args + ")"
         return curCode
 
@@ -541,8 +542,8 @@ class RvalueNode(ASTNode, Type):
         self.AST.printDotDebug(str(self.getCount()) + "Rvalue.dot")
         return retNode
 
-    def toLLVM(self):
-        pass
+    # def toLLVM(self):
+    #     pass
 
 
 class FuncSyntaxNode(ASTNode):
@@ -966,11 +967,11 @@ class VarDeclNode(ASTNode, Type):
             # no array
             self.size = 1
             self.type = self.children[0].simplify(scope)
-            self.var = self.children[1].simplify(scope)
+            self.var = self.children[1].simplifyAsName(scope)
         else:
             self.size = self.children[3].value
             self.type = self.children[0].simplify(scope)
-            self.var = self.children[1].simplify(scope)
+            self.var = self.children[1].simplifyAsName(scope)
             self.AST.delNode(self.children[2])  # '('
             self.AST.delNode(self.children[3])  # DIGIT
             self.AST.delNode(self.children[4])  # ')'
@@ -1022,7 +1023,7 @@ class FuncNode(ASTNode, Type):
     def simplify(self, scope):
         print("Simplify FuncNode")
         self.isSimplified = True
-        self.name = self.children[0].simplifyAsName()
+        self.name = self.children[0].simplifyAsName(scope).getName()
 
         for c in self.children[1:]:
             if isinstance(c, ValueNode):
@@ -1322,6 +1323,7 @@ class VarNode(ASTNode, Type):
     def __init__(self, maxChildren, ast):
         # TerNode.__init__(self, value, ast, pos)
         ASTNode.__init__(self, 'Variable Name', maxChildren, ast)
+        Type.__init__(self, VOID())
         self.name = None
         self.record = None
 
@@ -1350,14 +1352,23 @@ class VarNode(ASTNode, Type):
     def simplifyAsName(self,scope):
         self.isSimplified = True
         self.name = self.children[0].simplify(scope)
+        self.value = self.name
         for c in self.children:
             self.AST.delNode(c)
         self.children = []
-        return self.name
+        return self
 
     def simplify(self, scope):
         self.isSimplified = True
         self.name = self.children[0].simplify(scope)
+        self.value = self.name
+        record = scope.search(self.name)
+        if record is None:
+            raise Exception("{} not yet declared".format(self.name))
+        if not record.isVar():
+            raise Exception("{} called as var but is function".format(self.name))
+
+        self.type = record.getType()
 
         for c in self.children:
             self.AST.delNode(c)
