@@ -190,8 +190,8 @@ class AssignNode(ASTNode):
                     print(scope.getParent())
                 else:
                     print(self.right.getName, "Unknown")
-                raise Exception("error: assigning two different types: "
-                                "{} and {}".format(self.left.getType(), self.right.getType()))
+                # raise Exception("error: assigning two different types: "
+                #                 "{} and {}".format(self.left.getType(), self.right.getType()))
 
             # if isinstance(self.left.getType(), REFERENCE):
             #    if self.left.getType().getBase() != self.right.getType():
@@ -209,7 +209,7 @@ class AssignNode(ASTNode):
         # if record is None:
         #     raise Exception("error: VarNode has no record in symbolTable")
         # type = record.getType().toLLVM()
-        type = self.right.getType().toLLVM()
+        type = self.right.returnType.toLLVM()
         align = self.right.getType().getAlign()
         code += "store " + type + " " + self.right.returnVar + ", " + type + "* " + self.left.toLLVM() + align + "\n"  # store i32 %8, i32* %2, align 4
         return code
@@ -515,7 +515,7 @@ class LvalueNode(ASTNode, Type):
             if not isinstance(retNode.getType(), POINTER):
                 printError("error: dereferencing non-pointer")
                 return None
-            retNode.type = retNode.getType().getBase()
+            retNode.deref += 1
         else:
             retNode = self.children[2].simplify(scope)  # * and & cancel eachother in '*&'
 
@@ -552,9 +552,6 @@ class RvalueNode(ASTNode, Type):
         self.children = []
         self.AST.printDotDebug(str(self.getCount()) + "Rvalue.dot")
         return retNode
-
-    # def toLLVM(self):
-    #     pass
 
 
 class FuncSyntaxNode(ASTNode):
@@ -935,14 +932,10 @@ class VarDefNode(ASTNode):
         elif isinstance(node, FuncNode) or isinstance(node, ArOpNode):
             code += node.toLLVM()
             var = node.getType().toLLVM() + " " + node.returnVar
+        #else een litnode
         # store i32 0, i32* %1
-        align = 4
-        if isinstance(node, CharNode):
-            align = 1
-        elif isinstance(node, TypeSpecPtrNode):
-            align = 8
         code += "store " + var + ", " + self.children[0].type.toLLVM() + "* " + \
-                self.children[0].var.toLLVM() + ", align " + str(align) + "\n"
+                self.children[0].var.toLLVM() + node.getType().getAlign() + "\n"
         return code
 
 
@@ -1344,6 +1337,9 @@ class VarNode(ASTNode, Type):
         Type.__init__(self, VOID())
         self.name = None
         self.record = None
+        self.deref = 1
+        self.returnVar = None
+        self.returnType = None
 
     def getName(self):
         if self.isSimplified:
@@ -1401,11 +1397,27 @@ class VarNode(ASTNode, Type):
             raise Exception("error: VarNode has no record in symbolTable")
         type = record.getType().toLLVM()
         self.returnVar = varGen.getNewVar(varGen)
+        self.returnType = self.getType()
 
         if load:  # %6 = load i32, i32* %2, align 4
             if isinstance(self.getType(), REFERENCE):
                 self.returnVar = "%" + self.value
                 return "" # want heeft geen load nodig
+            elif isinstance(self.getType(), POINTER) and self.deref:
+                print(str(self.getType().getDepth()))
+                code = ""
+                tmp2 = "%" + self.value
+                type = self.getType()
+                for niv in range(self.deref):
+                    tmp = varGen.getNewVar(varGen)
+                    code += tmp + " = load " + type.toLLVM() + ", " + type.toLLVM() + "* " + tmp2 + type.getAlign() + "\n"
+                    type = type.getBase()
+                    tmp2 = tmp
+                self.returnVar = tmp
+                self.returnType = self.getType()
+                for niv in range(self.deref-1):
+                    self.returnType = self.returnType.getBase()
+                return code
             else:
                 return self.returnVar + " = load " + type + ", " + type + "* %" + self.value + self.getType().getAlign() + "\n"
         else:
@@ -1608,6 +1620,7 @@ class TypeSpecPtrNode(Type, ASTNode):
 
     def setType(self, childType):
         self.type = POINTER(childType)
+        # print(str(self.type.getDepth()))
 
     def simplify(self, scope=None):
         if isinstance(self.children[0], TerNode):

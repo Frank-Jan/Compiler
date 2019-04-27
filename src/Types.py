@@ -6,12 +6,13 @@ llvmTypes = {'int': 'i32',
              'void': 'void'}
 
 opTypes = {'==': 'eq',
-             '>': 'sgt',
-             '<': 'slt'}
+           '>': 'sgt',
+           '<': 'slt'}
 
 printTypes = {'int': '@str-i',
-             'float': '@str-f',
-             'char': '@str-c'}
+              'float': '@str-f',
+              'char': '@str-c'}
+
 
 def toType(string):
     if string == "void":
@@ -40,6 +41,9 @@ class VOID:
     def getDepth(self):
         return 0
 
+    def getBase(self):
+        return self
+
     def __str__(self):
         return "void"
 
@@ -48,7 +52,7 @@ class VOID:
 
     def toLLVM(self):
         print("VOID to LLVM")
-        return llvmTypes[str(self)]
+        return 'void'
 
 
 class CHAR(VOID):
@@ -63,7 +67,7 @@ class CHAR(VOID):
 
     def toLLVM(self):
         print("CHAR to LLVM")
-        return llvmTypes[str(self)]
+        return 'i8'
 
 
 class INT(VOID):
@@ -78,7 +82,7 @@ class INT(VOID):
 
     def toLLVM(self):
         print("INT to LLVM")
-        return llvmTypes[str(self)]
+        return 'i32'
 
 
 class FLOAT(VOID):
@@ -93,7 +97,7 @@ class FLOAT(VOID):
 
     def toLLVM(self):
         print("FLOAT to LLVM")
-        return llvmTypes[str(self)]
+        return 'float'
 
 
 class POINTER(VOID):
@@ -109,15 +113,23 @@ class POINTER(VOID):
     def getDepth(self):
         return self.type.getDepth() + 1
 
-    def getBase(self):
+    def getBase(self): # get dereference
         return self.type
 
     def __str__(self):
         return self.type.__str__() + "*"
 
+    # def getStars(self):
+    #     stars = ""
+    #     for star in range(self.getDepth()):
+    #         stars += "*"
+    #     return stars
+
     def toLLVM(self):
         print("POINTER to LLVM")
-        return llvmTypes[str(self.type)] + "*"
+        return self.getBase().toLLVM() + "*"
+
+
 
 
 class REFERENCE(VOID):
@@ -135,7 +147,28 @@ class REFERENCE(VOID):
 
     def toLLVM(self):
         print("REFERENCE to LLVM")
-        return llvmTypes[str(self.type)] + "*"
+        return self.type.toLLVM() + "*"
 
     def __str__(self):
         return self.type.__str__() + "&"
+
+
+# class DEREFERENCE(VOID):
+#     def __init__(self, type=VOID()):
+#         self.type = type
+#
+#     def getType(self):
+#         return self.type
+#
+#     def getAlign(self):
+#         return self.type.type.getAlign()
+#
+#     def getBase(self):
+#         return self.type.type
+#
+#     def toLLVM(self):
+#         print("DEREFERENCE to LLVM")
+#         return llvmTypes[str(self.type.getBase())] + "*"
+#
+#     def __str__(self):
+#         return "*" + self.type.__str__()
