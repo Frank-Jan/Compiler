@@ -39,6 +39,11 @@ class ASTNode:
         if child in self.children:
             self.children.remove(child)
 
+    def stealChildren(self):
+        children = self.children
+        self.children = []
+        return children
+
     def getCount(self):
         global counter
         counter += 1
@@ -192,11 +197,6 @@ class AssignNode(ASTNode):
                     print(self.right.getName, "Unknown")
                 raise Exception("error: assigning two different types: "
                                     "{}({}) and {}({})".format(self.left.getType(),self.left.getName(), self.right.getType(), self.right.getName()))
-
-            # if isinstance(self.left.getType(), REFERENCE):
-            #    if self.left.getType().getBase() != self.right.getType():
-            #         raise Exception("error: assigning two different types: "
-            #                 "{} and {}".format(self.left.getType(),self.right.getType()))
 
         self.AST.printDotDebug(str(self.getCount()) + "Assign.dot")
         return self
@@ -1741,4 +1741,17 @@ class IoArgListNode(ASTNode):
         ASTNode.__init__(self, 'IoArgList', maxChildren, ast)
 
     def simplify(self, scope):
+        newChildren = []
+        for c in self.children:
+            if isinstance(c, TerNode):
+                toDelete.append(c)
+            elif isinstance(c, ValueNode):
+                retnode = c.simplify(scope)
+                if retnode is not c:
+                    self.AST.delNode(c)
+                newChildren.append(retnode)
+            elif isinstance(c, IoArgListNode):
+                #steal children
+                c.simplify(scope)
+                newChildren.extend(c.stealChildren())
         return self
