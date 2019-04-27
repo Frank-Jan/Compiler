@@ -11,6 +11,9 @@ from src.ASTNode import *
 from src.VarGen import *
 
 
+BUILD_DERIVATION = True
+BUILD_AST = True
+
 def testFile(argv):
     print("1/3: Parsing file")
     try:
@@ -28,6 +31,24 @@ def testFile(argv):
         return 1
 
     print("\tSyntax accepted")
+
+    if not BUILD_DERIVATION:
+        return 0
+
+    print("2/3: Creating derivation and abstract syntax tree")
+    # try:
+    listener = Listener()
+    walker = ParseTreeWalker()
+    walker.walk(listener, tree)
+    ast = listener.getAST()
+    ast.printDot("derivationTree.dot")
+
+    if not BUILD_AST:
+        return 0
+
+    ast.simplify()
+    ast.printDot("AST.dot")
+
 
 if __name__ == '__main__':
     testFile(sys.argv)

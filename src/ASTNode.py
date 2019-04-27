@@ -179,7 +179,7 @@ class AssignNode(ASTNode):
             if isinstance(self.left.getType(), POINTER) and isinstance(self.right.getType(), REFERENCE):
                 if self.left.getType().getBase() != self.right.getType().getBase():
                     raise Exception("error: assigning two different types: "
-                                    "{} and {}".format(self.left.getType().getBase(), self.right.getType()))
+                                    "{}({}) and {}({})".format(self.left.getType().getBase(),self.left.getName(), self.right.getType(), self.right.getName()))
             else:
                 if isinstance(self.right, VarNode):
                     print(self.right.getName(), "Variable")
@@ -190,8 +190,8 @@ class AssignNode(ASTNode):
                     print(scope.getParent())
                 else:
                     print(self.right.getName, "Unknown")
-                # raise Exception("error: assigning two different types: "
-                #                 "{} and {}".format(self.left.getType(), self.right.getType()))
+                raise Exception("error: assigning two different types: "
+                                    "{}({}) and {}({})".format(self.left.getType(),self.left.getName(), self.right.getType(), self.right.getName()))
 
             # if isinstance(self.left.getType(), REFERENCE):
             #    if self.left.getType().getBase() != self.right.getType():
@@ -1032,6 +1032,14 @@ class FuncNode(ASTNode, Type):
     def simplify(self, scope):
         print("Simplify FuncNode")
         self.isSimplified = True
+
+        if isinstance(self.children[0], PrintfNode):
+            printf = self.children[0].simplify(scope)
+            self.children.remove(printf)
+            self.AST.delNode(self)
+            self.children = []
+            return printf;
+
         self.name = self.children[0].simplifyAsName(scope).getName()
 
         for c in self.children[1:]:
@@ -1670,54 +1678,80 @@ class NameNode(TerNode):
 class PrintfNode(ASTNode):
 
     def __init__(self, maxChildren, ast):
-        ASTNode.__init__(self, 'FuncDef', maxChildren, ast)
+        ASTNode.__init__(self, 'printf', maxChildren, ast)
         Type.__init__(self, INT())  # default return value of a function is integer
-        self.fsign = None  # function signature
-        self.block = None  # easy acces to code block
+        self.format = None
+        self.argList = []
+        self.name = "printf"
+
+    def getFormat(self):
+        if self.isSimplified:
+            return self.format
+        raise Exception("printf getFormat() called before simplify")
+
+    def getArgList(self):
+        if self.isSimplified:
+            return self.argList
+        raise Exception("printf getArgList() called before simplify")
 
     def getName(self):
-        return self.fsign.getName()
+        return "printf"
 
     def setType(self, type):  # set return type
-        self.type = type
+        pass
 
     def getType(self):
-        if self.isSimplified:
-            return self.type
-        raise Exception("error: FuncDefNode getType called before simplify")
+        return INT()
 
     # give scope where function is defined
     def simplify(self, scope):
         self.isSimplified = True
-        print("Simplify: FuncDefNode")
-        functionScope = SymbolTable(scope)
-        if isinstance(self.children[0], TerNode):
-            # TerNode will have void as value
-            self.setType(VOID())
-        else:
-            self.setType(self.children[0].simplify(scope))  # first child is TypeSpecNode
+        toDelete = []
+        newChildren = []
+        for c in self.children:
+            if isinstance(c, TerNode):
+                toDelete.append(c)
+                print("printf: delete: ", c, " | ", type(c) )
+            elif isinstance(c, PrintFormatNode):
+                node = c.simplify(scope)
+                if node is not c:
+                    toDelete.append(c)
+                newChildren.append(node)
+                self.format = node
+            elif isinstance(c, IoArgListNode):
+                node = c.simplify(scope)
+                if node is not c:
+                    toDelete.append(c)
+                newChildren.append(node)
+                self.argList = node
+            else:
+                node = c.simplify(scope)
+                if node is not c:
+                    toDelete.append(c)
+                newChildren.append(node)
 
-        self.block = self.children[2]
+        self.children = newChildren
+        for c in toDelete:
+            self.AST.delNode(c)
+        return self
 
-        # simplify function signature and fill functionscope
-        self.fsign = self.children[1].simplify(functionScope, self.block)
 
-        print("FuncDefNode type: ", self.getType())
+class PrintFormatNode(ASTNode):
+    def __init__(self, maxChildren, ast):
+        ASTNode.__init__(self, 'format', maxChildren, ast)
 
-        # define function in scope
-        scope.defineFunction(self.getName(), self.getType(), self.fsign.types, self)
+    def simplify(self, scope):
+        retNode = self.children[0].simplify(scope)
+        if self.children[0] is not retNode:
+            self.AST.delNode(self.children[0])
+        self.children = []
+        return retNode
 
-        self.returnTypes = self.children[2].simplify(functionScope)  # simplify code block
 
-        # check if returnstatements are correct:
-        if self.type != VOID() and len(self.block.returnStatements) == 0:
-            # expected return statements:
-            raise Exception("error: Expected return statements")
+class IoArgListNode(ASTNode):
 
-        for r in self.block.returnStatements:
-            if r.getType() != self.getType():
-                raise Exception("error: Wrong return type in function: returns: {}, expected {}"
-                                .format(str(r.getType()), str(self.getType())))
+    def __init__(self, maxChildren, ast):
+        ASTNode.__init__(self, 'IoArgList', maxChildren, ast)
 
-        self.AST.printDotDebug(str(self.getCount()) + "FuncDef.dot")
+    def simplify(self, scope):
         return self
