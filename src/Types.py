@@ -122,10 +122,14 @@ class REFERENCE(VOID):
         return self.__str__()
 
     def getAlign(self):
-        return ""
+        return ", align 8"
 
     def getBase(self):
         return self.type
+
+    def toLLVM(self):
+        print("REFERENCE to LLVM")
+        return llvmTypes[str(self.type)] + "*"
 
     def __str__(self):
         return self.type.__str__() + "&"

@@ -21,13 +21,6 @@ store i8 99, i8* %q, align 1
 
 %c = alloca i8*, align 8
 
-%e = alloca i32, align 4
-%var-10 = load i32, i32* %j, align 4
-store i32 %var-10, i32* %e, align 4
-
-%var-12 = load i32, i32* %j, align 4
-store i32 %var-12, i32* %i, align 4
-
 store i8* %q, i8** %c, align 8
 
 ret i32 0

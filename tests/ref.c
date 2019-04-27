@@ -7,13 +7,14 @@ int main(){
     int j = 2;
 
     char q = 'c';
+    char* r;
     char* c;
 
     int e = j;
 
     i = j;
 
-    c = &q;
+    c = r;
 //    char* arr[]= "test";
 //    printf("hey %i \ntest %i", i,i); //fout met format
 //    scanf("%i", &i);

@@ -7,11 +7,9 @@ int main(){
     int j = 2;
 
     char q = 'c';
+    char *r;
     char* c;
 
-    int e = j;
-
-    i = j;
 
     c = &q;
 //    char* arr[]= "test";

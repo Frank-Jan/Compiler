@@ -172,8 +172,16 @@ class AssignNode(ASTNode):
 
         # check if left and right have the same type:
         if self.left.getType() != self.right.getType():
-            if isinstance(self.left.getType(), REFERENCE):
-                if self.left.getType().getBase() != self.right.getType():
+            # if isinstance(self.left.getType(), REFERENCE):
+            #     if self.left.getType().getBase() != self.right.getType():
+            #         raise Exception("error: assigning two different types: "
+            #                         "{} and {}".format(self.left.getType().getBase(), self.right.getType()))
+            if isinstance(self.right.getType(), REFERENCE):
+                if isinstance(self.left.getType(), POINTER):
+                    if self.left.getType().getBase() != self.right.getType().getBase():
+                        raise Exception("error: assigning two different types: "
+                                        "{} and {}".format(self.left.getType().getBase(), self.right.getType()))
+                else:
                     raise Exception("error: assigning two different types: "
                                     "{} and {}".format(self.left.getType().getBase(), self.right.getType()))
             else:
@@ -512,7 +520,7 @@ class RvalueNode(ASTNode, Type):
             retNode = self.children[0].simplify(scope)
         elif len(self.children) == 2:
             retNode = self.children[1].simplify(scope)  # simplify lvalue node
-            retNode.type = POINTER(retNode.getType())
+            retNode.type = REFERENCE(retNode.getType())
         else:
             printError("error: unexpected number of children (", len(self.children), ") in: ", type(RvalueNode))
             retNode = None
@@ -1354,7 +1362,7 @@ class VarNode(ASTNode, Type):
         self.returnVar = varGen.getNewVar(varGen)
 
         if load:  # %6 = load i32, i32* %2, align 4
-            if isinstance(self.getType(), POINTER):
+            if isinstance(self.getType(), REFERENCE):
                 self.returnVar = "%" + self.value
                 return "" # want heeft geen load nodig
             else:
