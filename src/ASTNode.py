@@ -184,7 +184,9 @@ class AssignNode(ASTNode):
                     print(self.right.getName(), "Variable")
                 elif isinstance(self.right, FuncNode):
                     print(self.right.getName(), "Function")
-                    print(self.)
+                    print(self.right.getType())
+                    print(scope)
+                    print(scope.getParent())
                 else:
                     print(self.right.getName, "Unknown")
                 raise Exception("error: assigning two different types: "
@@ -273,6 +275,8 @@ class FuncDefNode(ASTNode, Type):
 
         # simplify function signature and fill functionscope
         self.fsign = self.children[1].simplify(functionScope, self.block)
+
+        print("FuncDefNode type: ", self.getType())
 
         # define function in scope
         scope.defineFunction(self.getName(), self.getType(), self.fsign.types, self)
@@ -902,10 +906,24 @@ class VarDefNode(ASTNode):
             self.AST.delNode(self.children[1])
             self.children[1] = assignRight
 
-        # check if types match
-        if self.getType() != assignRight.getType():
-            raise Exception("error: types dont match in var definition: "
-                            "{} and {}".format(self.getType(), assignRight.getType()))
+        # check if left and right have the same type:
+        if varDecl.getType() != assignRight.getType():
+            if isinstance(varDecl.getType(), POINTER) and isinstance(assignRight.getType(), REFERENCE):
+                if varDecl.getType().getBase() != assignRight.getType().getBase():
+                    raise Exception("error: types dont match in var definition: "
+                                    "{} and {}".format(varDecl.getType().getBase(), assignRight.getType()))
+            else:
+                if isinstance(assignRight, VarNode):
+                    print(assignRight.getName(), "Variable")
+                elif isinstance(assignRight, FuncNode):
+                    print(assignRight.getName(), "Function")
+                    print(assignRight.getType())
+                    print(scope)
+                    print(scope.getParent())
+                else:
+                    print(assignRight.getName, "Unknown")
+                raise Exception("error: types dont match in var definition: "
+                                "{} and {}".format(varDecl.getType(), assignRight.getType()))
         self.AST.printDotDebug(str(self.getCount()) + "vardef.dot")
         return self
 
@@ -1043,7 +1061,9 @@ class FuncNode(ASTNode, Type):
             raise Exception("error: {} is a variable not a function".format(self.name))
         value.isUsed = True
         self.record = value
+        self.type = self.record.getType()
         self.AST.printDotDebug(str(self.getCount()) + "func.dot")
+        print("FuncNode simplify: ", self.getType())
         return self
 
     def getType(self):

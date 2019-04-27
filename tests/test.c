@@ -4,8 +4,7 @@ char* func(char* q){
 
 int main(){
     char a = 'a';
-    char* c;
-    c = func(&a);
+    char* c = &a;
 
     return 0;
 }
