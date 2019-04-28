@@ -96,7 +96,7 @@ class ASTNode:
             code += child.toLLVM()  # + "\n"
         return code
 
-    def simplify(self, scope=None):
+    def simplify(self, scope):
         # Base simplify will only call simplify(scope) on all children
         print("Base simplify for: ", type(self))
         toDelete = []
@@ -183,8 +183,6 @@ class AssignNode(ASTNode):
 
     def simplify(self, scope):
         print("Simplify AssignNode")
-        if len(self.children) != 2:
-            printError("AssignNode doesn't have 2 children: ", len(self.children))
         self.left = self.children[0].simplify(scope)
         self.right = self.children[1].simplify(scope)  # assignRight wil return funcNode or ...
 
@@ -195,6 +193,9 @@ class AssignNode(ASTNode):
         self.left.parent = self
         self.right.parent = self
 
+        if isinstance(self.left.getType(), ARRAY):
+            raise Exception("error: assignment to expression with array type")
+
         #check if left side is declared/defined and a variable
         # check if declared or defined in symboltable:
         self.left.checkDeclaration(scope)
@@ -202,24 +203,6 @@ class AssignNode(ASTNode):
         if not compareTypes(self.left, self.right):
             raise Exception("error: assigning two different types: "
                             "{}({}) and {}({})".format(self.left.getType().getBase(), self.left.getName(), self.right.getType(), self.right.getName()))
-
-        # if self.left.getType() != self.right.getType():
-        #     if isinstance(self.left.getType(), POINTER) and isinstance(self.right.getType(), REFERENCE):
-        #         if self.left.getType().getBase() != self.right.getType().getBase():
-        #             raise Exception("error: assigning two different types: "
-        #                             "{}({}) and {}({})".format(self.left.getType().getBase(),self.left.getName(), self.right.getType(), self.right.getName()))
-        #     else:
-        #         if isinstance(self.right, VarNode):
-        #             print(self.right.getName(), "Variable")
-        #         elif isinstance(self.right, FuncNode):
-        #             print(self.right.getName(), "Function")
-        #             print(self.right.getType())
-        #             print(scope)
-        #             print(scope.getParent())
-        #         else:
-        #             print(self.right.getName, "Unknown")
-        #         raise Exception("error: assigning two different types: "
-        #                             "{}({}) and {}({})".format(self.left.getType(),self.left.getName(), self.right.getType(), self.right.getName()))
 
         self.AST.printDotDebug(str(self.getCount()) + "Assign.dot")
         return self
@@ -947,6 +930,12 @@ class VarDefNode(ASTNode):
             else:
                 raise Exception("error: types dont match in var definition: "
                                 "{} and {}".format(varDecl.getType(), assignRight.getType()))
+
+        if isinstance(self.children[0].getType(), POINTER) and isinstance(self.children[1].getType(), POINTER):
+            if self.children[0].getType().array != self.children[1].getType().array:   # check if right array is long enough
+                printError("{} != {}".format(type(self.children[0].getType().array),type(self.children[1].getType().array)))
+                raise Exception("error: assigning two elements of different lenghts: {}[{}] and [{}]"
+                                .format(self.children[0].getName(), self.children[0].getType().array, self.children[1].getType().array))
         self.AST.printDotDebug(str(self.getCount()) + "vardef.dot")
         return self
 
@@ -1007,9 +996,10 @@ class VarDeclNode(ASTNode, Type):
             self.var = self.children[1].simplifyAsName(scope)
         else:
             self.size = self.children[3].value
-            self.type = POINTER(self.children[0].simplify(scope))
+            self.type = ARRAY(self.children[0].simplify(scope))
             self.var = self.children[1].simplifyAsName(scope)
-            self.type.array = self.children[3].value
+
+            self.type.array = int(self.children[3].value)
             self.AST.delNode(self.children[2])  # '('
             self.AST.delNode(self.children[3])  # Number
             self.AST.delNode(self.children[4])  # ')'
@@ -1717,6 +1707,16 @@ class NameNode(TerNode):
     def simplify(self, scope):
         return self.name
 
+class NumberNode(TerNode):
+    def __init__(self, value, ast, pos):
+        TerNode.__init__(self, value, ast, pos)
+
+    def getValue(self):
+        return self.name
+
+    def simplify(self, scope):
+        return self.name
+
 
 class PrintfNode(ASTNode):
 
@@ -1829,7 +1829,7 @@ class StringNode(ASTNode, Type):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'StringNode', maxChildren, ast)
-        Type.__init__(self, POINTER(CHAR()))
+        Type.__init__(self, ARRAY(CHAR()))
 
     def getString(self):
         if self.isSimplified:
@@ -1874,7 +1874,7 @@ class FormatCharPrintNode(ASTNode, Type):
         if self.value == "%c":
             self.type = CHAR()
         elif self.value == "%s":
-            self.type = POINTER(CHAR())
+            self.type = ARRAY(CHAR())
         elif self.value == "%i":
             self.type = INT()
         elif self.value == "%d":
@@ -1884,4 +1884,50 @@ class FormatCharPrintNode(ASTNode, Type):
 
         self.AST.delNode(self.children[0])
         self.children = []
+        return self
+
+class ArrayNode(ASTNode, Type):
+
+    def __init__(self, maxChildren, ast):
+        ASTNode.__init__(self, 'Array', maxChildren, ast)
+        Type.__init__(self, VOID())
+        self.length = 1
+
+    def getType(self):
+        if self.isSimplified:
+            return self.type
+        raise Exception("error: ArrayNode getType called before simplify")
+
+    def getLenght(self):
+        if self.isSimplified:
+            return self.length
+        raise Exception("error: ArrayPrintNode getLength called before simplify")
+
+    def simplify(self,scope):
+        self.isSimplified = True
+        toDelete = []
+        newChildren = []
+        for c in self.children:
+            if isinstance(c, TerNode):
+                toDelete.append(c)
+            else:
+                node = c.simplify(scope)
+                if node is not c:
+                    self.AST.delNode(c)
+                newChildren.append(node)
+                node.parent = self
+
+        for d in toDelete:
+            self.AST.delNode(d)
+
+        if len(newChildren) > 0:
+            self.type = newChildren[0].getType()
+        for c in newChildren:
+            if c.getType() != self.type:
+                raise Exception("error: types in array don't match: {} and {}".format(self.type, c.getType()))
+
+        self.length = len(newChildren)
+        self.type = ARRAY(self.type)
+        self.type.array = self.length
+        self.children = newChildren
         return self

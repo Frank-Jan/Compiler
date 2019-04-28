@@ -103,7 +103,6 @@ class FLOAT(VOID):
 class POINTER(VOID):
     def __init__(self, type=VOID()):
         self.type = type
-        self.array = 1;
 
     def getType(self):
         return self.__str__()
@@ -120,17 +119,9 @@ class POINTER(VOID):
     def __str__(self):
         return self.type.__str__() + "*"
 
-    # def getStars(self):
-    #     stars = ""
-    #     for star in range(self.getDepth()):
-    #         stars += "*"
-    #     return stars
-
     def toLLVM(self):
         print("POINTER to LLVM")
         return self.getBase().toLLVM() + "*"
-
-
 
 
 class REFERENCE(VOID):
@@ -154,22 +145,10 @@ class REFERENCE(VOID):
         return "&" + self.type.__str__()
 
 
-# class DEREFERENCE(VOID):
-#     def __init__(self, type=VOID()):
-#         self.type = type
-#
-#     def getType(self):
-#         return self.type
-#
-#     def getAlign(self):
-#         return self.type.type.getAlign()
-#
-#     def getBase(self):
-#         return self.type.type
-#
-#     def toLLVM(self):
-#         print("DEREFERENCE to LLVM")
-#         return llvmTypes[str(self.type.getBase())] + "*"
-#
-#     def __str__(self):
-#         return "*" + self.type.__str__()
+class ARRAY(POINTER):
+    def __init__(self, type=VOID()):
+        POINTER.__init__(self, type)
+
+    def toLLVM(self):
+        print("ARRAY to LLVM")
+        return self.getBase().toLLVM() + "*"

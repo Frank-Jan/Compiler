@@ -151,6 +151,11 @@ rvalue
     | literal
     | '&' lvalue
     | arithmeticOperation
+    | array
+    ;
+
+array
+    : '{' value (',' value)* '}'
     ;
 
 function
@@ -176,6 +181,7 @@ literal
     | integer
     | float_
     ;
+
 char
     : ('\'' ( DIGIT | LETTER ) '\'')
     ;
