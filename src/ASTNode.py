@@ -1007,10 +1007,11 @@ class VarDeclNode(ASTNode, Type):
             self.var = self.children[1].simplifyAsName(scope)
         else:
             self.size = self.children[3].value
-            self.type = self.children[0].simplify(scope)
+            self.type = POINTER(self.children[0].simplify(scope))
             self.var = self.children[1].simplifyAsName(scope)
+            self.type.array = self.children[3].value
             self.AST.delNode(self.children[2])  # '('
-            self.AST.delNode(self.children[3])  # DIGIT
+            self.AST.delNode(self.children[3])  # Number
             self.AST.delNode(self.children[4])  # ')'
 
         self.AST.delNode(self.children[0])

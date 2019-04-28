@@ -28,6 +28,7 @@ DEFAULT : 'default';
 
 DIGIT : [0-9];
 LETTER : ( [a-z] | [A-Z] );
+ASCII: . ;
 
 
 FORMAT_CHAR_PRINT : '%' DIGIT* ('i'|'f'|'s'|'c') ;

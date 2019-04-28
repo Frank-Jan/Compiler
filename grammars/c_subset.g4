@@ -249,7 +249,7 @@ formatCharPrint
     ;
 
 string
-    :   LETTER+
+    : (~(FORMAT_CHAR_PRINT))+
     ;
 
 ioArglist
