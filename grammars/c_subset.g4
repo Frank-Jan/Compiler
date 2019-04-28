@@ -30,11 +30,12 @@ functionStatement
     ;
 
 returnStatement
-    : RETURN    ( function
-                | literal
-                | variable
-                | arithmeticOperation
-                )
+//    : RETURN    ( function
+//                | literal
+//                | variable
+//                | arithmeticOperation
+//                )
+    : RETURN value
     | RETURN
     ;
 
@@ -62,7 +63,7 @@ generalVarDefinition
 
 variableDeclaration
     : typeSpec variable //normal variables and pointers
-    | typeSpec variable '['number']'    //arrays
+    | typeSpec variable '['integer']'    //arrays
     ;
 
 
@@ -142,8 +143,13 @@ value
 
 lvalue
     : variable
+    | arrayElement
     | '*' lvalue
     | '*' '&' lvalue
+    ;
+
+arrayElement
+    : variable '['value']'
     ;
 
 rvalue
@@ -156,6 +162,7 @@ rvalue
 
 array
     : '{' value (',' value)* '}'
+    | '{' '}'
     ;
 
 function
@@ -289,8 +296,6 @@ ioArglist
 
 //Viable name compositions
 name : (LETTER | '_')(LETTER | DIGIT | '_')*;
-
-number : DIGIT+;
 
 //Things to skip:
 WhiteSpace

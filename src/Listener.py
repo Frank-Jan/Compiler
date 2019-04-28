@@ -158,6 +158,11 @@ class Listener(c_subsetListener):
         self.AST.addNode(LvalueNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
+    # Enter a parse tree produced by c_subsetParser#arrayElement.
+    def enterArrayElement(self, ctx:c_subsetParser.ArrayElementContext):
+        self.AST.addNode(ArrayElementNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+
     # Enter a parse tree produced by c_subsetParser#rvalue.
     def enterRvalue(self, ctx:c_subsetParser.RvalueContext):
         self.AST.addNode(RvalueNode(len(ctx.children), self.AST))
@@ -246,7 +251,6 @@ class Listener(c_subsetListener):
     def enterScanf(self, ctx: c_subsetParser.ScanfContext):
         # self.AST
         raise Exception("Woops enter scanNode not implemented")
-        pass
 
     # Enter a parse tree produced by c_subsetParser#printFormat.
     def enterPrintFormat(self, ctx:c_subsetParser.PrintFormatContext):
@@ -273,10 +277,6 @@ class Listener(c_subsetListener):
     def enterIoArglist(self, ctx: c_subsetParser.IoArglistContext):
         self.AST.addNode(IoArgListNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
-
-    # Enter a parse tree produced by c_subsetParser#number.
-    def enterNumber(self, ctx:c_subsetParser.NumberContext):
-        self.AST.addNode(NumberNode(ctx.getText(), self.AST, (ctx.start.line, ctx.start.column)))
 
     # Enter a parse tree produced by c_subsetParser#name.
     def enterName(self, ctx: c_subsetParser.NameContext):

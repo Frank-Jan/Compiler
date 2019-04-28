@@ -928,8 +928,9 @@ class VarDefNode(ASTNode):
                     raise Exception("error: types dont match in var definition: "
                                     "{} and {}".format(varDecl.getType().getBase(), assignRight.getType()))
             else:
-                raise Exception("error: types dont match in var definition: "
-                                "{} and {}".format(varDecl.getType(), assignRight.getType()))
+                if not (isinstance(varDecl.getType(), ARRAY) and isinstance(assignRight.getType(), ARRAY)):
+                    raise Exception("error: types dont match in var definition: "
+                                    "{} and {}".format(varDecl.getType(), assignRight.getType()))
 
         if isinstance(self.children[0].getType(), ARRAY) and isinstance(self.children[1].getType(), ARRAY):
             if self.children[0].getType().array != self.children[1].getType().array:   # check if right array is long enough
@@ -1000,7 +1001,7 @@ class VarDeclNode(ASTNode, Type):
             self.type = self.children[0].simplify(scope)
             self.var = self.children[1].simplifyAsName(scope)
         else:
-            self.size = self.children[3].value
+            self.size = int(self.children[3].value)
             self.type = ARRAY(self.children[0].simplify(scope))
             self.var = self.children[1].simplifyAsName(scope)
 
@@ -1008,6 +1009,9 @@ class VarDeclNode(ASTNode, Type):
             self.AST.delNode(self.children[2])  # '('
             self.AST.delNode(self.children[3])  # Number
             self.AST.delNode(self.children[4])  # ')'
+
+            if self.size < 0:
+                raise Exception("error: array size is negative")
 
         self.AST.delNode(self.children[0])
         self.AST.delNode(self.children[1])
@@ -1063,7 +1067,7 @@ class FuncNode(ASTNode, Type):
             self.children.remove(printf)
             self.AST.delNode(self)
             self.children = []
-            return printf;
+            return printf
 
         self.name = self.children[0].simplifyAsName(scope).getName()
 
@@ -1088,10 +1092,8 @@ class FuncNode(ASTNode, Type):
         self.type = self.record.getType()
         self.AST.printDotDebug(str(self.getCount()) + "func.dot")
         print("FuncNode simplify: ", self.getType())
+        self.value = self.name + '(' + ')'
         return self
-
-    def getType(self):
-        return INT()  # NEEDS TO CHANGE
 
     def toLLVM(self):
         self.returnVar = varGen.getNewVar(varGen)
@@ -1935,4 +1937,49 @@ class ArrayNode(ASTNode, Type):
         self.type = ARRAY(self.type)
         self.type.array = self.length
         self.children = newChildren
+        return self
+
+class ArrayElementNode(VarNode):
+
+    def __init__(self, maxChildren, ast):
+        VarNode.__init__(self, maxChildren, ast)
+        self.value = "Array Element"
+        self.number = 0
+
+    def getNumber(self):
+        if self.isSimplified:
+            return self.number
+        raise Exception("error: ArrayElement getNumber called before simplify")
+
+    def simplify(self, scope):
+        self.isSimplified = True
+        nameSet = False
+        toDelete = []
+        newChildren = []
+        node = self.children[0].simplify(scope)
+        self.name = node.getName()
+        #check if varnode is array
+        if not (isinstance(node.getType(), POINTER)):
+            raise Exception("error: used [] on non-array")
+
+        self.type = node.getType().getBase()
+
+        self.number = self.children[2].simplify(scope)  #VarNode/functionNode/LitNode
+
+        if self.number is not self.children[2]:
+            self.AST.delNode(self.children[2])
+
+        #check if self.number returns/is a integer
+        if not isinstance(self.number.getType(), INT):
+            raise Exception("error: didn't use integer or return integer for accessing array element")
+
+
+        self.children[2] = self.number
+        self.value = str(self.name) + "[" + str(self.number.value) + "]"
+
+        self.AST.delNode(self.children[3])
+        self.AST.delNode(self.children[1])
+
+        self.children.remove(self.children[3])
+        self.children.remove(self.children[1])
         return self
