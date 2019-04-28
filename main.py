@@ -59,7 +59,7 @@ def testFile(argv):
 
 
     f = open("tests/test.ll", "w+")
-    text = "\n\n"
+    text = ""
 
     for node in ast:
         if isinstance(node, FuncDeclNode) or isinstance(node, FuncDefNode) or isinstance(node, StdioNode):
@@ -68,7 +68,8 @@ def testFile(argv):
         #     text += node.toLLVM() + "\n\n"
         elif isinstance(node, TerNode):
             pass
-
+        elif isinstance(node, PrintfNode):
+            text = node.getStrings() + text
 
     f.write(text)
     print(text)

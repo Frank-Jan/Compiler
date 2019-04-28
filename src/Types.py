@@ -5,6 +5,20 @@ llvmTypes = {'int': 'i32',
              'char': 'i8',
              'void': 'void'}
 
+pythonStrings = {'n': '\n',
+             'r': '\r',
+             't': '\t',
+             'f': '\f',
+             'b': '\b'}
+
+llvmStrings = {'\n': '\\0A',
+             '\r': '\\0D',
+             '\t': '\\09',
+             '\f': '\\0C',
+             '\b': '\\08',
+             '\\': '\\5C',
+             '': 'zeroinitializer'}
+
 opTypes = {'==': 'eq',
            '>': 'sgt',
            '<': 'slt'}
