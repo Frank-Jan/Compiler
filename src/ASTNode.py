@@ -931,11 +931,16 @@ class VarDefNode(ASTNode):
                 raise Exception("error: types dont match in var definition: "
                                 "{} and {}".format(varDecl.getType(), assignRight.getType()))
 
-        if isinstance(self.children[0].getType(), POINTER) and isinstance(self.children[1].getType(), POINTER):
+        if isinstance(self.children[0].getType(), ARRAY) and isinstance(self.children[1].getType(), ARRAY):
             if self.children[0].getType().array != self.children[1].getType().array:   # check if right array is long enough
                 printError("{} != {}".format(type(self.children[0].getType().array),type(self.children[1].getType().array)))
                 raise Exception("error: assigning two elements of different lenghts: {}[{}] and [{}]"
                                 .format(self.children[0].getName(), self.children[0].getType().array, self.children[1].getType().array))
+
+            elif isinstance(self.children[0].getType(), ARRAY) and isinstance(self.children[1].getType(), ARRAY):
+                if isinstance(self.children[1], VarNode):
+                    raise Exception("error: invalid initialisation: array and variable array")
+
         self.AST.printDotDebug(str(self.getCount()) + "vardef.dot")
         return self
 
