@@ -201,7 +201,7 @@ class AssignNode(ASTNode):
         # check if left and right have the same type:
         if not compareTypes(self.left, self.right):
             raise Exception("error: assigning two different types: "
-                            "{}({}) and {}({})".format(self.left.getType().getBase(),self.left.getName(), self.right.getType(), self.right.getName()))
+                            "{}({}) and {}({})".format(self.left.getType().getBase(), self.left.getName(), self.right.getType(), self.right.getName()))
 
         # if self.left.getType() != self.right.getType():
         #     if isinstance(self.left.getType(), POINTER) and isinstance(self.right.getType(), REFERENCE):
@@ -1381,6 +1381,7 @@ class VarNode(ASTNode, Type):
         if self.isSimplified:
             return self.name
         raise Exception("error: VarNode getName called before simplify")
+
 
     def getType(self):  # linken met symbol table
         if self.isSimplified:
