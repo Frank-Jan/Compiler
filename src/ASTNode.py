@@ -1842,15 +1842,25 @@ class FormatCharPrintNode(ASTNode, Type):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'FormatChar', maxChildren, ast)
         Type.__init__(self, VOID())
+        self.width = 0
 
     def getType(self):
         if self.isSimplified:
             return self.type
         raise Exception("error: FormatCharPrintNode getType called before simplify")
 
+    def getWidth(self):
+        if self.isSimplified:
+            return self.width
+        raise Exception("error: FormatCharPrintNode getWidth called before simplify")
+
     def simplify(self, scope):
         self.isSimplified = True
-        self.value = self.children[0].value
+        self.value = self.children[0].value[0] + self.children[0].value[-1]
+        if len(self.children[0].value) > 2:
+            self.width = int(self.children[0].value[1:-1])
+        printError(str(self.width))
+
         if self.value == "%c":
             self.type = CHAR()
         elif self.value == "%s":
@@ -1861,6 +1871,7 @@ class FormatCharPrintNode(ASTNode, Type):
             self.type = INT()
         else:
             raise Exception("error: unknown format specifier {}".format(self.value))
+
         self.AST.delNode(self.children[0])
         self.children = []
         return self
