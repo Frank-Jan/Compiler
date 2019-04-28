@@ -499,10 +499,21 @@ class ValueNode(ASTNode, Type):
 
     def simplify(self, scope):
         print("Simplify ValueNode")
-        retNode = self.children[0].simplify(scope)
-        if retNode is not self.children[0]:
-            self.AST.delNode(self.children[0])
-        self.children = []
+        if len(self.children) == 1:
+            retNode = self.children[0].simplify(scope)
+            if retNode is not self.children[0]:
+                self.AST.delNode(self.children[0])
+            self.children = []
+        else:
+            #*value
+            retNode = self.children[1].simplify(scope)
+            if retNode is not self.children[1]:
+                self.AST.delNode(self.children[1])
+            self.children = []
+            if not isinstance(retNode.getType(), POINTER):
+                raise Exception("Dereferencing non-pointer")
+            retNode.setType(retNode.getType().getBase())
+
         self.AST.printDotDebug(str(self.getCount()) + "value" + ".dot")
         self.AST.printDotDebug(str(self.getCount()) + "Value.dot")
         return retNode

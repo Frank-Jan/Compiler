@@ -139,13 +139,14 @@ codeBlock
 value
     : lvalue
     | rvalue
+    | '*' value
     ;
 
 lvalue
     : variable
     | arrayElement
-    | '*' lvalue
-    | '*' '&' lvalue
+//    | '*' lvalue
+//    | '*' '&' lvalue
     ;
 
 arrayElement
