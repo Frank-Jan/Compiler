@@ -262,37 +262,13 @@ formatCharPrint
     ;
 
 string
-    : (~(FORMAT_CHAR_PRINT))+
+    : (~(FORMAT_CHAR_PRINT | '"'))+
     ;
 
 ioArglist
     : ',' value ioArglist?
     ;
 
-//format_out
-//    :  string_output
-//    ;
-//
-//format_in
-//    : '%' LETTER
-//    | FORMAT_CHAR
-//    ;
-//
-//format_out
-//    : '%' width LETTER
-//    ;
-//
-//string_input
-//    : '"' (LETTER | format_in)* '"'
-//    ;
-//
-//string_output
-//    : '"' (LETTER | format_out)* '"'
-//    ;
-//
-//width
-//    : DIGIT+
-//    ;
 
 //Viable name compositions
 name : (LETTER | '_')(LETTER | DIGIT | '_')*;
