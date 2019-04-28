@@ -1032,7 +1032,7 @@ class VarDeclNode(ASTNode, Type):
         # %1 = alloca i32, align 4
         code = self.var.toLLVM() + " = alloca " + self.type.toLLVM() + type.getAlign() + "\n"
         # if init = True, initialize standard on 0
-        if init and not isinstance(type, POINTER):
+        if init and not isinstance(type, POINTER) and not isinstance(type, FLOAT):
             code += "store " + self.type.toLLVM() + " 0, " + self.type.toLLVM() + "* " + \
                     self.var.toLLVM() + type.getAlign() + "\n"
         return code
@@ -1110,11 +1110,7 @@ class FuncNode(ASTNode, Type):
         args = args[:-2]
 
         stat = code + self.returnVar + " = call " + self.getType().toLLVM() + " "
-        if self.name == "printf" or self.name == "scanf":
-            return stat + "(i8*, ...) @" + self.name + "(" + "i8* getelementptr inbounds ([3 x i8], [3 x i8]* " + \
-                   printTypes[str(type)] + ", i32 0, i32 0), " + type.toLLVM() + " " + arg.returnVar + ")"
-        else:
-            return stat + "@" + self.name + "(" + args + ")\n"  # symboltable.gettype
+        return stat + "@" + self.name + "(" + args + ")\n"  # symboltable.gettype
 
 
 class GenDeclNode(ASTNode):
@@ -1697,10 +1693,7 @@ class StdioNode(TerNode):
         return self
 
     def toLLVM(self):
-        code = "@str-i = private unnamed_addr constant [3 x i8] c\"%i\\00\", align 1\n" \
-               "@str-f = private unnamed_addr constant [3 x i8] c\"%f\\00\", align 1\n" \
-               "@str-c = private unnamed_addr constant [3 x i8] c\"%c\\00\", align 1\n\n" \
-               "declare i32 @printf(i8*, ...)\n\n"
+        code = "declare i32 @printf(i8*, ...)\ndeclare i32 @scanf(i8*, ...)\n\n"
         return code
 
 class NameNode(TerNode):
@@ -1731,8 +1724,13 @@ class PrintfNode(ASTNode):
         ASTNode.__init__(self, 'printf', maxChildren, ast)
         Type.__init__(self, INT())  # default return value of a function is integer
         self.format = None
-        self.argList = []
+        self.argList = None
         self.name = "printf"
+        self.returnVar = None
+        self.strings = None
+
+    def getStrings(self):
+        return self.strings
 
     def getFormat(self):
         if self.isSimplified:
@@ -1783,9 +1781,28 @@ class PrintfNode(ASTNode):
         return self
 
 
+    def toLLVM(self):
+        self.strings = self.format.toLLVM() + "\n"#get strings
+        self.returnVar = varGen.getNewVar(varGen)
+        type = self.getType().toLLVM()
+        code = ""
+        if self.argList is not None:
+            code += self.argList.toLLVM(True)
+        stat = self.returnVar + " = call " + type + " "
+        code += stat + "(i8*, ...) @printf(i8* getelementptr inbounds ("+self.format.returnType+", "+self.format.returnType+"* " + \
+               "@"+self.format.returnVar +", i32 0, i32 0)"
+        if self.argList is not None:
+            code += self.argList.toLLVM(False)
+        code += ")\n"
+        return code
+
+
+
 class PrintFormatNode(ASTNode):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'printformat', maxChildren, ast)
+        self.returnVar = None
+        self.returnType = None
 
     def simplify(self, scope):
         toDelete = []
@@ -1802,11 +1819,26 @@ class PrintFormatNode(ASTNode):
         self.children = newChildren
         return self
 
+    def toLLVM(self):
+        # @.str = private unnamed_addr constant [21 x i8] c"hey, een char %c, %i\00", align 1
+        strings = "c\""
+        self.returnVar = "."+varGen.getNewVar(varGen)[1:]
+        count = 1 # om wille van \00 einde
+        for child in self.children:
+            strings += child.toLLVM()
+            count += child.length
+        strings += "\\00"
+        # -2 voor "c"" en -2 voor "\00
+        self.returnType = "[" + str(count) + " x i8]"
+        return "@" + self.returnVar + " = private unnamed_addr constant " + self.returnType + " " + strings + "\", align 1\n"
+
+
 
 class IoArgListNode(ASTNode):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'IoArgList', maxChildren, ast)
+        self.returnVars = {}
 
     def simplify(self, scope):
         newChildren = []
@@ -1831,12 +1863,41 @@ class IoArgListNode(ASTNode):
             self.AST.delNode(d)
         return self
 
+    def toLLVM(self, cast = False):
+        code = ""
+        if cast:
+            for c in self.children:
+                if isinstance(c, VarNode):
+                    code += c.toLLVM(True)
+                    if isinstance(c.getType(), CHAR):
+                        self.returnVars[c] = varGen.getNewVar(varGen)
+                        code += self.returnVars[c] + " = sext " + llvmTypes[str(c.returnType)] +" "+ c.returnVar + " to i32\n" #  %4 = sext i8 %3 to i32
+                    elif isinstance(c.getType(), FLOAT):
+                        self.returnVars[c] = varGen.getNewVar(varGen)
+                        code += self.returnVars[c] + " = fpext " + llvmTypes[str(c.returnType)] +" "+ c.returnVar + " to double\n"# %7 = fpext float %6 to double
+        else:
+            #i32 %5, double %7, i32 99
+            for i in range(len(self.children)):
+                if isinstance(self.children[i], VarNode):
+                    if isinstance(self.children[i].getType(), FLOAT):
+                        code += ", double " + self.returnVars[self.children[i]]
+                    else:
+                        code += ", i32 " + self.returnVars[self.children[i]]
+                else:
+                    if isinstance(self.children[i].getType(), FLOAT):
+                        code += ", double " + self.children[i].toLLVM()[-2:]
+                    else:
+                        code += ", i32 " + self.children[i].toLLVM()[-2:]
+        return code
+
+
 
 class StringNode(ASTNode, Type):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'StringNode', maxChildren, ast)
         Type.__init__(self, ARRAY(CHAR()))
+        self.length = None
 
     def getString(self):
         if self.isSimplified:
@@ -1846,13 +1907,43 @@ class StringNode(ASTNode, Type):
     def simplify(self, scope):
         self.isSimplified = True
         self.value = ""
-        for c in self.children:
-            self.value += c.value
+        i=0 # want python leest python string OPNIEUW in als python string...
+        while i < len(self.children):
+            if self.children[i].value == '\\':
+                if self.children[i+1].value != '\\':
+                    self.value += pythonStrings[self.children[i+1].value]
+                    i += 2
+                    continue
+                i += 1
+            self.value += self.children[i].value
+            i += 1
 
         for c in self.children:
             self.AST.delNode(c)
         self.children = []
+
         return self
+
+    def toLLVM(self):
+        new = ""
+        count = 0
+        stuk = self.getString()
+        if stuk == "":
+            return llvmStrings['']
+        for i in range(len(stuk)):
+            stukje = stuk[i]
+            try:
+                new += llvmStrings[stukje]
+                count += 1
+            except(KeyError):
+                count += 1
+                new += stukje
+        self.length = count
+        return new
+
+
+
+
 
 
 class FormatCharPrintNode(ASTNode, Type):
@@ -1861,6 +1952,7 @@ class FormatCharPrintNode(ASTNode, Type):
         ASTNode.__init__(self, 'FormatChar', maxChildren, ast)
         Type.__init__(self, VOID())
         self.width = 0
+        self.length = 0
 
     def getType(self):
         if self.isSimplified:
@@ -1886,12 +1978,22 @@ class FormatCharPrintNode(ASTNode, Type):
             self.type = INT()
         elif self.value == "%d":
             self.type = INT()
+        elif self.value == "%f":
+            self.type = FLOAT()
         else:
             raise Exception("error: unknown format specifier {}".format(self.value))
 
         self.AST.delNode(self.children[0])
         self.children = []
         return self
+
+    def toLLVM(self):
+        width = str(self.getWidth())
+        if width == '0':
+            width = ""
+        code = str(self.value[:1]) + width + str(self.value[-1:])
+        self.length = len(code)
+        return code
 
 class ArrayNode(ASTNode, Type):
 
