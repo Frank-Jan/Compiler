@@ -1488,6 +1488,16 @@ class LitNode(ASTNode, Type):
     #     print("LITNODE to LLVM")
     #     return self.type.toLLVM() + " " + self.value
 
+class numberNode(TerNode):
+
+    def __init__(self, value, ast, pos):
+        TerNode.__init__(self, value, ast, pos)
+
+    def simplify(self, scope):
+        for c in self.children:
+            self.AST.delNode(c)
+        self.children = []
+        return self
 
 class IntNode(TerNode, Type):
 
@@ -1758,7 +1768,7 @@ class PrintfNode(ASTNode):
                 if node is not c:
                     toDelete.append(c)
                 newChildren.append(node)
-
+        self.format = newChildren[0]
         self.children = newChildren
         for c in toDelete:
             self.AST.delNode(c)
@@ -1859,7 +1869,6 @@ class FormatCharPrintNode(ASTNode, Type):
         self.value = self.children[0].value[0] + self.children[0].value[-1]
         if len(self.children[0].value) > 2:
             self.width = int(self.children[0].value[1:-1])
-        printError(str(self.width))
 
         if self.value == "%c":
             self.type = CHAR()

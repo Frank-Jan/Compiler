@@ -62,8 +62,9 @@ generalVarDefinition
 
 variableDeclaration
     : typeSpec variable //normal variables and pointers
-    | typeSpec variable '['DIGIT+']'    //arrays
+    | typeSpec variable '['number']'    //arrays
     ;
+
 
 functionDeclaration
     : (typeSpec | VOID) functionSignature
@@ -229,12 +230,15 @@ printf
     ;
 
 scanf
-    : 'scanf' '(' lvalue ioArglist? ')'
+    : 'scanf' '(' value ioArglist? ')'
     ;
 
 printFormat
     : '"' (string | formatCharPrint)* '"'
     ;
+//
+//scanFormat
+//    : '"' (string |
 
 formatCharScan
     : FORMAT_CHAR_SCAN
@@ -279,6 +283,8 @@ ioArglist
 
 //Viable name compositions
 name : (LETTER | '_')(LETTER | DIGIT | '_')*;
+
+number : DIGIT+;
 
 //Things to skip:
 WhiteSpace
