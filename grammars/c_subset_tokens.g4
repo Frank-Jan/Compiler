@@ -30,10 +30,9 @@ DIGIT : [0-9];
 LETTER : ( [a-z] | [A-Z] );
 ASCII: . ;
 
+FORMAT_CHAR_SCAN : '%s' | '%i' | '%d' | '%c' ;
 
 FORMAT_CHAR_PRINT : '%' DIGIT* ('i'|'f'|'s'|'c') ;
-
-FORMAT_CHAR_SCAN : '%s' | '%i' | '%d' | '%c' ;
 
 
 //includes

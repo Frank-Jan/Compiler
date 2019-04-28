@@ -300,7 +300,7 @@ class FuncDefNode(ASTNode, Type):
             raise Exception("error: Expected return statements")
 
         for r in self.block.returnStatements:
-            if r.getType() != self.getType():
+            if not compareTypes(r.getType(),self.getType()):
                 raise Exception("error: Wrong return type in function: returns: {}, expected {}"
                                 .format(str(r.getType()), str(self.getType())))
 
@@ -1778,7 +1778,16 @@ class PrintfNode(ASTNode):
         self.children = newChildren
         for c in toDelete:
             self.AST.delNode(c)
+
+        self.checkInput()
         return self
+
+    def checkInput(self):
+        #check if all inputs are correct
+        format = self.children[0].getFormat()    #printformat node
+        inputValues = self.children[1].getInputTypes()
+
+        pass
 
 
     def toLLVM(self):
@@ -1818,6 +1827,13 @@ class PrintFormatNode(ASTNode):
             self.AST.delNode(d)
         self.children = newChildren
         return self
+
+    def getFormat(self):
+        format = []
+        for c in self.children:
+            if isinstance(c, FormatCharPrintNode):
+                format.append(c.getType())
+        return format
 
     def toLLVM(self):
         # @.str = private unnamed_addr constant [21 x i8] c"hey, een char %c, %i\00", align 1
@@ -1862,6 +1878,10 @@ class IoArgListNode(ASTNode):
         for d in toDelete:
             self.AST.delNode(d)
         return self
+
+    def getInputTypes(self):
+        pass
+
 
     def toLLVM(self, cast = False):
         code = ""

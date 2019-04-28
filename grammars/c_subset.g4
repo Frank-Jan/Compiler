@@ -243,16 +243,16 @@ printf
     ;
 
 scanf
-    : 'scanf' '(' value ioArglist? ')'
+    : 'scanf' '(' scanFormat ioArglist? ')'
     ;
 
 printFormat
     : '"' (string | formatCharPrint)* '"'
     ;
-//
-//scanFormat
-//    : '"' (string |
 
+scanFormat
+    : '"' (string_scan | formatCharScan)* '"'
+    ;
 formatCharScan
     : FORMAT_CHAR_SCAN
     ;
@@ -265,10 +265,13 @@ string
     : (~(FORMAT_CHAR_PRINT | '"'))+
     ;
 
+string_scan
+    : (~(FORMAT_CHAR_SCAN | '"'))+
+    ;
+
 ioArglist
     : ',' value ioArglist?
     ;
-
 
 //Viable name compositions
 name : (LETTER | '_')(LETTER | DIGIT | '_')*;
