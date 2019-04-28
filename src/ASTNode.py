@@ -1784,6 +1784,7 @@ class IoArgListNode(ASTNode):
 
     def simplify(self, scope):
         newChildren = []
+        toDelete = []
         for c in self.children:
             if isinstance(c, TerNode):
                 toDelete.append(c)
@@ -1796,4 +1797,8 @@ class IoArgListNode(ASTNode):
                 #steal children
                 c.simplify(scope)
                 newChildren.extend(c.stealChildren())
+
+        self.children = newChildren
+        for d in toDelete:
+            self.AST.delNode(d)
         return self
