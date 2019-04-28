@@ -623,7 +623,7 @@ class FuncSyntaxNode(ASTNode):
                 self.AST.delNode(c)
                 continue
             else:
-                printError("Forgot something in FuncSyntax simplify: ", type(c))
+                print("Forgot something in FuncSyntax simplify: ", type(c))
         self.children = new_children
         self.AST.printDotDebug(str(self.getCount()) + "FuncSyntax.dot")
         return self
@@ -1354,7 +1354,10 @@ class IfElseNode(ASTNode):
 class TerNode(ASTNode):  # leafs
 
     def __init__(self, value, ast, pos):
+        if value == '"':
+            value = '\\"'
         ASTNode.__init__(self, value, 0, ast)
+        # ASTNode.__init__(self, 'TerNode', 0, ast)
         self.child = True
         self.pos = pos
 
@@ -1742,11 +1745,8 @@ class PrintfNode(ASTNode):
                 toDelete.append(c)
                 print("printf: delete: ", c, " | ", type(c) )
             elif isinstance(c, PrintFormatNode):
-                node = c.simplify(scope)
-                if node is not c:
-                    toDelete.append(c)
-                newChildren.append(node)
-                self.format = node
+                c.simplify(scope)
+                newChildren.append(c)
             elif isinstance(c, IoArgListNode):
                 node = c.simplify(scope)
                 if node is not c:
@@ -1767,14 +1767,22 @@ class PrintfNode(ASTNode):
 
 class PrintFormatNode(ASTNode):
     def __init__(self, maxChildren, ast):
-        ASTNode.__init__(self, 'format', maxChildren, ast)
+        ASTNode.__init__(self, 'printformat', maxChildren, ast)
 
     def simplify(self, scope):
-        retNode = self.children[0].simplify(scope)
-        if self.children[0] is not retNode:
-            self.AST.delNode(self.children[0])
-        self.children = []
-        return retNode
+        toDelete = []
+        newChildren = []
+        for c in self.children:
+            if isinstance(c, TerNode):
+                toDelete.append(c)
+            else:
+                c.simplify(scope)
+                newChildren.append(c)
+
+        for d in toDelete:
+            self.AST.delNode(d)
+        self.children = newChildren
+        return self
 
 
 class IoArgListNode(ASTNode):
@@ -1797,8 +1805,62 @@ class IoArgListNode(ASTNode):
                 #steal children
                 c.simplify(scope)
                 newChildren.extend(c.stealChildren())
+            else:
+                printError("IoArgListNode: unexpected node: {}".format(type(c)))
 
         self.children = newChildren
         for d in toDelete:
             self.AST.delNode(d)
+        return self
+
+
+class StringNode(ASTNode, Type):
+
+    def __init__(self, maxChildren, ast):
+        ASTNode.__init__(self, 'StringNode', maxChildren, ast)
+        Type.__init__(self, POINTER(CHAR()))
+
+    def getString(self):
+        if self.isSimplified:
+            return self.value
+        raise Exception("error: StringNode getString called before simplify()")
+
+    def simplify(self, scope):
+        self.isSimplified = True
+        self.value = ""
+        for c in self.children:
+            self.value += c.value
+
+        for c in self.children:
+            self.AST.delNode(c)
+        self.children = []
+        return self
+
+
+class FormatCharPrintNode(ASTNode, Type):
+
+    def __init__(self, maxChildren, ast):
+        ASTNode.__init__(self, 'FormatChar', maxChildren, ast)
+        Type.__init__(self, VOID())
+
+    def getType(self):
+        if self.isSimplified:
+            return self.type
+        raise Exception("error: FormatCharPrintNode getType called before simplify")
+
+    def simplify(self, scope):
+        self.isSimplified = True
+        self.value = self.children[0].value
+        if self.value == "%c":
+            self.type = CHAR()
+        elif self.value == "%s":
+            self.type = POINTER(CHAR())
+        elif self.value == "%i":
+            self.type = INT()
+        elif self.value == "%d":
+            self.type = INT()
+        else:
+            raise Exception("error: unknown format specifier {}".format(self.value))
+        self.AST.delNode(self.children[0])
+        self.children = []
         return self

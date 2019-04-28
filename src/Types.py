@@ -103,6 +103,7 @@ class FLOAT(VOID):
 class POINTER(VOID):
     def __init__(self, type=VOID()):
         self.type = type
+        self.array = 1;
 
     def getType(self):
         return self.__str__()

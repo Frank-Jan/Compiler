@@ -235,7 +235,6 @@ class Listener(c_subsetListener):
     # Enter a parse tree produced by c_subsetParser#printf.
     def enterPrintf(self, ctx: c_subsetParser.PrintfContext):
         self.AST.addNode(PrintfNode(len(ctx.children),self.AST))
-        print("printf: ", len(ctx.children))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#scanf.
@@ -246,6 +245,25 @@ class Listener(c_subsetListener):
     # Enter a parse tree produced by c_subsetParser#printFormat.
     def enterPrintFormat(self, ctx:c_subsetParser.PrintFormatContext):
         self.AST.addNode(PrintFormatNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+
+
+    # Enter a parse tree produced by c_subsetParser#formatChar.
+    def enterFormatCharScan(self, ctx:c_subsetParser.FormatCharScanContext):
+        raise Exception("Woops enter scanNode not implemented")
+        self.AST.addNode(FormatCharPrintNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+
+    # Enter a parse tree produced by c_subsetParser#formatChar.
+    def enterFormatCharPrint(self, ctx:c_subsetParser.FormatCharPrintContext):
+        self.AST.addNode(FormatCharPrintNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+
+    # Enter a parse tree produced by c_subsetParser#string.
+    def enterString(self, ctx:c_subsetParser.StringContext):
+        self.AST.addNode(StringNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+
 
     # Enter a parse tree produced by c_subsetParser#ioArglist.
     def enterIoArglist(self, ctx: c_subsetParser.IoArglistContext):

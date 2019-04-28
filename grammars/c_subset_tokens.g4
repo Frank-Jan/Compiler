@@ -29,7 +29,11 @@ DEFAULT : 'default';
 DIGIT : [0-9];
 LETTER : ( [a-z] | [A-Z] );
 
-FORMAT_CHAR : '%s' | '%i' | '%d' | '%c';
+
+FORMAT_CHAR_PRINT : '%' DIGIT* ('i'|'f'|'s'|'c') ;
+
+FORMAT_CHAR_SCAN : '%s' | '%i' | '%d' | '%c' ;
+
 
 //includes
 INCLUDESTDIO : '#include <stdio.h>';

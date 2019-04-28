@@ -233,7 +233,19 @@ scanf
     ;
 
 printFormat
-    : value
+    : '"' (string | formatCharPrint)* '"'
+    ;
+
+formatCharScan
+    : FORMAT_CHAR_SCAN
+    ;
+
+formatCharPrint
+    : FORMAT_CHAR_PRINT
+    ;
+
+string
+    :   LETTER+
     ;
 
 ioArglist
