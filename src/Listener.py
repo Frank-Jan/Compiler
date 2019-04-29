@@ -281,3 +281,9 @@ class Listener(c_subsetListener):
     # Enter a parse tree produced by c_subsetParser#name.
     def enterName(self, ctx: c_subsetParser.NameContext):
         self.AST.addNode(NameNode(ctx.getText(), self.AST, (ctx.start.line, ctx.start.column)))
+
+    # # Enter a parse tree produced by c_subsetParser#generalVarDefinition.
+    # def enterGeneralVarDefinition(self, ctx:c_subsetParser.GeneralVarDefinitionContext):
+    #     self.AST.addNode(VarDefNode(len(ctx.children), self.AST))
+    #     self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+

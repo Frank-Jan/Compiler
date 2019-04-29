@@ -875,6 +875,8 @@ class ReturnStatNode(ASTNode, Type):
 
     def toLLVM(self):
         code = "ret "
+        if len(self.children) == 0:
+            return "ret void"
         for child in self.children:
             if isinstance(child, FuncNode) or isinstance(child, ArOpNode):
                 return child.toLLVM() + "ret " + child.getType().toLLVM() + " " + child.returnVar
