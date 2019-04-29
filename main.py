@@ -12,7 +12,6 @@ from src.VarGen import *
 
 
 def testFile(argv):
-    print("1/3: Parsing file")
     try:
         input_stream = FileStream(argv[1])
     except:
@@ -24,7 +23,7 @@ def testFile(argv):
         parser = c_subsetParser(stream)
         parser.buildParseTrees = True
         tree = parser.cSyntax()
-    except:
+    except Exception as e:
         print("Error parsing syntax:\n", sys.exc_info()[0])
         return 1
 
@@ -33,11 +32,17 @@ def testFile(argv):
         walker = ParseTreeWalker()
         walker.walk(listener, tree)
         ast = listener.getAST()
+    except Exception as e:
+        printError(str(e))
+        return 1
+
+    try:
         ast.printDot("derivationTree.dot")
         ast.simplify()
         ast.printDot("AST.dot")
     except Exception as e:
         printError(str(e))
+        return 1
 
 
     f = open("tests/test.ll", "w+")
@@ -54,7 +59,6 @@ def testFile(argv):
             text = node.getStrings() + text
 
     f.write(text)
-    print(text)
 
     return 0
 

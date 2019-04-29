@@ -65,7 +65,6 @@ class VOID:
         return self.__str__() == other.__str__()
 
     def toLLVM(self):
-        print("VOID to LLVM")
         return 'void'
 
 
@@ -80,7 +79,6 @@ class CHAR(VOID):
         return "char"
 
     def toLLVM(self):
-        print("CHAR to LLVM")
         return 'i8'
 
 
@@ -95,7 +93,6 @@ class INT(VOID):
         return "int"
 
     def toLLVM(self):
-        print("INT to LLVM")
         return 'i32'
 
 
@@ -110,7 +107,6 @@ class FLOAT(VOID):
         return "float"
 
     def toLLVM(self):
-        print("FLOAT to LLVM")
         return 'float'
 
 
@@ -134,7 +130,6 @@ class POINTER(VOID):
         return self.type.__str__() + "*"
 
     def toLLVM(self):
-        print("POINTER to LLVM")
         return self.getBase().toLLVM() + "*"
 
 
@@ -152,7 +147,6 @@ class REFERENCE(VOID):
         return self.type
 
     def toLLVM(self):
-        print("REFERENCE to LLVM")
         return self.type.toLLVM() + "*"
 
     def __str__(self):
@@ -164,5 +158,4 @@ class ARRAY(POINTER):
         POINTER.__init__(self, type)
 
     def toLLVM(self):
-        print("ARRAY to LLVM")
         return self.getBase().toLLVM() + "*"

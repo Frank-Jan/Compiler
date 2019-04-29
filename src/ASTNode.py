@@ -29,7 +29,6 @@ def compareTypes(A,B):
     return dereferenceType(A) == dereferenceType(B)
 
 def dereferenceType(node):
-    print(type(node))
     if isinstance(node, Type):
         tmp = copy.copy(node.deref)
         type_ = copy.copy(node.getType())
@@ -696,7 +695,7 @@ class ProdNode(ArOpNode):
         self.right = self.children[1]
 
         # check left and right types:
-        if self.left.getType() != self.right.getType():
+        if not compareTypes(self.left, self.right):
             raise Exception("error: trying to multiply two different types: "
                             "{} and {}".format(self.left.getType(), self.right.getType()))
         self.type = self.left.getType()
@@ -773,7 +772,7 @@ class AddNode(ArOpNode, Type):
         self.right = self.children[1]
 
         # check left and right types:
-        if self.left.getType() != self.right.getType():
+        if not compareTypes(self.left, self.right):
             raise Exception("error: trying to add two different types: "
                             "{} and {}".format(self.left.getType(), self.right.getType()))
         self.type = self.left.getType()
@@ -955,7 +954,6 @@ class GenDefNode(ASTNode):
         ASTNode.__init__(self, 'GenDef', maxChildren, ast)
 
     def simplify(self, scope):
-        print("Simplify GenDefNode")
         retNode = self.children[0].simplify(scope)
         self.children = []
         return retNode
@@ -1463,7 +1461,6 @@ class LitNode(ASTNode, Type):
         return self.value
 
     def simplify(self, scope=None):
-        print("Simplify LitNode")
         retNode = self.children[0].simplify(scope)
         self.value = self.children[0].value
         self.setType(self.children[0].getType())
@@ -1472,10 +1469,6 @@ class LitNode(ASTNode, Type):
             self.AST.delNode(c)
         self.children = []
         return retNode
-
-    # def toLLVM(self):
-    #     print("LITNODE to LLVM")
-    #     return self.type.toLLVM() + " " + self.value
 
 class numberNode(TerNode):
 
@@ -1495,7 +1488,6 @@ class IntNode(TerNode, Type):
         TerNode.__init__(self, value, ast, pos)
 
     def simplify(self, scope=None):
-        print("Simplify IntNode: ", self.value)
         toDelete = self.children
         for c in toDelete:
             self.AST.delNode(c)
@@ -1515,7 +1507,6 @@ class FloatNode(TerNode, Type):
         TerNode.__init__(self, value, ast, pos)
 
     def simplify(self, scope=None):
-        print("Simplify FloatNode: ", self.value)
         toDelete = self.children
         for c in toDelete:
             self.AST.delNode(c)
@@ -1545,7 +1536,6 @@ class CharNode(TerNode, Type):
         TerNode.__init__(self, value, ast, pos)
 
     def simplify(self, scope=None):
-        print("Simplify CharNode: ", self.value)
         toDelete = self.children
         for c in toDelete:
             self.AST.delNode(c)
@@ -1575,7 +1565,6 @@ class TypeSpecNode(Type, ASTNode):
     def simplify(self, scope=None):
         type = self.children[0].simplify(scope)
         self.setType(type)
-        print("Simplified TypeSpecNode to: ", self.getType())
         self.AST.delNode(self.children[0])
         self.children = []
         self.value = self.type
@@ -1619,11 +1608,9 @@ class TypeSpecBaseNode(Type, ASTNode):
         self.type = childType
 
     def simplify(self, scope=None):
-        print("Simplify TypeSpecBaseNode")
         self.type = toType(self.children[0].value)
         self.AST.delNode(self.children[0])
         self.children = []
-        print("Simplified TypeSpecBaseNode to: ", self.getType())
         self.value = self.getType()
         return self.getType()
         # self.isSimplified = True
@@ -1649,7 +1636,6 @@ class TypeSpecReferenceNode(Type, ASTNode):
 
     def simplify(self, scope=None):
         self.setType(self.children[0].simplify(scope))
-        print("Simplified TypeSpecReferenceNode to: ", self.getType())
         self.value = self.getType()
         return self.getType()
 
@@ -1665,7 +1651,6 @@ class TypeSpecPtrNode(Type, ASTNode):
 
     def setType(self, childType):
         self.type = POINTER(childType)
-        # print(str(self.type.getDepth()))
 
     def simplify(self, scope=None):
         if isinstance(self.children[0], TerNode):
@@ -1760,7 +1745,6 @@ class PrintfNode(ASTNode):
         for c in self.children:
             if isinstance(c, TerNode):
                 toDelete.append(c)
-                print("printf: delete: ", c, " | ", type(c) )
             elif isinstance(c, PrintFormatNode):
                 c.simplify(scope)
                 newChildren.append(c)
