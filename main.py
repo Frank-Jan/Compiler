@@ -53,7 +53,9 @@ def testFile(argv):
     # ast.simplify()
     # ast.printDot("AST.dot")
 
-    f = open("tests/test.ll", "w+")
+    llFile = argv[1].replace(".c", ".ll")
+
+    f = open(llFile, "w+")
     text = ""
 
     for node in ast:
