@@ -220,7 +220,10 @@ class AssignNode(ASTNode):
         type = self.right.getType().toLLVM()
         align = self.right.getType().getAlign()
 
-        if isinstance(self.right, Type):
+        if isinstance(self.right, VarNode):
+            code = self.right.toLLVM(True)
+            code += "store " + type + " " + self.right.returnVar + ", " + type + "* " + self.left.toLLVM() + align + "\n"  # store i32 %8, i32* %2, align 4
+        elif isinstance(self.right, Type):
             code += "store " + self.right.toLLVM() + ", " + type + "* " + self.left.toLLVM() + align + "\n"  # store i32 %8, i32* %2, align 4
         else:
             code = self.right.toLLVM(True)
