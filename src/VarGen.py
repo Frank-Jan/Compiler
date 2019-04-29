@@ -2,7 +2,7 @@ class VarGen:
 
     def __init__(self):
         self.name = '%var-'
-        self.label = 'label'
+        self.label = 'Label'
         self.idCounter = 0
 
     @staticmethod
