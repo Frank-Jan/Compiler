@@ -23,6 +23,7 @@ class Type:
     def setType(self, childType):
         self.type = childType
 
+
 # A en B have to be of class Type
 def compareTypes(A,B):
     return dereferenceType(A) == dereferenceType(B)
@@ -209,16 +210,21 @@ class AssignNode(ASTNode):
 
 
     def toLLVM(self):
-        code = self.right.toLLVM(True)
+        code = ""
         #self.returnVar = VarGen.getNewVar(varGen)
         # symbolTable = self.getSymbolTable()
         # record = symbolTable.search(self.left.value)
         # if record is None:
         #     raise Exception("error: VarNode has no record in symbolTable")
         # type = record.getType().toLLVM()
-        type = self.right.returnType.toLLVM()
+        type = self.right.getType().toLLVM()
         align = self.right.getType().getAlign()
-        code += "store " + type + " " + self.right.returnVar + ", " + type + "* " + self.left.toLLVM() + align + "\n"  # store i32 %8, i32* %2, align 4
+
+        if isinstance(self.right, Type):
+            code += "store " + self.right.toLLVM() + ", " + type + "* " + self.left.toLLVM() + align + "\n"  # store i32 %8, i32* %2, align 4
+        else:
+            code = self.right.toLLVM(True)
+            code += "store " + type + " " + self.right.returnVar + ", " + type + "* " + self.left.toLLVM() + align + "\n"  # store i32 %8, i32* %2, align 4
         return code
 
 
@@ -321,8 +327,9 @@ class FuncDefNode(ASTNode, Type):
             var = self.fsign.newNames[i]
             orVar = self.fsign.varNames[i].toLLVM()
             type = self.fsign.types[i].toLLVM()
-            code += orVar + " = alloca " + type + ", align 4\n"
-            code += "store " + type + " " + var + ", " + type + "* " + orVar + ", align 4\n"
+            align = self.fsign.types[i].getAlign()
+            code += orVar + " = alloca " + type + align + "\n"
+            code += "store " + type + " " + var + ", " + type + "* " + orVar + align + "\n"
 
         curCode += code
         curCode += self.block.toLLVM()  # %2 = alloca i32, align 4
@@ -512,7 +519,7 @@ class ValueNode(ASTNode, Type):
             self.children = []
             if not isinstance(retNode.getType(), POINTER):
                 raise Exception("Dereferencing non-pointer")
-            retNode.setType(retNode.getType().getBase())
+            retNode.deref += 1
 
         self.AST.printDotDebug(str(self.getCount()) + "value" + ".dot")
         self.AST.printDotDebug(str(self.getCount()) + "Value.dot")
@@ -933,7 +940,7 @@ class VarDefNode(ASTNode):
             self.children[1] = assignRight
 
         # check if left and right have the same type:
-        if varDecl.getType() != assignRight.getType():
+        if not compareTypes(varDecl.getType(), assignRight.getType()):
             if isinstance(varDecl.getType(), POINTER) and isinstance(assignRight.getType(), REFERENCE):
                 if varDecl.getType().getBase() != assignRight.getType().getBase():
                     raise Exception("error: types dont match in var definition: "
@@ -965,7 +972,7 @@ class VarDefNode(ASTNode):
             var = node.getType().toLLVM() + " " + node.returnVar
         elif isinstance(node, FuncNode) or isinstance(node, ArOpNode):
             code += node.toLLVM()
-            var = node.getType().toLLVM() + " " + node.returnVar
+            var = node.returnType.toLLVM() + " " + node.returnVar
         #else een litnode
         # store i32 0, i32* %1
         code += "store " + var + ", " + self.children[0].type.toLLVM() + "* " + \
@@ -1043,8 +1050,11 @@ class VarDeclNode(ASTNode, Type):
         # %1 = alloca i32, align 4
         code = self.var.toLLVM() + " = alloca " + self.type.toLLVM() + type.getAlign() + "\n"
         # if init = True, initialize standard on 0
-        if init and not isinstance(type, POINTER) and not isinstance(type, FLOAT):
-            code += "store " + self.type.toLLVM() + " 0, " + self.type.toLLVM() + "* " + \
+        if init and not isinstance(type, POINTER):
+            waarde = 0
+            if isinstance(type, FLOAT):
+                waarde = 0.0
+            code += "store " + self.type.toLLVM() + " "+str(waarde)+", " + self.type.toLLVM() + "* " + \
                     self.var.toLLVM() + type.getAlign() + "\n"
         return code
 
@@ -1106,8 +1116,9 @@ class FuncNode(ASTNode, Type):
         self.value = self.name + '(' + ')'
         return self
 
-    def toLLVM(self):
+    def toLLVM(self, load = True):
         self.returnVar = varGen.getNewVar(varGen)
+        self.returnType = self.getType()
         code = ""
         args = ""
         type = ""
@@ -1121,7 +1132,22 @@ class FuncNode(ASTNode, Type):
         args = args[:-2]
 
         stat = code + self.returnVar + " = call " + self.getType().toLLVM() + " "
-        return stat + "@" + self.name + "(" + args + ")\n"  # symboltable.gettype
+        stat = stat + "@" + self.name + "(" + args + ")\n"  # symboltable.gettype
+        if isinstance(self.getType(), POINTER):
+            # print(str(self.getType().getDepth()))
+            code = ""
+            tmp2 = self.returnVar
+            type = self.getType().getBase()
+            for niv in range(self.deref-1):
+                tmp = varGen.getNewVar(varGen)
+                code += tmp + " = load " + type.toLLVM() + ", " + type.toLLVM() + "* " + tmp2 + type.getAlign() + "\n"
+                type = type.getBase()
+                tmp2 = tmp
+            self.returnVar = tmp
+            self.returnType = type
+            for niv in range(self.deref - 1):
+                self.returnType = self.returnType.getBase()
+        return stat + code
 
 
 class GenDeclNode(ASTNode):
@@ -1518,7 +1544,9 @@ class IntNode(TerNode, Type):
         self.children = []
         return self
 
-    def toLLVM(self):
+    def toLLVM(self, value = False):
+        if value:
+            return self.value
         return self.type.toLLVM() + " " + self.value
 
 
@@ -1544,9 +1572,11 @@ class FloatNode(TerNode, Type):
         double_hex = "0x" + double_val.hex()
         return double_hex
 
-    def toLLVM(self):
+    def toLLVM(self, value = False):
         # python float = c double
         fl = str(self.floatToLLVMHex(float(self.value)))
+        if value:
+            return fl
         return self.type.toLLVM() + " " + fl
 
 
@@ -1564,11 +1594,13 @@ class CharNode(TerNode, Type):
         self.children = []
         return self
 
-    def toLLVM(self):
+    def toLLVM(self, value = False):
         if len(self.value) == 2:
             raise Exception("error: empty character constant")
-        char = str(ord(self.value[1]))
-        return self.type.toLLVM() + " " + char
+        c = str(ord(self.value[1]))
+        if value:
+            return c
+        return self.type.toLLVM() + " " + c
 
 
 # type/pointer/reference/literal nodes
@@ -1899,27 +1931,33 @@ class IoArgListNode(ASTNode):
         code = ""
         if cast:
             for c in self.children:
-                if isinstance(c, VarNode):
+                if isinstance(c, VarNode) or isinstance(c, FuncNode):
                     code += c.toLLVM(True)
-                    if isinstance(c.getType(), CHAR):
+                    type = c.getType()
+                    if isinstance(type, POINTER):
+                        for niv in range(c.deref-1):
+                            type = type.getBase()
+                    if isinstance(type, CHAR):
                         self.returnVars[c] = varGen.getNewVar(varGen)
                         code += self.returnVars[c] + " = sext " + llvmTypes[str(c.returnType)] +" "+ c.returnVar + " to i32\n" #  %4 = sext i8 %3 to i32
-                    elif isinstance(c.getType(), FLOAT):
+                    elif isinstance(type, FLOAT):
                         self.returnVars[c] = varGen.getNewVar(varGen)
                         code += self.returnVars[c] + " = fpext " + llvmTypes[str(c.returnType)] +" "+ c.returnVar + " to double\n"# %7 = fpext float %6 to double
+                    else:
+                        self.returnVars[c] = c.returnVar
         else:
             #i32 %5, double %7, i32 99
             for i in range(len(self.children)):
-                if isinstance(self.children[i], VarNode):
+                if isinstance(self.children[i], VarNode) or isinstance(self.children[i], FuncNode):
                     if isinstance(self.children[i].getType(), FLOAT):
                         code += ", double " + self.returnVars[self.children[i]]
                     else:
                         code += ", i32 " + self.returnVars[self.children[i]]
                 else:
                     if isinstance(self.children[i].getType(), FLOAT):
-                        code += ", double " + self.children[i].toLLVM()[-2:]
+                        code += ", double " + self.children[i].toLLVM(True)
                     else:
-                        code += ", i32 " + self.children[i].toLLVM()[-2:]
+                        code += ", i32 " + self.children[i].toLLVM(True)
         return code
 
 

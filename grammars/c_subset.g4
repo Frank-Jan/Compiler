@@ -30,12 +30,12 @@ functionStatement
     ;
 
 returnStatement
-//    : RETURN    ( function
-//                | literal
-//                | variable
-//                | arithmeticOperation
-//                )
-    : RETURN value
+    : RETURN    ( function
+                | literal
+                | variable
+                | arithmeticOperation
+                )
+//    : RETURN value
     | RETURN
     ;
 
