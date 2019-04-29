@@ -29,6 +29,7 @@ def compareTypes(A,B):
     return dereferenceType(A) == dereferenceType(B)
 
 def dereferenceType(node):
+    print(type(node))
     if isinstance(node, Type):
         tmp = copy.copy(node.deref)
         type_ = copy.copy(node.getType())
@@ -217,7 +218,7 @@ class AssignNode(ASTNode):
         type = self.right.getType().toLLVM()
         align = self.right.getType().getAlign()
 
-        if isinstance(self.right, VarNode):
+        if isinstance(self.right, VarNode) or isinstance(self.right, ArOpNode):
             code = self.right.toLLVM(True)
             code += "store " + type + " " + self.right.returnVar + ", " + type + "* " + self.left.toLLVM() + align + "\n"  # store i32 %8, i32* %2, align 4
         elif isinstance(self.right, Type):
@@ -300,7 +301,7 @@ class FuncDefNode(ASTNode, Type):
             raise Exception("error: Expected return statements")
 
         for r in self.block.returnStatements:
-            if not compareTypes(r.getType(),self.getType()):
+            if not compareTypes(r, self):
                 raise Exception("error: Wrong return type in function: returns: {}, expected {}"
                                 .format(str(r.getType()), str(self.getType())))
 
@@ -730,6 +731,7 @@ class AddNode(ArOpNode, Type):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Add', maxChildren, ast)
+        Type.__init__(self)
         self.left = None
         self.right = None
         self.returnVar = None  # hulpVar to return
@@ -779,7 +781,7 @@ class AddNode(ArOpNode, Type):
         self.AST.printDotDebug(str(self.getCount()) + "Addnode.dot")
         return self
 
-    def toLLVM(self):
+    def toLLVM(self, load = False):
         self.returnVar = varGen.getNewVar(varGen)
         code = ""
         l = self.left.toLLVM()
@@ -904,7 +906,7 @@ class VarDefNode(ASTNode):
             self.children[1] = assignRight
 
         # check if left and right have the same type:
-        if not compareTypes(varDecl.getType(), assignRight.getType()):
+        if not compareTypes(varDecl, assignRight):
             if isinstance(varDecl.getType(), POINTER) and isinstance(assignRight.getType(), REFERENCE):
                 if varDecl.getType().getBase() != assignRight.getType().getBase():
                     raise Exception("error: types dont match in var definition: "
@@ -934,9 +936,12 @@ class VarDefNode(ASTNode):
         if isinstance(node, VarNode):
             code += node.toLLVM(True)
             var = node.getType().toLLVM() + " " + node.returnVar
-        elif isinstance(node, FuncNode) or isinstance(node, ArOpNode):
+        elif isinstance(node, FuncNode):
             code += node.toLLVM()
             var = node.returnType.toLLVM() + " " + node.returnVar
+        elif isinstance(node, ArOpNode):
+            code += node.toLLVM()
+            var = node.getType().toLLVM() + " " + node.returnVar
         #else een litnode
         # store i32 0, i32* %1
         code += "store " + var + ", " + self.children[0].type.toLLVM() + "* " + \
@@ -960,6 +965,7 @@ class VarDeclNode(ASTNode, Type):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'VarDecl', maxChildren, ast)
+        Type.__init__(self)
         # self.type = None  # Types
         self.var = None  # VarNode itself
         self.size = 0
