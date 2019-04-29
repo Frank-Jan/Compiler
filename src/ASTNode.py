@@ -39,7 +39,10 @@ def dereferenceType(node):
             if isinstance(type_, POINTER):
                 type_ = type_.getBase()
             else:
-                raise Exception("error: dereferencing non-pointer {}".format(node.getName()))
+                raise Exception("error: dereferencing non-pointer {}".format(node.value()))
+    else:
+        raise Exception("error: trying to get dereference from non-type")
+    return type_
 
 class ASTNode:
 
@@ -197,10 +200,11 @@ class AssignNode(ASTNode):
         #check if left side is declared/defined and a variable
         # check if declared or defined in symboltable:
         self.left.checkDeclaration(scope)
+
         # check if left and right have the same type:
         if not compareTypes(self.left, self.right):
             raise Exception("error: assigning two different types: "
-                            "{}({}) and {}({})".format(self.left.getType().getBase(), self.left.getName(), self.right.getType(), self.right.getName()))
+                            "{} {} and {} {}".format(self.left.getType().getBase(), self.left.value , self.right.getType(), self.right.value))
 
         self.AST.printDotDebug(str(self.getCount()) + "Assign.dot")
         return self
@@ -632,6 +636,7 @@ class ArOpNode(ASTNode, Type):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'ArOp', maxChildren, ast)
+        Type.__init__(self)
 
     def getType(self):
         if self.isSimplified:
@@ -650,7 +655,9 @@ class ArOpNode(ASTNode, Type):
 class ProdNode(ArOpNode):
 
     def __init__(self, maxChildren, ast):
-        ASTNode.__init__(self, 'Prod', maxChildren, ast)
+        ArOpNode.__init__(self, maxChildren, ast)
+        ArOpNode.__init__(self, maxChildren, ast)
+        self.value = 'Product'
         self.multiplication = True
         self.left = None
         self.right = None
@@ -726,11 +733,11 @@ class ProdNode(ArOpNode):
         return code
 
 
-class AddNode(ArOpNode, Type):
+class AddNode(ArOpNode):
 
     def __init__(self, maxChildren, ast):
-        ASTNode.__init__(self, 'Add', maxChildren, ast)
-        Type.__init__(self)
+        ArOpNode.__init__(self, maxChildren, ast)
+        self.value = "Addition"
         self.left = None
         self.right = None
         self.returnVar = None  # hulpVar to return
@@ -854,17 +861,20 @@ class ReturnStatNode(ASTNode, Type):
             self.setType(VOID())  # no return value
         else:
             node = self.children[0].simplify(scope)
-            if isinstance(self.children[0], FuncNode) or isinstance(self.children[0], ArOpNode):
-                self.type = None
+            if isinstance(node, FuncNode) or isinstance(node, ArOpNode) or isinstance(node, VarNode):
                 if node is not self.children[0]:
                     self.AST.delNode(self.children[0])
                 self.children[0] = node
             # can't take type because a function's output might be returned
-            if isinstance(node, IntNode) or isinstance(node, FloatNode) or isinstance(node, CharNode):
+            elif isinstance(node, IntNode) or isinstance(node, FloatNode) or isinstance(node, CharNode):
                 self.AST.delNode(self.children[0])
                 del self.children[0]
                 self.children.append(node)
+            else:
+                printError("ReturnStatNode forgot something: {}".format(type(node)))
             self.type = node.getType()
+
+
         self.AST.printDotDebug(str(self.getCount()) + "ReturnStat.dot")
         return self
 
@@ -908,12 +918,12 @@ class VarDefNode(ASTNode):
         if not compareTypes(varDecl, assignRight):
             if isinstance(varDecl.getType(), POINTER) and isinstance(assignRight.getType(), REFERENCE):
                 if varDecl.getType().getBase() != assignRight.getType().getBase():
-                    raise Exception("error: types dont match in var definition: "
+                    raise Exception("error: types don't match in var definition: "
                                     "{} and {}".format(varDecl.getType().getBase(), assignRight.getType()))
             else:
                 if not (isinstance(varDecl.getType(), ARRAY) and isinstance(assignRight.getType(), ARRAY)):
-                    raise Exception("error: types dont match in var definition: "
-                                    "{} and {}".format(varDecl.getType(), assignRight.getType()))
+                    raise Exception("error: types don't match in var definition: "
+                                    "{} {} and {}".format(varDecl.getType(), varDecl.getName(), assignRight.getType()))
 
         if isinstance(self.children[0].getType(), ARRAY) and isinstance(self.children[1].getType(), ARRAY):
             if self.children[0].getType().array != self.children[1].getType().array:   # check if right array is long enough

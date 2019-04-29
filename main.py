@@ -25,7 +25,7 @@ def testFile(argv):
         tree = parser.cSyntax()
     except Exception as e:
         print("Error parsing syntax:\n", sys.exc_info()[0])
-        return 1
+        return 2
 
     try:
         listener = Listener()
@@ -34,7 +34,7 @@ def testFile(argv):
         ast = listener.getAST()
     except Exception as e:
         printError(str(e))
-        return 1
+        return 3
 
     try:
         ast.printDot("derivationTree.dot")
@@ -42,8 +42,11 @@ def testFile(argv):
         ast.printDot("AST.dot")
     except Exception as e:
         printError(str(e))
-        return 1
+        return 4
 
+    # ast.printDot("derivationTree.dot")
+    # ast.simplify()
+    # ast.printDot("AST.dot")
 
     f = open("tests/test.ll", "w+")
     text = ""
@@ -64,4 +67,4 @@ def testFile(argv):
 
 
 if __name__ == '__main__':
-    testFile(sys.argv)
+    sys.exit(testFile(sys.argv))

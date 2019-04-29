@@ -45,7 +45,7 @@ class FunctionRecord(Record):
             self.definition = node   #node who defined him
         else:
             self.declarations.append(node)  #node who declared function
-
+        self.defined = defined
 
     def isVar(self):
         return False
