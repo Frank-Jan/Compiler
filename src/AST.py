@@ -17,9 +17,6 @@ class AST:
         leftnodes = []
         node = self.nodes[0]  # append = push
 
-        for c in nodes:
-            print(type(c))
-
         while not len(nodes) == 0:  # while not all nodes are simplified
             node = nodes.pop()  # take last node
 
@@ -72,16 +69,11 @@ class AST:
                     pos = i
                     break
         if pos is None:
-            print("POS IS NONE")
-            for node in self:
-                print(node)
             return
-            # raise Exception("POS IS NONE")
 
         if not prevNode.isLeaf():
             prevNode.children[pos] = ASTnode
             ASTnode.parent = prevNode
-            # ASTnode.parent = (prevNode, pos)
         self.nodes.append(ASTnode)
 
     def getSymbolTable(self):
@@ -92,7 +84,6 @@ class AST:
             for child in ASTnode.children:
                 self.delNode(child) #delete children to
         if ASTnode in self.nodes:
-            # print("AST deleted: ", type(ASTnode))
             self.nodes.remove(ASTnode)
 
     def printDotDebug(self, filename):

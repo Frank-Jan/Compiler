@@ -17,6 +17,7 @@ def testFile(argv):
         input_stream = FileStream(argv[1])
     except:
         print("Error loading file:\n", sys.exc_info()[0])
+        return 1
     try:
         lexer = c_subsetLexer(input_stream)
         stream = CommonTokenStream(lexer)
@@ -27,35 +28,16 @@ def testFile(argv):
         print("Error parsing syntax:\n", sys.exc_info()[0])
         return 1
 
-    print("\tSyntax accepted")
-
-    print("2/3: Creating derivation and abstract syntax tree")
-    # try:
-    listener = Listener()
-    walker = ParseTreeWalker()
-    walker.walk(listener, tree)
-    ast = listener.getAST()
-    ast.printDot("derivationTree.dot")
-    ast.simplify()
-
-    # try:
-    #     ast.simplify()
-    # except Exception as error:
-    #     printError(error)
-
-    ast.printDot("AST.dot")
-
-    # except:
-    #     print("Error creating AST:\n", sys.exc_info()[0])
-    #     return 1
-    print("\tWritten AST to AST.dot")
-
-    global ALLSCOPES
-    print("ALL SCOPES: ")
-    for s in ALLSCOPES:
-        print("=============================================")
-        print(s)
-    print("=============================================")
+    try:
+        listener = Listener()
+        walker = ParseTreeWalker()
+        walker.walk(listener, tree)
+        ast = listener.getAST()
+        ast.printDot("derivationTree.dot")
+        ast.simplify()
+        ast.printDot("AST.dot")
+    except Exception as e:
+        printError(str(e))
 
 
     f = open("tests/test.ll", "w+")
