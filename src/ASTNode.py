@@ -1751,6 +1751,11 @@ class PrintfNode(ASTNode):
     # give scope where function is defined
     def simplify(self, scope):
         self.isSimplified = True
+        #check if printf is defined:
+        value = scope.search("printf")
+        if value is None:
+            raise Exception("printf not declarded, add #include <stdio.h>")
+
         toDelete = []
         newChildren = []
         for c in self.children:

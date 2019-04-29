@@ -1,3 +1,5 @@
+//#include <stdio.h>
+
 void func1(){
     return;
 }
@@ -14,6 +16,10 @@ char func3(char c){
         return 'd';
     }
     return 'c';
+}
+
+int* func4(int i){
+    return &i;
 }
 
 int main(){
