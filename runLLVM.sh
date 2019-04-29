@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-lli tests/test.ll
+lli tests/demo.ll

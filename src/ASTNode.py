@@ -1107,7 +1107,13 @@ class FuncNode(ASTNode, Type):
             code = ""
             tmp2 = self.returnVar
             type = self.getType().getBase()
+            # tmp = varGen.getNewVar(varGen)
+            print('funcnode')
+            if self.deref == 1:
+                tmp = self.returnVar
+                type = self.getType()
             for niv in range(self.deref-1):
+                print('t')
                 tmp = varGen.getNewVar(varGen)
                 code += tmp + " = load " + type.toLLVM() + ", " + type.toLLVM() + "* " + tmp2 + type.getAlign() + "\n"
                 type = type.getBase()
