@@ -1,4 +1,6 @@
-@.var-24 = private unnamed_addr constant [32 x i8] c"Acharacterreturnedbyfunc3():\0A%c\00", align 1
+@.var-34 = private unnamed_addr constant [9 x i8] c"Elseloop\00", align 1
+
+@.var-30 = private unnamed_addr constant [32 x i8] c"Acharacterreturnedbyfunc3():\0A%c\00", align 1
 
 declare i32 @printf(i8*, ...)
 declare i32 @scanf(i8*, ...)
@@ -7,7 +9,7 @@ declare i32 @scanf(i8*, ...)
 
 define void @func1(){
 
-ret 
+ret void
 }
 
 define i32 @func2(){
@@ -55,11 +57,26 @@ ret i32* %i
 
 define i32 @main(){
 
-%var-26 = call i8 @func3(i8 99)
-%var-27 = sext i8 %var-26 to i32
-%var-25 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([32 x i8], [32 x i8]* @.var-24, i32 0, i32 0), i32 %var-27)
+%i = alloca i32, align 4
+store i32 2, i32* %i, align 4
 
-%var-28 = call i32 @func2()
-ret i32 %var-28
+%var-27 = load i32, i32* %i, align 4
+%var-26 = icmp sgt i32 1, %var-27
+br i1 %var-26, label %Label28, label %Label29
+Label28:
+
+%var-32 = call i8 @func3(i8 99)
+%var-33 = sext i8 %var-32 to i32
+%var-31 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([32 x i8], [32 x i8]* @.var-30, i32 0, i32 0), i32 %var-33)
+
+br label %Label29
+Label29:
+
+%var-35 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([9 x i8], [9 x i8]* @.var-34, i32 0, i32 0))
+
+ret i32 0
+
+%var-36 = call i32 @func2()
+ret i32 %var-36
 }
 
