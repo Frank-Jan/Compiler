@@ -1882,6 +1882,7 @@ class IoArgListNode(ASTNode):
                 #steal children
                 c.simplify(scope)
                 newChildren.extend(c.stealChildren())
+                toDelete.append(c)
             else:
                 printError("IoArgListNode: unexpected node: {}".format(type(c)))
 
