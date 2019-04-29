@@ -1378,14 +1378,15 @@ class IfElseNode(ASTNode):
         code += self.cond.toLLVM()
         lbl1 = VarGen.getNewLabel(varGen)
         lbl2 = VarGen.getNewLabel(varGen)
-        code += "br i1 " + self.cond.returnVar + ", label %" + lbl1 + ", label %" + lbl2 + "\n\n"  # br i1 %6, label %label1, label %label2
+        code += "br i1 " + self.cond.returnVar + ", label %" + lbl1 + ", label %" + lbl2 + "\n"  # br i1 %6, label %label1, label %label2
 
-        code += lbl1 + ":\n" + self.ifBlock.toLLVM() + "\n"
+        code += lbl1 + ":\n" + self.ifBlock.toLLVM() + ""
 
         el = ""
         if self.elseBlock is not None:
             el = self.elseBlock.toLLVM()
-        code += lbl2 + ":\n" + el + "\n"
+        code += "br label %" + lbl2 + "\n"
+        code += lbl2 + ":\n" + el
 
         return code
 
@@ -1836,9 +1837,9 @@ class PrintfNode(ASTNode):
 
     def checkInput(self):
         #check if all inputs are correct
-        format = self.children[0].getFormat()    #printformat node
-        inputValues = self.children[1].getInputTypes()
-
+        # format = self.children[0].getFormat()    #printformat node
+        # inputValues = self.children[1].getInputTypes()
+        #
         pass
 
 
