@@ -27,19 +27,14 @@ def testFile(argv):
         print("Error parsing syntax:\n", sys.exc_info()[0])
         return 2
 
-    listener = Listener()
-    walker = ParseTreeWalker()
-    walker.walk(listener, tree)
-    ast = listener.getAST()
-
-    # try:
-    #     listener = Listener()
-    #     walker = ParseTreeWalker()
-    #     walker.walk(listener, tree)
-    #     ast = listener.getAST()
-    # except Exception as e:
-    #     printError(str(e))
-    #     return 3
+    try:
+        listener = Listener()
+        walker = ParseTreeWalker()
+        walker.walk(listener, tree)
+        ast = listener.getAST()
+    except Exception as e:
+        printError(str(e))
+        return 3
 
     try:
         ast.printDot("derivationTree.dot")
