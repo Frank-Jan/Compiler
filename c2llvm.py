@@ -64,7 +64,7 @@ def testFile(argv):
             text = node.getStrings() + text
 
     f.write(text)
-
+    print(ast.getSymbolTable())
     return 0
 
 

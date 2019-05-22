@@ -104,8 +104,8 @@ class AST:
 
         for node in self.nodes:
             if node.isLeaf():
-                states += "\"" + str(node) + "\" " + "[color = \"red\"]\n" + "[label=\"" + str(node.value) + "\"]"
-                # states += "\"" + str(node) + "\" " + "[color = \"red\"]\n" + "[label=\"" + str(node.value) + " " + str(type(node)) + "\"]"
+                # states += "\"" + str(node) + "\" " + "[color = \"red\"]\n" + "[label=\"" + str(node.value) + "\"]"
+                states += "\"" + str(node) + "\" " + "[color = \"red\"]\n" + "[label=\"" + str(node.value) + " " + str(type(node)) + "\"]"
             else:
                 states += "\"" + str(node) + "\"\n" + "[label=\"" + str(node.value) + "\"]"
 

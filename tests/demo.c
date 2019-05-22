@@ -23,21 +23,23 @@ int* func4(int i){ //Type Pointer
 }
 
 int main(){
-    printf("A_character_returned_by_func3():\t%c\n\n", func3('c')); //Printf
-    int i = *func4(2); //Dereference
-
-
-    if(i > 3){ //IfElse
-        printf("i_is_lower_then_3");
-    } else {
-        printf("i_is_not_lower_then_3");
-    }
+    printf("A_character_returned_by_func3():_%c\n", func3('c')); //Printf
+    int* j = func4(2); //Dereference
+    int i = 4;
+    q = 5;3
+//    if(i > 3){ //IfElse
+//        printf("i_is_lower_then_3");
+////        return 1;
+//    } else {
+//        printf("i_is_not_lower_then_3");
+////        return 2;
+//    }
 
     i = 0;
     while (i < 46){ //While
         i = i+1;
     }
 
-    printf("The_solution_to_everything:\t%d\n\n", i);
+    printf("The_solution_to_everything:_%d", i);
     return func2();
 }
