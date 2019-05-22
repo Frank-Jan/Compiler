@@ -4,6 +4,8 @@ from src.SymbolTable import SymbolTable
 from src.VarGen import *
 from struct import *
 
+import src.LLVM
+
 varGen = VarGen()
 
 counter = 0  # counter to make sure all print debug filenames are unique
@@ -90,7 +92,7 @@ class ASTNode:
                 count += 1
         return self.maxChildren == count
 
-    def toLLVM(self):
+    def printLLVM(self):
         if len(self.children) == 0:
             print("TO DO LLVM: " + str(type(self)))
 
@@ -210,25 +212,25 @@ class AssignNode(ASTNode):
         return self
 
 
-    def toLLVM(self):
+    def printLLVM(self):
         code = ""
         #self.returnVar = VarGen.getNewVar(varGen)
         # symbolTable = self.getSymbolTable()
         # record = symbolTable.search(self.left.value)
         # if record is None:
         #     raise Exception("error: VarNode has no record in symbolTable")
-        # type = record.getType().toLLVM()
-        type = self.right.getType().toLLVM()
+        # type = record.getType().printLLVM()
+        type = self.right.getType().printLLVM()
         align = self.right.getType().getAlign()
 
         if isinstance(self.right, VarNode) or isinstance(self.right, ArOpNode):
-            code = self.right.toLLVM(True)
-            code += "store " + type + " " + self.right.returnVar + ", " + type + "* " + self.left.toLLVM() + align + "\n"  # store i32 %8, i32* %2, align 4
+            code = self.right.printLLVM(True)
+            code += "store " + type + " " + self.right.returnVar + ", " + type + "* " + self.left.printLLVM() + align + "\n"  # store i32 %8, i32* %2, align 4
         elif isinstance(self.right, Type):
-            code += "store " + self.right.toLLVM() + ", " + type + "* " + self.left.toLLVM() + align + "\n"  # store i32 %8, i32* %2, align 4
+            code += "store " + self.right.toLLVM() + ", " + type + "* " + self.left.printLLVM() + align + "\n"  # store i32 %8, i32* %2, align 4
         else:
-            code = self.right.toLLVM(True)
-            code += "store " + type + " " + self.right.returnVar + ", " + type + "* " + self.left.toLLVM() + align + "\n"  # store i32 %8, i32* %2, align 4
+            code = self.right.printLLVM(True)
+            code += "store " + type + " " + self.right.returnVar + ", " + type + "* " + self.left.printLLVM() + align + "\n"  # store i32 %8, i32* %2, align 4
         return code
 
 
@@ -312,20 +314,20 @@ class FuncDefNode(ASTNode, Type):
         return self
 
 
-    def toLLVM(self):
-        curCode = "define " + self.getType().toLLVM() + " @" + self.fsign.toLLVM() + "{\n"
+    def printLLVM(self):
+        curCode = "define " + self.getType().printLLVM() + " @" + self.fsign.printLLVM() + "{\n"
         code = ""
         returnVars = []
         for i in range(len(self.fsign.types)):
             var = self.fsign.newNames[i]
-            orVar = self.fsign.varNames[i].toLLVM()
-            type = self.fsign.types[i].toLLVM()
+            orVar = self.fsign.varNames[i].printLLVM()
+            type = self.fsign.types[i].printLLVM()
             align = self.fsign.types[i].getAlign()
             code += orVar + " = alloca " + type + align + "\n"
             code += "store " + type + " " + var + ", " + type + "* " + orVar + align + "\n"
 
         curCode += code
-        curCode += self.block.toLLVM()  # %2 = alloca i32, align 4
+        curCode += self.block.printLLVM()  # %2 = alloca i32, align 4
         # store i32 %0, i32* %2, align 4
         curCode += "}"
         return curCode
@@ -366,10 +368,10 @@ class FuncSignNode(ASTNode):
             self.AST.printDotDebug(str(self.getCount()) + "FuncSign.dot")
         return self
 
-    def toLLVM(self):
+    def printLLVM(self):
         args = ""
         for type in self.types:
-            args += type.toLLVM() + ", "
+            args += type.printLLVM() + ", "
         args = args[:-2]
         curCode = self.name + "(" + args + ")"
         return curCode
@@ -431,10 +433,10 @@ class FuncSignDefNode(ASTNode):
             localScope.insertVariable(self.varNames[i], self.types[i])
         return localScope
 
-    def toLLVM(self):
+    def printLLVM(self):
         args = ""
         for i in range(len(self.types)):
-            args += self.types[i].toLLVM()
+            args += self.types[i].printLLVM()
             self.newNames.append(varGen.getNewVar(varGen))
             args += " " + self.newNames[i] + ", "
         args = args[:-2]
@@ -477,10 +479,10 @@ class CodeBlockNode(ScopeNode):
     def getSymbolTable(self):
         return self.symbolTable
 
-    def toLLVM(self):
+    def printLLVM(self):
         code = "\n"
         for child in self.children:
-            code += child.toLLVM() + "\n"
+            code += child.printLLVM() + "\n"
         return code
 
 
@@ -509,7 +511,7 @@ class ValueNode(ASTNode, Type):
         self.AST.printDotDebug(str(self.getCount()) + "Value.dot")
         return retNode
 
-    def toLLVM(self):
+    def printLLVM(self):
         return self.value
 
 
@@ -703,22 +705,22 @@ class ProdNode(ArOpNode):
         self.type = self.left.getType()
         return self
 
-    def toLLVM(self):
+    def printLLVM(self):
         self.returnVar = varGen.getNewVar(varGen)
         code = ""
-        l = self.left.toLLVM()
+        l = self.left.printLLVM()
         r = self.right.value  # het type mag niet nog is getoond worden
         if isinstance(self.left, VarNode):
-            code += self.left.toLLVM(True)
-            l = self.left.getType().toLLVM() + " " + self.left.returnVar
+            code += self.left.printLLVM(True)
+            l = self.left.getType().printLLVM() + " " + self.left.returnVar
         if isinstance(self.right, VarNode):
-            code += self.right.toLLVM(True)
+            code += self.right.printLLVM(True)
             r = self.right.returnVar
         if isinstance(self.left, FuncNode) or isinstance(self.left, ArOpNode):
-            code += self.left.toLLVM()
+            code += self.left.printLLVM()
             l = self.left.getType().toLLVM() + " " + self.left.returnVar
         if isinstance(self.right, FuncNode) or isinstance(self.right, ArOpNode):
-            code += self.right.toLLVM()
+            code += self.right.printLLVM()
             r = self.right.returnVar
         if self.isMultiplication():
             op = "mul"
@@ -782,22 +784,22 @@ class AddNode(ArOpNode):
         self.AST.printDotDebug(str(self.getCount()) + "Addnode.dot")
         return self
 
-    def toLLVM(self, load = False):
+    def printLLVM(self, load = False):
         self.returnVar = varGen.getNewVar(varGen)
         code = ""
-        l = self.left.toLLVM()
+        l = self.left.printLLVM()
         r = self.right.value  # het type mag niet nog is getoond worden
         if isinstance(self.left, VarNode):
-            code += self.left.toLLVM(True)
-            l = self.left.getType().toLLVM() + " " + self.left.returnVar
+            code += self.left.printLLVM(True)
+            l = self.left.getType().printLLVM() + " " + self.left.returnVar
         if isinstance(self.right, VarNode):
-            code += self.right.toLLVM(True)
+            code += self.right.printLLVM(True)
             r = self.right.returnVar
         if isinstance(self.left, FuncNode) or isinstance(self.left, ArOpNode):
-            code += self.left.toLLVM()
+            code += self.left.printLLVM()
             l = self.left.getType().toLLVM() + " " + self.left.returnVar
         if isinstance(self.right, FuncNode) or isinstance(self.right, ArOpNode):
-            code += self.right.toLLVM()
+            code += self.right.printLLVM()
             r = self.right.returnVar
         if self.isAddition():
             op = "add"
@@ -873,15 +875,15 @@ class ReturnStatNode(ASTNode, Type):
         self.AST.printDotDebug(str(self.getCount()) + "ReturnStat.dot")
         return self
 
-    def toLLVM(self):
+    def printLLVM(self):
         code = "ret "
         if len(self.children) == 0:
             return "ret void"
         for child in self.children:
             if isinstance(child, FuncNode) or isinstance(child, ArOpNode):
-                return child.toLLVM() + "ret " + child.getType().toLLVM() + " " + child.returnVar
+                return child.printLLVM() + "ret " + child.getType().toLLVM() + " " + child.returnVar
             elif isinstance(child, VarNode):
-                return child.toLLVM(True) + "ret " + child.getType().toLLVM() + " " + child.returnVar
+                return child.printLLVM(True) + "ret " + child.getType().printLLVM() + " " + child.returnVar
             code += child.toLLVM()  # + "\n"
         return code
 
@@ -935,23 +937,23 @@ class VarDefNode(ASTNode):
         self.AST.printDotDebug(str(self.getCount()) + "vardef.dot")
         return self
 
-    def toLLVM(self):
+    def printLLVM(self):
         node = self.children[1]
         code = self.children[0].toLLVM(False)
         var = self.children[1].toLLVM()
         if isinstance(node, VarNode):
-            code += node.toLLVM(True)
-            var = node.getType().toLLVM() + " " + node.returnVar
+            code += node.printLLVM(True)
+            var = node.getType().printLLVM() + " " + node.returnVar
         elif isinstance(node, FuncNode):
-            code += node.toLLVM()
-            var = node.returnType.toLLVM() + " " + node.returnVar
+            code += node.printLLVM()
+            var = node.returnType.printLLVM() + " " + node.returnVar
         elif isinstance(node, ArOpNode):
-            code += node.toLLVM()
+            code += node.printLLVM()
             var = node.getType().toLLVM() + " " + node.returnVar
         #else een litnode
         # store i32 0, i32* %1
-        code += "store " + var + ", " + self.children[0].type.toLLVM() + "* " + \
-                self.children[0].var.toLLVM() + node.getType().getAlign() + "\n"
+        code += "store " + var + ", " + self.children[0].type.printLLVM() + "* " + \
+                self.children[0].var.printLLVM() + node.getType().getAlign() + "\n"
         return code
 
 
@@ -1017,17 +1019,17 @@ class VarDeclNode(ASTNode, Type):
         if not symbolTable.insertVariable(self.var.value, self.type):
             raise Exception("error: {} already defined/declared in local scope".format(self.var.value))
 
-    def toLLVM(self, init=True):
+    def printLLVM(self, init=True):
         type = self.getType()
         # %1 = alloca i32, align 4
-        code = self.var.toLLVM() + " = alloca " + self.type.toLLVM() + type.getAlign() + "\n"
+        code = self.var.printLLVM() + " = alloca " + self.type.toLLVM() + type.getAlign() + "\n"
         # if init = True, initialize standard on 0
         if init and not isinstance(type, POINTER):
             waarde = 0
             if isinstance(type, FLOAT):
                 waarde = 0.0
-            code += "store " + self.type.toLLVM() + " "+str(waarde)+", " + self.type.toLLVM() + "* " + \
-                    self.var.toLLVM() + type.getAlign() + "\n"
+            code += "store " + self.type.toLLVM() + " " + str(waarde) +", " + self.type.toLLVM() + "* " + \
+                    self.var.printLLVM() + type.getAlign() + "\n"
         return code
 
 
@@ -1086,7 +1088,7 @@ class FuncNode(ASTNode, Type):
         self.value = self.name + '(' + ')'
         return self
 
-    def toLLVM(self, load = True):
+    def printLLVM(self, load = True):
         self.returnVar = varGen.getNewVar(varGen)
         self.returnType = self.getType()
         code = ""
@@ -1094,14 +1096,14 @@ class FuncNode(ASTNode, Type):
         type = ""
         for arg in self.arguments:
             if isinstance(arg, VarNode):
-                code += arg.toLLVM(True)
+                code += arg.printLLVM(True)
                 type = arg.getType()
-                args += arg.getType().toLLVM() + " " + arg.returnVar + ", "
+                args += arg.getType().printLLVM() + " " + arg.returnVar + ", "
             else:
-                args += arg.toLLVM() + ", "
+                args += arg.printLLVM() + ", "
         args = args[:-2]
 
-        stat = code + self.returnVar + " = call " + self.getType().toLLVM() + " "
+        stat = code + self.returnVar + " = call " + self.getType().printLLVM() + " "
         stat = stat + "@" + self.name + "(" + args + ")\n"  # symboltable.gettype
         if isinstance(self.getType(), POINTER):
             code = ""
@@ -1109,7 +1111,7 @@ class FuncNode(ASTNode, Type):
             type = self.getType().getBase()
             for niv in range(self.deref-1):
                 tmp = varGen.getNewVar(varGen)
-                code += tmp + " = load " + type.toLLVM() + ", " + type.toLLVM() + "* " + tmp2 + type.getAlign() + "\n"
+                code += tmp + " = load " + type.printLLVM() + ", " + type.printLLVM() + "* " + tmp2 + type.getAlign() + "\n"
                 type = type.getBase()
                 tmp2 = tmp
             self.returnVar = tmp
@@ -1164,8 +1166,8 @@ class FuncDeclNode(ASTNode, Type):
         symbolTable.declareFunction(self.fsign.name, self.type, self.fsign.types, self)
         return symbolTable
 
-    def toLLVM(self):
-        curCode = "declare " + self.type.toLLVM() + " @" + self.fsign.toLLVM()
+    def printLLVM(self):
+        curCode = "declare " + self.type.printLLVM() + " @" + self.fsign.printLLVM()
         return curCode
 
 
@@ -1195,22 +1197,22 @@ class CondExpNode(ASTNode):
         self.right = tmpRight
         return self
 
-    def toLLVM(self):
+    def printLLVM(self):
         self.returnVar = varGen.getNewVar(varGen)
         code = ""
-        l = self.left.toLLVM()
+        l = self.left.printLLVM()
         r = self.right.value  # het type mag niet nog is getoond worden
         if isinstance(self.left, VarNode):
-            code += self.left.toLLVM(True)
-            l = self.left.getType().toLLVM() + " " + self.left.returnVar
+            code += self.left.printLLVM(True)
+            l = self.left.getType().printLLVM() + " " + self.left.returnVar
         if isinstance(self.right, VarNode):
-            code += self.right.toLLVM(True)
+            code += self.right.printLLVM(True)
             r = self.right.returnVar
         if isinstance(self.left, FuncNode) or isinstance(self.left, ArOpNode):
-            code += self.left.toLLVM()
+            code += self.left.printLLVM()
             l = self.left.getType().toLLVM() + " " + self.left.returnVar
         if isinstance(self.right, FuncNode) or isinstance(self.right, ArOpNode):
-            code += self.right.toLLVM()
+            code += self.right.printLLVM()
             r = self.right.returnVar
         op = opTypes[self.value]
         # %6 = icmp eq i32 1, %5
@@ -1257,17 +1259,17 @@ class WhileNode(ASTNode):
         del self.children[0]
         return self
 
-    def toLLVM(self):
+    def printLLVM(self):
         lbl1 = VarGen.getNewLabel(varGen)
         lbl2 = VarGen.getNewLabel(varGen)
         lbl3 = VarGen.getNewLabel(varGen)
         code = ""
         code += "br label %" + lbl3 + "\n"
         code += lbl3 + ":\n"
-        code += self.cond.toLLVM()
+        code += self.cond.printLLVM()
         code += "br i1 " + self.cond.returnVar + ", label %" + lbl1 + ", label %" + lbl2 + "\n\n"  # br i1 %6, label %label1, label %label2
 
-        code += lbl1 + ":\n" + self.block.toLLVM() + "\n"
+        code += lbl1 + ":\n" + self.block.printLLVM() + "\n"
         code += "br label %" + lbl3 + "\n"
         code += lbl2 + ":\n"
 
@@ -1329,18 +1331,18 @@ class IfElseNode(ASTNode):
         self.endCode = (ifBlockEndCode and elseBlockEndCode)
         return self
 
-    def toLLVM(self):
+    def printLLVM(self):
         code = ""
-        code += self.cond.toLLVM()
+        code += self.cond.printLLVM()
         lbl1 = VarGen.getNewLabel(varGen)
         lbl2 = VarGen.getNewLabel(varGen)
         code += "br i1 " + self.cond.returnVar + ", label %" + lbl1 + ", label %" + lbl2 + "\n"  # br i1 %6, label %label1, label %label2
 
-        code += lbl1 + ":\n" + self.ifBlock.toLLVM() + ""
+        code += lbl1 + ":\n" + self.ifBlock.printLLVM() + ""
 
         el = ""
         if self.elseBlock is not None:
-            el = self.elseBlock.toLLVM()
+            el = self.elseBlock.printLLVM()
         code += "br label %" + lbl2 + "\n"
         code += lbl2 + ":\n" + el
 
@@ -1361,7 +1363,7 @@ class TerNode(ASTNode):  # leafs
     def simplify(self, scope=None):
         return self.value
 
-    def toLLVM(self):
+    def printLLVM(self):
         return self.value
 
 
@@ -1425,13 +1427,13 @@ class VarNode(ASTNode, Type):
         self.children = []
         return self
 
-    def toLLVM(self, load=False):
-        # type = self.getType().toLLVM()
+    def printLLVM(self, load=False):
+        # type = self.getType().printLLVM()
         symbolTable = self.getSymbolTable()
         record = symbolTable.search(self.getName())
         if record is None:
             raise Exception("error: VarNode has no record in symbolTable")
-        type = record.getType().toLLVM()
+        type = record.getType().printLLVM()
         self.returnVar = varGen.getNewVar(varGen)
         self.returnType = self.getType()
 
@@ -1445,7 +1447,7 @@ class VarNode(ASTNode, Type):
                 type = self.getType()
                 for niv in range(self.deref):
                     tmp = varGen.getNewVar(varGen)
-                    code += tmp + " = load " + type.toLLVM() + ", " + type.toLLVM() + "* " + tmp2 + type.getAlign() + "\n"
+                    code += tmp + " = load " + type.printLLVM() + ", " + type.printLLVM() + "* " + tmp2 + type.getAlign() + "\n"
                     type = type.getBase()
                     tmp2 = tmp
                 self.returnVar = tmp
@@ -1502,10 +1504,12 @@ class IntNode(TerNode, Type):
         self.children = []
         return self
 
-    def toLLVM(self, value = False):
+    def printLLVM(self, value = False):
         if value:
             return self.value
         return self.type.toLLVM() + " " + self.value
+
+    def toLLVM(self):
 
 
 class FloatNode(TerNode, Type):
@@ -1529,7 +1533,7 @@ class FloatNode(TerNode, Type):
         double_hex = "0x" + double_val.hex()
         return double_hex
 
-    def toLLVM(self, value = False):
+    def printLLVM(self, value = False):
         # python float = c double
         fl = str(self.floatToLLVMHex(float(self.value)))
         if value:
@@ -1550,7 +1554,7 @@ class CharNode(TerNode, Type):
         self.children = []
         return self
 
-    def toLLVM(self, value = False):
+    def printLLVM(self, value = False):
         if len(self.value) == 2:
             raise Exception("error: empty character constant")
         c = str(ord(self.value[1]))
@@ -1578,8 +1582,8 @@ class TypeSpecNode(Type, ASTNode):
         self.value = self.type
         return self.getType()
 
-    def toLLVM(self):
-        return self.type.toLLVM() + " " + self.value
+    def printLLVM(self):
+        return self.type.printLLVM() + " " + self.value
 
 
 class TypeSpecFuncNode(Type, ASTNode):
@@ -1602,8 +1606,8 @@ class TypeSpecFuncNode(Type, ASTNode):
         # self.AST.delNode(self.children[0])
         # self.children = None
 
-    def toLLVM(self):
-        return self.type.toLLVM() + " " + self.value
+    def printLLVM(self):
+        return self.type.printLLVM() + " " + self.value
 
 
 class TypeSpecBaseNode(Type, ASTNode):
@@ -1626,8 +1630,8 @@ class TypeSpecBaseNode(Type, ASTNode):
         # self.AST.delNode(self.children[0])
         # self.children = None
 
-    def toLLVM(self):
-        return self.type.toLLVM() + " " + self.value
+    def printLLVM(self):
+        return self.type.printLLVM() + " " + self.value
 
 
 class TypeSpecReferenceNode(Type, ASTNode):
@@ -1647,7 +1651,7 @@ class TypeSpecReferenceNode(Type, ASTNode):
         self.value = self.getType()
         return self.getType()
 
-    def toLLVM(self):
+    def printLLVM(self):
         return self.type.toLLVM() + " " + self.value
 
 
@@ -1669,7 +1673,7 @@ class TypeSpecPtrNode(Type, ASTNode):
             # second child holds "*"
         return self.type
 
-    def toLLVM(self):
+    def printLLVM(self):
         return self.type.toLLVM() + " " + self.value
 
 
@@ -1686,7 +1690,7 @@ class StdioNode(TerNode):
         scope.defineFunction("scanf", INT(), [POINTER(CHAR())], self)
         return self
 
-    def toLLVM(self):
+    def printLLVM(self):
         code = "declare i32 @printf(i8*, ...)\ndeclare i32 @scanf(i8*, ...)\n\n"
         return code
 
@@ -1788,18 +1792,18 @@ class PrintfNode(ASTNode):
         pass
 
 
-    def toLLVM(self):
-        self.strings = self.format.toLLVM() + "\n"#get strings
+    def printLLVM(self):
+        self.strings = self.format.printLLVM() + "\n"#get strings
         self.returnVar = varGen.getNewVar(varGen)
         type = self.getType().toLLVM()
         code = ""
         if self.argList is not None:
-            code += self.argList.toLLVM(True)
+            code += self.argList.printLLVM(True)
         stat = self.returnVar + " = call " + type + " "
         code += stat + "(i8*, ...) @printf(i8* getelementptr inbounds ("+self.format.returnType+", "+self.format.returnType+"* " + \
                "@"+self.format.returnVar +", i32 0, i32 0)"
         if self.argList is not None:
-            code += self.argList.toLLVM(False)
+            code += self.argList.printLLVM(False)
         code += ")\n"
         return code
 
@@ -1833,13 +1837,13 @@ class PrintFormatNode(ASTNode):
                 format.append(c.getType())
         return format
 
-    def toLLVM(self):
+    def printLLVM(self):
         # @.str = private unnamed_addr constant [21 x i8] c"hey, een char %c, %i\00", align 1
         strings = "c\""
         self.returnVar = "."+varGen.getNewVar(varGen)[1:]
         count = 1 # om wille van \00 einde
         for child in self.children:
-            strings += child.toLLVM()
+            strings += child.printLLVM()
             count += child.length
         strings += "\\00"
         # -2 voor "c"" en -2 voor "\00
@@ -1882,12 +1886,12 @@ class IoArgListNode(ASTNode):
         pass
 
 
-    def toLLVM(self, cast = False):
+    def printLLVM(self, cast = False):
         code = ""
         if cast:
             for c in self.children:
                 if isinstance(c, VarNode) or isinstance(c, FuncNode):
-                    code += c.toLLVM(True)
+                    code += c.printLLVM(True)
                     type = c.getType()
                     if isinstance(type, POINTER):
                         for niv in range(c.deref-1):
@@ -1910,9 +1914,9 @@ class IoArgListNode(ASTNode):
                         code += ", i32 " + self.returnVars[self.children[i]]
                 else:
                     if isinstance(self.children[i].getType(), FLOAT):
-                        code += ", double " + self.children[i].toLLVM(True)
+                        code += ", double " + self.children[i].printLLVM(True)
                     else:
-                        code += ", i32 " + self.children[i].toLLVM(True)
+                        code += ", i32 " + self.children[i].printLLVM(True)
         return code
 
 
@@ -1949,7 +1953,7 @@ class StringNode(ASTNode, Type):
 
         return self
 
-    def toLLVM(self):
+    def printLLVM(self):
         new = ""
         count = 0
         stuk = self.getString()
@@ -2012,7 +2016,7 @@ class FormatCharPrintNode(ASTNode, Type):
         self.children = []
         return self
 
-    def toLLVM(self):
+    def printLLVM(self):
         width = str(self.getWidth())
         if width == '0':
             width = ""
