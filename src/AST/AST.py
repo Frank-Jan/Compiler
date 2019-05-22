@@ -1,6 +1,7 @@
-from src.ASTNode import *
+from .ScopeNode import ScopeNode
 
 DEBUG = False
+
 
 class AST:
 
@@ -16,7 +17,6 @@ class AST:
 
         leftnodes = []
         node = self.nodes[0]  # append = push
-
         while not len(nodes) == 0:  # while not all nodes are simplified
             node = nodes.pop()  # take last node
 

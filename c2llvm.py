@@ -1,14 +1,10 @@
 import sys
-from src.errors import *
 from antlr4 import *
 from src.grammars.c_subsetLexer import c_subsetLexer
 from src.grammars.c_subsetParser import c_subsetParser
-from src.grammars.c_subsetListener import c_subsetListener
 from src.Listener import Listener
-from src.SymbolTable import ALLSCOPES
+import src.AST.init as AST
 # from src.DebugListener import DebugListener
-from src.ASTNode import *
-from src.VarGen import *
 
 
 def testFile(argv):
@@ -33,7 +29,7 @@ def testFile(argv):
         walker.walk(listener, tree)
         ast = listener.getAST()
     except Exception as e:
-        printError(str(e))
+        raise str(e)
         return 3
 
     try:
@@ -41,7 +37,7 @@ def testFile(argv):
         ast.simplify()
         ast.printDot("AST.dot")
     except Exception as e:
-        printError(str(e))
+        raise str(e)
         return 4
 
     # ast.printDot("derivationTree.dot")
@@ -54,13 +50,14 @@ def testFile(argv):
     text = ""
 
     for node in ast:
-        if isinstance(node, FuncDeclNode) or isinstance(node, FuncDefNode) or isinstance(node, StdioNode):
-            text += node.toLLVM() + "\n\n"
+
+        if isinstance(node, AST.FuncDeclNode) or isinstance(node, AST.FuncDefNode) or isinstance(node, AST.StdioNode):
+            text += node.printLLVM() + "\n\n"
         # elif isinstance(node, IfElseNode):
-        #     text += node.toLLVM() + "\n\n"
-        elif isinstance(node, TerNode):
+        #     text += node.printLLVM() + "\n\n"
+        elif isinstance(node, AST.TerNode):
             pass
-        elif isinstance(node, PrintfNode):
+        elif isinstance(node, AST.PrintfNode):
             text = node.getStrings() + text
 
     f.write(text)

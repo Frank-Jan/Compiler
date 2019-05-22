@@ -8,7 +8,6 @@ parent table reference
 call parent
 //error: throw exception
 """
-from src.ASTNode import *
 ALLSCOPES = []
 
 class Record:
