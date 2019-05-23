@@ -8,7 +8,9 @@ parent table reference
 call parent
 //error: throw exception
 """
+
 ALLSCOPES = []
+
 
 class Record:
     def __init__(self, _type):
@@ -82,7 +84,6 @@ class SymbolTable:
     def defineFunction(self, name, returnType, argumentList, node):
         value =  self.getLocal(name)
         if value is None:
-            print("\tvalue is None")
             self.table[name] = FunctionRecord(returnType, argumentList, True, node)   #define function
             return 0
         elif value.isVar():
@@ -108,18 +109,14 @@ class SymbolTable:
 
 
     def declareFunction(self, name, returnType, argumentList, node):
-        print("\tSymboltable: declare function: ", returnType, " ", name, " ", argumentList)
         value = self.getLocal(name)
         if value is None:
-            print("\tvalue is None")
             self.table[name] = FunctionRecord(returnType, argumentList, False, node) #declare function
             return 0
         elif value.isVar():
-            print("\tvalue already var")
             raise Exception("Function: already declared or defined as variable in this scope")
             return -1 # name already defined as variable
         elif self.parent is None:
-            print("\tglobal scope")
             # global scope: allow multiple declarations with one definition:
             if value.getType() == returnType and value.argumentList == argumentList:
                 # declaration same as previous declarations/definition
@@ -127,17 +124,14 @@ class SymbolTable:
                 value.declarations.append(node)
                 return 0
             else:
-                print("\tdifferent signature")
                 # different function signature
                 raise Exception("Function different signature")
                 return -2
         elif value.defined:
-            print("\tlocal scope & defined already")
             # not in global scope and function already defined
             raise Exception("Function: already defined in this scope")
             return -3
         else:
-            print("\tlocal scope && not defined")
             # not in global scope and not yet defined
             # check function signature
             if value.getType() == returnType and value.argumentList == value.argumentList:
@@ -147,7 +141,6 @@ class SymbolTable:
                 return 0
             else:
                 # different function signature
-                print("\tdifferent signature")
                 raise Exception("Function: already declared with different signature")
                 return -2
 
