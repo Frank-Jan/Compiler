@@ -3,6 +3,9 @@ from .Type import Type, POINTER, INT
 from .ValueNode import ValueNode
 from .PrintfNode import PrintfNode
 from .VarNode import VarNode
+import src.llvm.LLVM as LLVM
+from .Arg import Arg
+from .IntNode import IntNode
 
 
 class FuncNode(ASTNode, Type):
@@ -97,3 +100,18 @@ class FuncNode(ASTNode, Type):
             for niv in range(self.deref - 1):
                 self.returnType = self.returnType.getBase()
         return stat + code
+
+    def toLLVM(self):
+        retVar = varGen.getNewVar(varGen)
+
+        args = []
+        for arg in self.arguments:
+            tmp = arg.toLLVM()
+            if isinstance(arg, IntNode):
+                args.append(Arg(tmp[0], tmp[1], None, True))
+            else:
+                args.append(Arg(tmp[0], tmp[1], None, False))
+
+
+        return [LLVM.Call(retVar, self.getType(), self.name, args)]
+
