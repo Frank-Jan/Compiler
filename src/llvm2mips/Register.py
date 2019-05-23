@@ -47,13 +47,16 @@ class Register:
             return -1
         return -1
 
-    # returns -1 if no tempor
+    # returns -1 if no empty temporary register
+    # return index of empty temporary
     def getEmptyT(self):
         for i in range(len(self.__RType__)):
             if self.__RType__[i] == Registry.t and self.__R__ is None:
                 return i
         return -1
 
+    # returns -1 if no empty saved temporary register
+    # returns index of empty temporary
     def getEmptyS(self):
         for i in range(len(self.__RType__)):
             if self.__RType__[i] == Registry.s and self.__R__ is None:

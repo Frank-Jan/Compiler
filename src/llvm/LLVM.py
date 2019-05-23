@@ -3,9 +3,15 @@ from src.AST.Types import *
 import copy
 
 
-class Alloca:
+class LLVMInstr:
+
+    def __init__(self):
+        self.line = 0
+
+class Alloca(LLVMInstr):
 
     def __init__(self, result, _type, align=4):
+        LLVMInstr.__init__(self)
         self.result = result
         self.type = _type
         self.align = align
@@ -16,9 +22,10 @@ class Alloca:
         return "%" + str(self.result) + " = alloca " + str(tmpType) + ", align " + str(self.align) + "\n"
 
 
-class Store:
+class Store(LLVMInstr):
 
     def __init__(self, _type, _from, _to, align=4):
+        LLVMInstr.__init__(self)
         self.type = _type
         self._from = _from
         self._to = _to
@@ -30,9 +37,10 @@ class Store:
             self._to) + ", align " + str(self.align) + "\n"
 
 
-class Load:
+class Load(LLVMInstr):
 
     def __init__(self, result, _type, var, align=4):
+        LLVMInstr.__init__(self)
         self.result = result
         self.type = _type
         self.var = var
@@ -44,13 +52,17 @@ class Load:
             self.var) + ", align " + str(self.align) + "\n"
 
 
-class Define:
+class Define(LLVMInstr):
 
     def __init__(self, _type, name, args, stats):
+        LLVMInstr.__init__(self)
         self.type = _type
         self.name = name
         self.args = args  # arg has _type, oldname and newname
         self.stats = stats
+
+    def __iter__(self):
+        return self.stats.__iter__()
 
     def __str__(self):
         tmpType = self.type.toLLVM()
@@ -74,11 +86,18 @@ class Define:
         return ll
 
 
+class endDefine(LLVMInstr):
+
+    def __init__(self, define):
+        LLVMInstr.__init__(self)
+        self.beginDefine = define
+
 # ARITHMETIC
 ########################################################################
-class Arithmetic:
+class Arithmetic(LLVMInstr):
 
     def __init__(self, result, op, _type, val1, val2):
+        LLVMInstr.__init__(self)
         self.result = result
         self.op = op
         self.type = _type
