@@ -42,3 +42,6 @@ class CodeBlockNode(ScopeNode):
         for child in self.children:
             code += child.printLLVM() + "\n"
         return code
+
+    def toLLVM(self):
+        return []

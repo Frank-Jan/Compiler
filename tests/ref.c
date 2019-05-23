@@ -1,22 +1,9 @@
-#include <stdio.h>
+void function(){
 
+}
 
+char a = 'c';
 
 int main(){
-    int i;
-    int j = 2;
-
-    char q = 'c';
-    char* r;
-    char* c;
-
-    int e = j;
-
-    i = j;
-
-    c = r;
-//    char* arr[]= "test";
-//    printf("hey %i \ntest %i", i,i); //fout met format
-//    scanf("%i", &i);
-    return 0;
+return 0;
 }

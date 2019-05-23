@@ -25,3 +25,9 @@ class RootNode(ScopeNode):
         self.children = newChildren
         self.AST.printDotDebug(str(self.getCount()) + "RootSimplify.dot")
         return self
+
+    def toLLVM(self):
+        stats = []
+        for child in self.children:
+            stats += child.toLLVM()
+        return stats

@@ -95,6 +95,9 @@ class INT(VOID):
     def printLLVM(self):
         return 'i32'
 
+    def toLLVM(self):
+        return 'i32'
+
 
 class FLOAT(VOID):
     def getType(self):

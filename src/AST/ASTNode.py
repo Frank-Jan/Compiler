@@ -64,6 +64,9 @@ class ASTNode:
             code += child.printLLVM()  # + "\n"
         return code
 
+    def toLLVM(self):
+        raise Exception()
+
     def simplify(self, scope):
         # Base simplify will only call simplify(scope) on all children
         raise Exception("Called ASTNode simplify on {}".format(type(self)))
