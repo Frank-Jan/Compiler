@@ -71,3 +71,6 @@ class VarDefNode(ASTNode):
         code += "store " + var + ", " + self.children[0].type.printLLVM() + "* " + \
                 self.children[0].var.printLLVM() + node.getType().getAlign() + "\n"
         return code
+
+    def toLLVM(self):
+        pass

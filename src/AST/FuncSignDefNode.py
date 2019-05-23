@@ -2,6 +2,9 @@ from .ASTNode import ASTNode, buildinFunctions, varGen
 from .TypeSpecFuncNode import TypeSpecFuncNode
 from .VarNode import VarNode
 from src.SymbolTable import SymbolTable
+from .Arg import Arg
+
+
 
 
 class FuncSignDefNode(ASTNode):
@@ -69,3 +72,12 @@ class FuncSignDefNode(ASTNode):
         args = args[:-2]
         curCode = self.name + "(" + args + ")"
         return curCode
+
+    def toLLVM(self):
+        ll = [self.name]
+        for i in range(len(self.types)):
+            self.newNames.append(varGen.getNewVar(varGen))
+            varInfo = self.varNames[i].toLLVM()
+            arg = Arg(varInfo[0], varInfo[1], self.newNames[i])
+            ll.append(arg)
+        return ll

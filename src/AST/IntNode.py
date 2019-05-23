@@ -18,3 +18,6 @@ class IntNode(TerNode, Type):
         if value:
             return self.value
         return self.type.printLLVM() + " " + self.value
+
+    def toLLVM(self):
+        return [self.value]

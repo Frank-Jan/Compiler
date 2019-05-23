@@ -49,16 +49,20 @@ def testFile(argv):
     f = open(llFile, "w+")
     text = ""
 
-    for node in ast:
+    # for node in ast:
+    #
+    #     if isinstance(node, AST.FuncDeclNode) or isinstance(node, AST.FuncDefNode) or isinstance(node, AST.StdioNode):
+    #         text += node.toLLVM() + "\n\n"
+    #     # elif isinstance(node, IfElseNode):
+    #     #     text += node.printLLVM() + "\n\n"
+    #     elif isinstance(node, AST.TerNode):
+    #         pass
+    #     elif isinstance(node, AST.PrintfNode):
+    #         text = node.getStrings() + text
 
-        if isinstance(node, AST.FuncDeclNode) or isinstance(node, AST.FuncDefNode) or isinstance(node, AST.StdioNode):
-            text += node.printLLVM() + "\n\n"
-        # elif isinstance(node, IfElseNode):
-        #     text += node.printLLVM() + "\n\n"
-        elif isinstance(node, AST.TerNode):
-            pass
-        elif isinstance(node, AST.PrintfNode):
-            text = node.getStrings() + text
+    ll = ast.root.toLLVM()
+    for obj in ll:
+        text += str(obj)
 
     f.write(text)
     print(ast.getSymbolTable())

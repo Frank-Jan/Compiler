@@ -3,6 +3,7 @@ from .Type import Type, INT, VOID
 from .Type import compareTypes
 from .TerNode import TerNode
 from src.SymbolTable import SymbolTable
+import src.llvm.LLVM as LLVM
 
 
 class FuncDefNode(ASTNode, Type):
@@ -75,3 +76,9 @@ class FuncDefNode(ASTNode, Type):
         # store i32 %0, i32* %2, align 4
         curCode += "}"
         return curCode
+
+    def toLLVM(self):
+        ll = self.fsign.toLLVM()
+        t = self.getType()
+        return [LLVM.Define(t, ll[0], ll[1:], self.block.toLLVM())]
+

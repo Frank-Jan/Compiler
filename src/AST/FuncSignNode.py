@@ -43,3 +43,6 @@ class FuncSignNode(ASTNode):
         args = args[:-2]
         curCode = self.name + "(" + args + ")"
         return curCode
+
+    def toLLVM(self):
+        return [self.name, self.types]

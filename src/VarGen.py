@@ -1,7 +1,7 @@
 class VarGen:
 
     def __init__(self):
-        self.name = '%var-'
+        self.name = 'var-'
         self.label = 'Label'
         self.idCounter = 0
 

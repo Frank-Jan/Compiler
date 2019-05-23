@@ -93,3 +93,6 @@ class VarNode(ASTNode, Type):
                 return self.returnVar + " = load " + type + ", " + type + "* %" + self.value + self.getType().getAlign() + "\n"
         else:
             return "%" + self.value  # %6
+
+    def toLLVM(self):
+        return [self.getType(), self.value]

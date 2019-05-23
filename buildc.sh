@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-gcc -x c -o cexecute tests/test.c
+gcc -x c -o cexecute tests/ref.c
