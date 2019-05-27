@@ -71,9 +71,9 @@ class VarDeclNode(ASTNode, Type):
         #% 2 = alloca i32, align 4
         ll = [LLVM.Alloca(self.var.value, self.getType())]
         #initilize 0
-        if not vardef and not isinstance(type, POINTER):
+        if not vardef and not isinstance(self.getType(), POINTER):
             waarde = 0
-            if isinstance(type, FLOAT):
-                waarde = 0.0
+            if isinstance(self.getType(), FLOAT):
+                waarde = 0.000000e+00
             ll.append(LLVM.Store(self.getType(), waarde, self.var.value, True))
         return ll

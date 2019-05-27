@@ -97,7 +97,10 @@ class VarNode(ASTNode, Type):
 
     def toLLVM(self, LLVMOBJ=False):
         if LLVMOBJ:
-            newVar = varGen.getNewVar(varGen)
-            return [LLVM.Load(newVar, self.getType(), self.value)]
+            if isinstance(self.getType(), REFERENCE):
+                self.returnVar = self.value
+                return [] # geen load nodig
+            self.returnVar = varGen.getNewVar(varGen)
+            return [LLVM.Load(self.returnVar, self.getType(), self.value)]
         else:
             return [self.getType(), self.value]
