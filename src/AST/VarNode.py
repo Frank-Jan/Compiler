@@ -100,7 +100,17 @@ class VarNode(ASTNode, Type):
             if isinstance(self.getType(), REFERENCE):
                 self.returnVar = self.value
                 return [] # geen load nodig
-            self.returnVar = varGen.getNewVar(varGen)
-            return [LLVM.Load(self.returnVar, self.getType(), self.value)]
+            if isinstance(self.getType(), POINTER):
+                ll = []
+                type = self.getType()
+                tmp = varGen.getNewVar(varGen)
+                self.returnVar = tmp
+                ll.append(LLVM.Load(tmp, type, self.value))
+                for niv in range(self.deref-1):
+                    type = type.getBase()
+                    self.returnVar = varGen.getNewVar(varGen)
+                    ll.append(LLVM.Load(self.returnVar, type, tmp))
+                    tmp = self.returnVar
+                return ll
         else:
             return [self.getType(), self.value]

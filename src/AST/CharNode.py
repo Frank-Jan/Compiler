@@ -21,3 +21,6 @@ class CharNode(TerNode, Type):
         if value:
             return c
         return self.type.printLLVM() + " " + c
+
+    def toLLVM(self):
+        return [self.getType(), ord(self.value[1])]
