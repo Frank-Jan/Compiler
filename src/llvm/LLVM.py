@@ -11,11 +11,11 @@ class LLVMInstr:
 
 class Alloca(LLVMInstr):
 
-    def __init__(self, result, _type, align=4):
+    def __init__(self, result, _type):
         LLVMInstr.__init__(self)
         self.result = result
         self.type = _type
-        self.align = align
+        self.align = _type.getAlign()
 
     def __str__(self):
         tmpType = self.type.toLLVM()
@@ -25,12 +25,12 @@ class Alloca(LLVMInstr):
 
 class Store(LLVMInstr):
 
-    def __init__(self, _type, _from, _to, align=4, lit=False):
+    def __init__(self, _type, _from, _to, lit=False):
         LLVMInstr.__init__(self)
         self.type = _type
         self._from = _from
         self._to = _to
-        self.align = align
+        self.align = _type.getAlign()
         self.lit = lit
 
     def __str__(self):

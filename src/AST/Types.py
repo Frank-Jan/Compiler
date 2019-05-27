@@ -84,6 +84,9 @@ class CHAR(VOID):
     def printLLVM(self):
         return 'i8'
 
+    def toLLVM(self):
+        return 'i8'
+
 
 class INT(VOID):
     def getType(self):
@@ -115,6 +118,9 @@ class FLOAT(VOID):
     def printLLVM(self):
         return 'float'
 
+    def toLLVM(self):
+        return 'float'
+
 
 class POINTER(VOID):
     def __init__(self, type=VOID()):
@@ -138,6 +144,9 @@ class POINTER(VOID):
     def printLLVM(self):
         return self.getBase().printLLVM() + "*"
 
+    def toLLVM(self):
+        return self.getBase().printLLVM() + "*"
+
 
 class REFERENCE(VOID):
     def __init__(self, type=VOID()):
@@ -147,12 +156,15 @@ class REFERENCE(VOID):
         return self.__str__()
 
     def getAlign(self):
-        return ", align 8"
+        return "8"
 
     def getBase(self):
         return self.type
 
     def printLLVM(self):
+        return self.type.printLLVM() + "*"
+
+    def toLLVM(self):
         return self.type.printLLVM() + "*"
 
     def __str__(self):
@@ -164,4 +176,7 @@ class ARRAY(POINTER):
         POINTER.__init__(self, type)
 
     def printLLVM(self):
+        return self.getBase().printLLVM() + "*"
+
+    def toLLVM(self):
         return self.getBase().printLLVM() + "*"
