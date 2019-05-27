@@ -8,6 +8,7 @@ class LLVMInstr:
     def __init__(self):
         self.line = 0
 
+
 class Alloca(LLVMInstr):
 
     def __init__(self, result, _type):
@@ -36,7 +37,7 @@ class Store(LLVMInstr):
         tmpType = self.type.toLLVM()
         if self.lit:
             return "store " + str(tmpType) + " " + str(self._from) + ", " + str(tmpType) + "* %" + str(
-                    self._to) + ", align " + str(self.align) + "\n"
+                self._to) + ", align " + str(self.align) + "\n"
         else:
             return "store " + str(tmpType) + " %" + str(self._from) + ", " + str(tmpType) + "* %" + str(
                 self._to) + ", align " + str(self.align) + "\n"
@@ -97,6 +98,7 @@ class endDefine(LLVMInstr):
         LLVMInstr.__init__(self)
         self.beginDefine = define
 
+
 class Call(LLVMInstr):  # %2 = call i32 @test()
 
     def __init__(self, result, _type, name, args):
@@ -141,40 +143,48 @@ class Return(LLVMInstr):  # ret i32 %6
 ########################################################################
 class Arithmetic(LLVMInstr):
 
-    def __init__(self, result, op, _type, val1, val2):
+    def __init__(self, result, op, _type, val1, val2, lit1=False, lit2=False):
         LLVMInstr.__init__(self)
         self.result = result
         self.op = op
         self.type = _type
         self.val1 = val1
         self.val2 = val2
+        self.lit1 = lit1
+        self.lit2 = lit2
 
     def __str__(self):
         tmpType = self.type.toLLVM()
-        return str(self.result) + " = " + str(self.op) + " " + str(tmpType) + " " + str(self.val1) + ", " + str(
-            self.val2) + "\n"
+        lit1 = ""
+        lit2 = ""
+        if self.lit1:
+            lit1 = "%"
+        if self.lit2:
+            lit2 = "%"
+        return "%" + str(self.result) + " = " + str(self.op) + " " + str(tmpType) + " " + lit1 + str(
+            self.val1) + ", " + lit2 + str(self.val2) + "\n"
 
 
 class Add(Arithmetic):
 
-    def __init__(self, result, _type, val1, val2):
-        Arithmetic.__init__(result, "add", _type, val1, val2)
+    def __init__(self, result, _type, val1, val2, lit1=False, lit2=False):
+        Arithmetic.__init__(self, result, "add", _type, val1, val2, lit1, lit2)
 
 
 class Sub(Arithmetic):
 
-    def __init__(self, result, _type, val1, val2):
-        Arithmetic.__init__(result, "sub", _type, val1, val2)
+    def __init__(self, result, _type, val1, val2, lit1=False, lit2=False):
+        Arithmetic.__init__(self, result, "sub", _type, val1, val2, lit1, lit2)
 
 
 class Mull(Arithmetic):
 
-    def __init__(self, result, _type, val1, val2):
-        Arithmetic.__init__(result, "mull", _type, val1, val2)
+    def __init__(self, result, _type, val1, val2, lit1=False, lit2=False):
+        Arithmetic.__init__(self, result, "mull", _type, val1, val2, lit1, lit2)
 
 
 class Div(Arithmetic):
 
-    def __init__(self, result, _type, val1, val2):
-        Arithmetic.__init__(result, "sdiv", _type, val1, val2)
+    def __init__(self, result, _type, val1, val2, lit1=False, lit2=False):
+        Arithmetic.__init__(self, result, "sdiv", _type, val1, val2, lit1, lit2)
 ########################################################################
