@@ -155,12 +155,12 @@ class Arithmetic(LLVMInstr):
 
     def __str__(self):
         tmpType = self.type.toLLVM()
-        lit1 = ""
-        lit2 = ""
+        lit1 = "%"
+        lit2 = "%"
         if self.lit1:
-            lit1 = "%"
+            lit1 = ""
         if self.lit2:
-            lit2 = "%"
+            lit2 = ""
         return "%" + str(self.result) + " = " + str(self.op) + " " + str(tmpType) + " " + lit1 + str(
             self.val1) + ", " + lit2 + str(self.val2) + "\n"
 
