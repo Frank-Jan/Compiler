@@ -1,7 +1,7 @@
-#virtual register
+# virtual register
 from enum import Enum
 
-#registry types
+# registry types
 class Registry(Enum):
     #name:  value:   Read/Write:
     zero    = 0     #R
@@ -75,21 +75,21 @@ class Register:
     def getSizeV(self):
         return self.__RType__.count(Registry.v)
 
-    def getS(self):
+    def getSRegister(self):
         result = []
         for i in range(len(self.__RType__)):
             if self.__RType__[i] == Registry.s:
                 result.append(self.__R__[i])
         return result
 
-    def getT(self):
+    def getTRegister(self):
         result = []
         for i in range(len(self.__RType__)):
             if self.__RType__[i] == Registry.t:
                 result.append(self.__R__[i])
         return result
 
-    def getV(self):
+    def getVRegister(self):
         result = []
         for i in range(len(self.__RType__)):
             if self.__RType__[i] == Registry.s:
