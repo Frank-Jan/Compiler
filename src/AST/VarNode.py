@@ -1,5 +1,6 @@
 from .ASTNode import ASTNode, varGen
 from .Type import Type, REFERENCE, POINTER, VOID
+import src.llvm.LLVM as LLVM
 
 class VarNode(ASTNode, Type):
 
@@ -94,5 +95,9 @@ class VarNode(ASTNode, Type):
         else:
             return "%" + self.value  # %6
 
-    def toLLVM(self):
-        return [self.getType(), self.value]
+    def toLLVM(self, LLVMOBJ=False):
+        if LLVMOBJ:
+            newVar = varGen.getNewVar(varGen)
+            return [LLVM.Load(newVar, self.getType(), self.value)]
+        else:
+            return [self.getType(), self.value]

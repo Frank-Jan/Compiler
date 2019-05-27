@@ -54,7 +54,7 @@ def testFile(argv):
     # for node in ast:
     #
     #     if isinstance(node, AST.FuncDeclNode) or isinstance(node, AST.FuncDefNode) or isinstance(node, AST.StdioNode):
-    #         text += node.toLLVM() + "\n\n"
+    #         text += node.printLLVM() + "\n\n"
     #     # elif isinstance(node, IfElseNode):
     #     #     text += node.printLLVM() + "\n\n"
     #     elif isinstance(node, AST.TerNode):

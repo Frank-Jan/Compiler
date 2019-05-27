@@ -79,6 +79,5 @@ class FuncDefNode(ASTNode, Type):
 
     def toLLVM(self):
         ll = self.fsign.toLLVM()
-        t = self.getType()
-        return [LLVM.Define(t, ll[0], ll[1:], self.block.toLLVM())]
+        return [LLVM.Define(self.getType(), ll[0], ll[1:], self.block.toLLVM())]
 

@@ -1,9 +1,14 @@
-void function(){
-
+int test(){
+    return 5;
 }
 
-char a = 'c';
+int test2(int q){
+    return q;
+}
+
 
 int main(){
-return 0;
+    int i = test2(3);
+    i = test2(i);
+    return test();
 }

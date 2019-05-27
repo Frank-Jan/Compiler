@@ -1,6 +1,7 @@
 from .TerNode import TerNode
 from .Type import Type, INT
 
+
 class IntNode(TerNode, Type):
 
     def __init__(self, value, ast, pos):
@@ -14,10 +15,10 @@ class IntNode(TerNode, Type):
         self.children = []
         return self
 
-    def printLLVM(self, value = False):
+    def printLLVM(self, value=False):
         if value:
             return self.value
         return self.type.printLLVM() + " " + self.value
 
     def toLLVM(self):
-        return [self.value]
+        return [self.getType(), self.value]

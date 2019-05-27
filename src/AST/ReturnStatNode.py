@@ -6,6 +6,7 @@ from .IntNode import IntNode
 from .FloatNode import FloatNode
 from .FuncNode import FuncNode
 from .CharNode import CharNode
+import src.llvm.LLVM as LLVM
 
 class ReturnStatNode(ASTNode, Type):
 
@@ -13,6 +14,7 @@ class ReturnStatNode(ASTNode, Type):
         ASTNode.__init__(self, 'ReturnStat', maxChildren, ast)
         Type.__init__(self, VOID())
         self.returnVal = None
+        self.child = None
 
     def getType(self):
         if self.isSimplified:
@@ -39,6 +41,7 @@ class ReturnStatNode(ASTNode, Type):
             else:
                 raise "ReturnStatNode forgot something: {}".format(type(node))
             self.type = node.getType()
+            self.child = node
 
         self.AST.printDotDebug(str(self.getCount()) + "ReturnStat.dot")
         return self
@@ -54,3 +57,18 @@ class ReturnStatNode(ASTNode, Type):
                 return child.printLLVM(True) + "ret " + child.getType().printLLVM() + " " + child.returnVar
             code += child.printLLVM()  # + "\n"
         return code
+
+    def toLLVM(self):
+        if (self.child == None):
+            return [LLVM.Return(self.getType(), "", True)]
+        if isinstance(self.child, IntNode):
+            tmp = self.child.toLLVM()
+            return [LLVM.Return(tmp[0], tmp[1], True)]
+        else:
+            ll = []
+            if isinstance(self.child, VarNode):
+                ll = self.child.toLLVM(True)
+            else:
+                ll = self.child.toLLVM()
+            ll.append(LLVM.Return(ll[0].type, ll[0].result))
+            return ll
