@@ -4,6 +4,8 @@ from src.grammars.c_subsetLexer import c_subsetLexer
 from src.grammars.c_subsetParser import c_subsetParser
 from src.Listener import Listener
 import src.AST.init as AST
+import src.llvm2mips.llvmToAsm as mips
+
 # from src.DebugListener import DebugListener
 
 
@@ -65,7 +67,13 @@ def testFile(argv):
         text += str(obj)
 
     f.write(text)
-    print(ast.getSymbolTable())
+
+    # give llvm code ll to mipsbuilder:
+    mipsbuilder = mips.MIPSBuilder(ll)
+    mipsbuilder.build()
+    mipsbuilder.mipsToFile("test.asm")
+
+
     return 0
 
 

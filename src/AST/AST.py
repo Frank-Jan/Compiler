@@ -40,21 +40,32 @@ class AST:
     def simplify(self):
         if self.root is not None:
             self.root.simplify()
-        self.check()    #final check
+        self.finalize()    #final check
 
-    def check(self):
+    def finalize(self):
         #TODOremove unused functions
         #TODO: remove unused variables
         #check if used functions are defined
+        #check if main is defined
+        mainFound = False
         for node in self.nodes:
             if isinstance(node, ScopeNode):
                 #has scope: delete unused items:
                 table = node.getSymbolTable()
-                for name,record in table.table.items():
+                for name, record in table.table.items():
                     if record.isUsed and not record.isVar():
                         if record.definition is None:
-                            raise Exception("error: function {} is used but not defined".format(name))
-
+                            error = "error: function {} is used but not defined".format(name)
+                            raise Exception(error)
+                    if not record.isVar():
+                        if name == "main":
+                            if mainFound:
+                                error = "error: main is twice defined"
+                                raise Exception(error)
+                            else:
+                                mainFound = True
+        if not mainFound:
+            raise Exception("error: main is not found")
 
 
     def addNode(self, ASTnode, pos=None):
