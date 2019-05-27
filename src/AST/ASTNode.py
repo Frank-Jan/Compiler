@@ -65,7 +65,7 @@ class ASTNode:
         return code
 
     def toLLVM(self):
-        raise Exception()
+        raise Exception("toLLVM() method not yet implemented in: " + str(type(self)))
 
     def simplify(self, scope):
         # Base simplify will only call simplify(scope) on all children

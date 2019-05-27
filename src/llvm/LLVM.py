@@ -45,12 +45,12 @@ class Store(LLVMInstr):
 
 class Load(LLVMInstr):
 
-    def __init__(self, result, _type, var, align=4):
+    def __init__(self, result, _type, var):
         LLVMInstr.__init__(self)
         self.result = result
         self.type = _type
         self.var = var
-        self.align = align
+        self.align = _type.getAlign()
 
     def __str__(self):
         tmpType = self.type.toLLVM()

@@ -30,3 +30,6 @@ class FloatNode(TerNode, Type):
         if value:
             return fl
         return self.type.printLLVM() + " " + fl
+
+    def toLLVM(self):
+        return [self.getType(), self.floatprintLLVMHex(float(self.value))]
