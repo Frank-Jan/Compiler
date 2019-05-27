@@ -67,13 +67,16 @@ class VOID:
     def printLLVM(self):
         return 'void'
 
+    def toLLVM(self):
+        return 'void'
+
 
 class CHAR(VOID):
     def getType(self):
         return 1
 
     def getAlign(self):
-        return ", align 1"
+        return "1"
 
     def __str__(self):
         return "char"
@@ -87,7 +90,7 @@ class INT(VOID):
         return 2
 
     def getAlign(self):
-        return ", align 4"
+        return "4"
 
     def __str__(self):
         return "int"
@@ -104,7 +107,7 @@ class FLOAT(VOID):
         return 3
 
     def getAlign(self):
-        return ", align 4"
+        return "4"
 
     def __str__(self):
         return "float"
@@ -121,7 +124,7 @@ class POINTER(VOID):
         return self.__str__()
 
     def getAlign(self):
-        return ", align 8"
+        return "8"
 
     def getDepth(self):
         return self.type.getDepth() + 1

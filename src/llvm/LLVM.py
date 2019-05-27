@@ -24,16 +24,21 @@ class Alloca(LLVMInstr):
 
 class Store(LLVMInstr):
 
-    def __init__(self, _type, _from, _to, align=4):
+    def __init__(self, _type, _from, _to, align=4, lit=False):
         self.type = _type
         self._from = _from
         self._to = _to
         self.align = align
+        self.lit = lit
 
     def __str__(self):
         tmpType = self.type.toLLVM()
-        return "store " + str(tmpType) + " %" + str(self._from) + ", " + str(tmpType) + "* %" + str(
-            self._to) + ", align " + str(self.align) + "\n"
+        if self.lit:
+            return "store " + str(tmpType) + " " + str(self._from) + ", " + str(tmpType) + "* %" + str(
+                    self._to) + ", align " + str(self.align) + "\n"
+        else:
+            return "store " + str(tmpType) + " %" + str(self._from) + ", " + str(tmpType) + "* %" + str(
+                self._to) + ", align " + str(self.align) + "\n"
 
 
 class Load(LLVMInstr):

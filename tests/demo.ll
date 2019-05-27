@@ -10,7 +10,10 @@ ret i32 %var-2
 }
 
 define i32 @main() {
-%var-3 = call i32 @test2(i32 5)
+%j = alloca i32, align 4
+store i32 0, i32* %j, align 4
+%k = alloca i32, align 4
+int5%var-3 = call i32 @test2(i32 5)
 ret i32 %var-3
 }
 

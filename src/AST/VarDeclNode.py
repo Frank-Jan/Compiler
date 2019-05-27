@@ -1,5 +1,7 @@
 from .ASTNode import ASTNode
 from .Type import Type, ARRAY, POINTER, FLOAT
+import src.llvm.LLVM as LLVM
+
 
 class VarDeclNode(ASTNode, Type):
 
@@ -64,3 +66,14 @@ class VarDeclNode(ASTNode, Type):
             code += "store " + self.type.printLLVM() + " " + str(waarde) +", " + self.type.printLLVM() + "* " + \
                     self.var.printLLVM() + type.getAlign() + "\n"
         return code
+
+    def toLLVM(self, vardef = False):
+        #% 2 = alloca i32, align 4
+        ll = [LLVM.Alloca(self.var.value, self.getType(), self.getType().getAlign())]
+        #initilize 0
+        if not vardef and not isinstance(type, POINTER):
+            waarde = 0
+            if isinstance(type, FLOAT):
+                waarde = 0.0
+            ll.append(LLVM.Store(self.getType(), waarde, self.var.value, self.getType().getAlign(), True))
+        return ll
