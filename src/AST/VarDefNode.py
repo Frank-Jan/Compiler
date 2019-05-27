@@ -3,6 +3,8 @@ from .Type import Type, POINTER, ARRAY, REFERENCE, compareTypes
 from .VarNode import VarNode
 from .FuncNode import FuncNode
 from .ArOpNode import ArOpNode
+from .VarDeclNode import VarDeclNode
+import src.llvm.LLVM as LLVM
 
 class VarDefNode(ASTNode):
 
@@ -73,4 +75,18 @@ class VarDefNode(ASTNode):
         return code
 
     def toLLVM(self):
-        pass
+        node = self.children[1]
+        stats = self.children[0].toLLVM(True)
+        var = self.children[1].printLLVM()
+        if isinstance(node, VarNode):
+            stats += node.toLLVM(True)
+            var = node.getType().printLLVM() + " " + node.returnVar
+        elif isinstance(node, FuncNode):
+            stats += node.printLLVM()
+            var = node.returnType.printLLVM() + " " + node.returnVar
+        elif isinstance(node, ArOpNode):
+            stats += node.printLLVM()
+            var = node.getType().printLLVM() + " " + node.returnVar
+        # else:
+        #
+        return []

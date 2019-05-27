@@ -46,5 +46,5 @@ class CodeBlockNode(ScopeNode):
     def toLLVM(self):
         stats = []
         for child in self.children:
-            stats = child.toLLVM()
+            stats += child.toLLVM()
         return stats
