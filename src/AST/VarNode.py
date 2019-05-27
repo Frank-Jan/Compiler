@@ -100,7 +100,7 @@ class VarNode(ASTNode, Type):
             if isinstance(self.getType(), REFERENCE):
                 self.returnVar = self.value
                 return [] # geen load nodig
-            if isinstance(self.getType(), POINTER):
+            else: #pointer of normal
                 ll = []
                 type = self.getType()
                 tmp = varGen.getNewVar(varGen)
