@@ -4,6 +4,7 @@ from src.grammars.c_subsetLexer import c_subsetLexer
 from src.grammars.c_subsetParser import c_subsetParser
 from src.Listener import Listener
 import src.AST.init as AST
+from src.LLVMErrorListener import MyErrorListener
 import src.llvm2mips.llvmToAsm as mips
 
 # from src.DebugListener import DebugListener
@@ -12,26 +13,36 @@ import src.llvm2mips.llvmToAsm as mips
 def testFile(argv):
     try:
         input_stream = FileStream(argv[1])
-    except:
+    except Exception as e:
         print("Error loading file:\n", sys.exc_info()[0])
         return 1
     try:
         lexer = c_subsetLexer(input_stream)
+
+        lexer._listeners = [MyErrorListener()]
+
         stream = CommonTokenStream(lexer)
         parser = c_subsetParser(stream)
+
+        # parser.addErrorListener(errorListener)
         parser.buildParseTrees = True
-        tree = parser.cSyntax()
+        try:
+            tree = parser.cSyntax()
+        except Exception as e:
+            print("Parser error: somewhere: {}".format(e))
+            return 1
     except Exception as e:
         print("Error parsing syntax:\n", sys.exc_info()[0])
         return 2
 
     try:
+
         listener = Listener()
         walker = ParseTreeWalker()
         walker.walk(listener, tree)
         ast = listener.getAST()
     except Exception as e:
-        raise str(e)
+        raise  e
         return 3
 
     try:
@@ -39,7 +50,7 @@ def testFile(argv):
         ast.simplify()
         ast.printDot("AST.dot")
     except Exception as e:
-        raise str(e)
+        raise e
         return 4
 
     # ast.printDot("derivationTree.dot")

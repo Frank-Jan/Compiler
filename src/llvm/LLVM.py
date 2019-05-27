@@ -8,6 +8,7 @@ class LLVMInstr:
     def __init__(self):
         self.line = 0
 
+
 class Alloca(LLVMInstr):
 
     def __init__(self, result, _type, align=4):

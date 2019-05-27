@@ -33,7 +33,7 @@ class MIPSBuilder:
         if len(f) == 1:
             filename.append(".asm")
         elif len(f) == 2:
-            if f[1] != ".asm":
+            if f[1] != "asm":
                 error = "error: unknown file extention: {}".format(f[1])
                 raise Exception(error)
         else:
@@ -43,4 +43,4 @@ class MIPSBuilder:
         file = open(filename, "w+")
 
         for instr in self.mipsTable:
-            file += str(instr)
+            file.write(instr.__str__())
