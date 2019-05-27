@@ -28,7 +28,7 @@ class MIPSBuilder:
                 raise Exception(error)
 
     def mipsToFile(self, filename):
-        #open file:
+        # open file:
         f = filename.rsplit(".", 1)
         if len(f) == 1:
             filename.append(".asm")
