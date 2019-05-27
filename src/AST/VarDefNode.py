@@ -76,17 +76,17 @@ class VarDefNode(ASTNode):
 
     def toLLVM(self):
         node = self.children[1]
+        ll = node.toLLVM()
         stats = self.children[0].toLLVM(True)
-        var = self.children[1].printLLVM()
         if isinstance(node, VarNode):
-            stats += node.toLLVM(True)
-            var = node.getType().printLLVM() + " " + node.returnVar
-        elif isinstance(node, FuncNode):
-            stats += node.printLLVM()
-            var = node.returnType.printLLVM() + " " + node.returnVar
-        elif isinstance(node, ArOpNode):
-            stats += node.printLLVM()
-            var = node.getType().printLLVM() + " " + node.returnVar
-        # else:
-        #
-        return []
+            ll2 = node.toLLVM(True)
+            stats += ll2
+            stats += [LLVM.Store(ll2[0].type, ll2[0].result, stats[0].result)]
+        elif isinstance(node, FuncNode) or isinstance(node, ArOpNode):
+            ll2 = node.toLLVM()
+            stats += ll2
+            stats += [LLVM.Store(ll2[0].type, ll2[0].result, stats[0].result)]
+        else:
+            stats += [LLVM.Store(ll[0], ll[1], stats[0].result, True)]
+
+        return stats
