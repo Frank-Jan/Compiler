@@ -3,6 +3,7 @@ from .ArOpNode import ArOpNode
 from .VarNode import VarNode
 from .FuncNode import FuncNode
 from .Type import compareTypes
+import src.llvm.LLVM as LLVM
 
 
 class AddNode(ArOpNode):
@@ -82,3 +83,39 @@ class AddNode(ArOpNode):
             op = "sub"
         code += self.returnVar + " = " + op + " " + l + ", " + r + "\n"
         return code
+
+    def toLLVM(self):
+        self.returnVar = varGen.getNewVar(varGen)
+        stats = []
+        l = self.left.toLLVM()
+        r = self.right.toLLVM()
+        lit1 = True
+        lit2 = True
+        if isinstance(self.left, VarNode):
+            lit1 = False
+            stats += self.left.toLLVM(True)
+            l = stats[len(stats)-1].result
+        elif isinstance(self.left, FuncNode) or isinstance(self.left, ArOpNode):
+            lit1 = False
+            stats += l
+            l = l[len(r)-1].result
+        else:
+            l = l[1]
+
+        if isinstance(self.right, VarNode):
+            lit2 = False
+            stats += self.right.toLLVM(True)
+            r = stats[len(stats)-1].result
+        elif isinstance(self.right, FuncNode) or isinstance(self.right, ArOpNode):
+            lit2 = False
+            stats += r
+            r = r[len(r)-1].result
+        else:
+            r = r[1]
+
+        if self.isAddition():
+            stats += [LLVM.Add(self.returnVar, self.getType(), l, r, lit1, lit2)]
+        else:
+            stats += [LLVM.Sub(self.returnVar, self.getType(), l, r, lit1, lit2)]
+
+        return stats

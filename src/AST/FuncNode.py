@@ -112,6 +112,10 @@ class FuncNode(ASTNode, Type):
             else:
                 args.append(Arg(tmp[0], tmp[1], None, False))
 
+        stats = [LLVM.Call(retVar, self.getType(), self.name, args)]
+        for child in self.children:
+            if isinstance(child, VarNode):
+                stats += child.toLLVM(True)
 
-        return [LLVM.Call(retVar, self.getType(), self.name, args)]
+        return stats
 

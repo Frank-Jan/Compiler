@@ -68,7 +68,7 @@ class ReturnStatNode(ASTNode, Type):
             ll = []
             if isinstance(self.child, VarNode):
                 ll = self.child.toLLVM(True)
-            else:
-                ll = self.child.toLLVM()
-            ll.append(LLVM.Return(ll[0].type, ll[0].result))
+            if len(ll) == 0:
+                self.child.toLLVM()
+            ll.append(LLVM.Return(self.child.getType(), self.child.returnVar))
             return ll

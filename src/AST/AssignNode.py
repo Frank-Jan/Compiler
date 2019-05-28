@@ -1,7 +1,9 @@
 from .ASTNode import ASTNode
 from .VarNode import VarNode
 from .ArOpNode import ArOpNode
+from .FuncNode import FuncNode
 from .Type import Type, compareTypes, ARRAY
+import src.llvm.LLVM as LLVM
 
 
 class AssignNode(ASTNode):
@@ -59,3 +61,22 @@ class AssignNode(ASTNode):
             code = self.right.printLLVM(True)
             code += "store " + type + " " + self.right.returnVar + ", " + type + "* " + self.left.printLLVM() + align + "\n"  # store i32 %8, i32* %2, align 4
         return code
+
+    def toLLVM(self):
+        stats = []
+        left = self.children[0]
+        ll = left.toLLVM()
+        right = self.children[1]
+        lr = right.toLLVM()
+        if isinstance(right, VarNode):
+            ll2 = right.toLLVM(True)
+            stats += ll2
+            stats += [LLVM.Store(self.left.getType(), stats[0].result, ll[1])]
+        elif isinstance(right, FuncNode) or isinstance(right, ArOpNode):
+            ll2 = right.toLLVM()
+            stats += ll2
+            stats += [LLVM.Store(ll2[0].type, stats[0].result, ll[1])]
+        else:
+            stats += [LLVM.Store(lr[0], lr[1], left.toLLVM()[1], True)]
+
+        return stats
