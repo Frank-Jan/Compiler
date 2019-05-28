@@ -71,11 +71,11 @@ class AssignNode(ASTNode):
         if isinstance(right, VarNode):
             ll2 = right.toLLVM(True)
             stats += ll2
-            stats += [LLVM.Store(self.left.getType(), stats[0].result, ll[1])]
+            stats += [LLVM.Store(self.left.getType(), stats[len(stats)-1].result, ll[1])]
         elif isinstance(right, FuncNode) or isinstance(right, ArOpNode):
             ll2 = right.toLLVM()
             stats += ll2
-            stats += [LLVM.Store(ll2[0].type, stats[0].result, ll[1])]
+            stats += [LLVM.Store(ll2[len(ll2)-1].type, stats[len(stats)-1].result, ll[1])]
         else:
             stats += [LLVM.Store(lr[0], lr[1], left.toLLVM()[1], True)]
 

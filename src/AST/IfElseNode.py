@@ -5,6 +5,7 @@ from .FuncStatNode import FuncStatNode
 from .ReturnStatNode import ReturnStatNode
 from .CodeBlockNode import CodeBlockNode
 from src.SymbolTable import SymbolTable
+import src.llvm.LLVM as LLVM
 
 
 
@@ -79,3 +80,16 @@ class IfElseNode(ASTNode):
         code += lbl2 + ":\n" + el
 
         return code
+
+    def toLLVM(self):
+        ll = self.cond.toLLVM()
+
+        ifstats = self.ifBlock.toLLVM()
+
+        elstats = []
+        if self.elseBlock is not None:
+            elstats += self.elseBlock.toLLVM()
+
+        ll += [LLVM.Branch(ll[len(ll)-1].result, ifstats, elstats)]
+
+        return ll

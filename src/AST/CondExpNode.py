@@ -3,7 +3,7 @@ from .FuncNode import FuncNode
 from .VarNode import VarNode
 from .ArOpNode import ArOpNode
 from .Types import opTypes
-
+import src.llvm.LLVM as LLVM
 
 class CondExpNode(ASTNode):
 
@@ -52,3 +52,41 @@ class CondExpNode(ASTNode):
         # %6 = icmp eq i32 1, %5
         code += self.returnVar + " = icmp " + op + " " + l + ", " + r + "\n"
         return code
+
+    def toLLVM(self):
+        self.returnVar = varGen.getNewVar(varGen)
+        stats = [LLVM.Label(True)]
+        l = self.left.toLLVM()
+        r = self.right.toLLVM()
+        lit1 = True
+        lit2 = True
+        _type = None
+        if isinstance(self.left, VarNode):
+            lit1 = False
+            stats += self.left.toLLVM(True)
+            l = stats[len(stats) - 1].result
+        elif isinstance(self.left, FuncNode) or isinstance(self.left, ArOpNode):
+            lit1 = False
+            stats += l
+            l = l[len(r) - 1].result
+        else:
+            _type = l[0]
+            l = l[1]
+
+        if isinstance(self.right, VarNode):
+            lit2 = False
+            stats += self.right.toLLVM(True)
+            r = stats[len(stats) - 1].result
+        elif isinstance(self.right, FuncNode) or isinstance(self.right, ArOpNode):
+            lit2 = False
+            stats += r
+            r = r[len(r) - 1].result
+        else:
+            _type = r[0]
+            r = r[1]
+
+        op = opTypes[self.value]
+
+        stats += [LLVM.Icmp(op, _type, l, r, lit1, lit2)]
+
+        return stats

@@ -1,5 +1,6 @@
 from src.AST.Arg import Arg
 from src.AST.Types import *
+from src.AST.ASTNode import varGen
 import copy
 
 
@@ -188,3 +189,73 @@ class Div(Arithmetic):
     def __init__(self, result, _type, val1, val2, lit1=False, lit2=False):
         Arithmetic.__init__(self, result, _type.getDiv(), _type, val1, val2, lit1, lit2)
 ########################################################################
+
+
+class Branch:
+
+    def __init__(self, result, stats1, stats2, label0=None):
+        self.result = result
+        self.label0 = label0
+        self.label1 = Label()
+        self.label2 = Label()
+        self.label3 = Label()
+        self.stats1 = stats1
+        self.stats2 = stats2
+
+    def __str__(self):
+        #br i1 %5, label %6, label %7
+        ll = "br i1 %" + str(self.result) + ", label %" + self.label1.label + ", label %" + self.label2.label + "\n\n"
+
+        ll += str(self.label1)
+        for stat in self.stats1:
+            ll += str(stat)
+        if self.label0 is None:
+            ll += "br label %"+ self.label3.label + "\n\n"
+        else:# while node
+            ll += "br label %" + self.label0.label + "\n\n"
+
+        ll += str(self.label2)
+        for stat in self.stats2:
+            ll += str(stat)
+        ll += "br label %"+ self.label3.label + "\n\n"
+        ll += str(self.label3)
+        return ll
+
+
+class Icmp:
+
+    def __init__(self, op, _type, val1, val2, lit1=False, lit2=False):
+        self.result = varGen.getNewVar(varGen)
+        self.op = op
+        self.type = _type
+        self.val1 = val1
+        self.val2 = val2
+        self.lit1 = lit1
+        self.lit2 = lit2
+        self.label0 = varGen.getNewLabel(varGen)
+
+    def __str__(self):
+        #%5 = icmp eq i32 1, %4
+        tmpType = self.type.toLLVM()
+        lit1 = "%"
+        lit2 = "%"
+        if self.lit1:
+            lit1 = ""
+        if self.lit2:
+            lit2 = ""
+        ll = "%" + str(self.result) + " = icmp " + str(self.op) + " " + str(tmpType) + " " + lit1 + str(
+            self.val1) + ", " + lit2 + str(self.val2) + "\n"
+        return ll
+
+class Label:
+
+    def __init__(self, br=False):
+        self.label = varGen.getNewLabel(varGen)
+        self.br = br
+
+    def __str__(self):
+        ll = ""
+        if self.br:
+            ll += "\nbr label %" + self.label + "\n"
+        ll += self.label + ":\n"
+        return ll
