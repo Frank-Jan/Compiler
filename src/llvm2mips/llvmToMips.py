@@ -1,11 +1,11 @@
 from .llvmInstructionTable import LLVMInstructionsTable
-from .Register import Register, Registry
+from .Registry import Registry
 import src.llvm.LLVM as llvm
 
 class MIPSBuilder:
     def __init__(self, llvmInstructions):
         self.llvmTable = LLVMInstructionsTable()
-        self.register = Register()
+        self.register = Registry()
         self.llvmTable.addInstructions(llvmInstructions)
         self.mipsTable = []
 
@@ -44,3 +44,11 @@ class MIPSBuilder:
 
         for instr in self.mipsTable:
             file.write(instr.__str__())
+
+    def defineToMips(self, defineInstruction):
+        # create label for function:
+        mips = str(defineInstruction.name) + ":"
+
+        # store content registers s0-s7
+        self.register.indexToStr(0)
+        return mips

@@ -1,8 +1,8 @@
-# virtual register
+# virtual Registry
 from enum import Enum
 
 # registry types
-class Registry(Enum):
+class RegistryEnum(Enum):
     #name:  value:   Read/Write:
     zero    = 0     #R
     at      = 1     #
@@ -17,29 +17,36 @@ class Registry(Enum):
     ra      = 10    #RW
 
 
-class Register:
+class Registry:
     def __init__(self):
         # Register types:                   length:
-        self.__RType__ = [Registry.zero]    #1
-        self.__RType__ += [Registry.at]     #2
-        self.__RType__ += [Registry.v] * 2  #4
-        self.__RType__ += [Registry.a] * 4  #8
-        self.__RType__ += [Registry.t] * 8  #16
-        self.__RType__ += [Registry.s] * 8  #24
-        self.__RType__ += [Registry.t] * 2  #26
-        self.__RType__ += [Registry.k] * 2  #28
-        self.__RType__ += [Registry.gp]     #29
-        self.__RType__ += [Registry.sp]     #30
-        self.__RType__ += [Registry.fp]     #31
-        self.__RType__ += [Registry.ra]     #32
+        self.__RType__ = [RegistryEnum.zero]    #1
+        self.__RType__ += [RegistryEnum.at]     #2
+        self.__RType__ += [RegistryEnum.v] * 2  #4
+        self.__RType__ += [RegistryEnum.a] * 4  #8
+        self.__RType__ += [RegistryEnum.t] * 8  #16
+        self.__RType__ += [RegistryEnum.s] * 8  #24
+        self.__RType__ += [RegistryEnum.t] * 2  #26
+        self.__RType__ += [RegistryEnum.k] * 2  #28
+        self.__RType__ += [RegistryEnum.gp]     #29
+        self.__RType__ += [RegistryEnum.sp]     #30
+        self.__RType__ += [RegistryEnum.fp]     #31
+        self.__RType__ += [RegistryEnum.ra]     #32
 
-        # Register:
+        # Registry:
         self.__R__ = [None]*len(self.__RType__)
         self.__R__[0] = 0
 
-    # returns -1 if not in registry or in exempted registries
-    # registry index otherwise
+    # returns False if not in registry or in exempted registries
     def inRegistry(self, value):
+        if value in self.__RType__:
+            index = self.__RType__.index(value)
+            if self.isWrite(index):
+                return True
+            return False
+        return False
+
+    def getRegistry(self, value):
         if value in self.__RType__:
             index = self.__RType__.index(value)
             if self.isWrite(index):
@@ -51,7 +58,7 @@ class Register:
     # return index of empty temporary
     def getEmptyT(self):
         for i in range(len(self.__RType__)):
-            if self.__RType__[i] == Registry.t and self.__R__ is None:
+            if self.__RType__[i] == RegistryEnum.t and self.__R__ is None:
                 return i
         return -1
 
@@ -59,40 +66,40 @@ class Register:
     # returns index of empty temporary
     def getEmptyS(self):
         for i in range(len(self.__RType__)):
-            if self.__RType__[i] == Registry.s and self.__R__ is None:
+            if self.__RType__[i] == RegistryEnum.s and self.__R__ is None:
                 return i
         return -1
 
     def getSizeA(self):
-        return self.__RType__.count(Registry.a)
+        return self.__RType__.count(RegistryEnum.a)
 
     def getSizeT(self):
-        return self.__RType__.count(Registry.t)
+        return self.__RType__.count(RegistryEnum.t)
 
     def getSizeS(self):
-        return self.__RType__.count(Registry.s)
+        return self.__RType__.count(RegistryEnum.s)
 
     def getSizeV(self):
-        return self.__RType__.count(Registry.v)
+        return self.__RType__.count(RegistryEnum.v)
 
     def getSRegister(self):
         result = []
         for i in range(len(self.__RType__)):
-            if self.__RType__[i] == Registry.s:
+            if self.__RType__[i] == RegistryEnum.s:
                 result.append(self.__R__[i])
         return result
 
     def getTRegister(self):
         result = []
         for i in range(len(self.__RType__)):
-            if self.__RType__[i] == Registry.t:
+            if self.__RType__[i] == RegistryEnum.t:
                 result.append(self.__R__[i])
         return result
 
     def getVRegister(self):
         result = []
         for i in range(len(self.__RType__)):
-            if self.__RType__[i] == Registry.s:
+            if self.__RType__[i] == RegistryEnum.s:
                 result.append(self.__R__[i])
         return result
 
@@ -105,11 +112,11 @@ class Register:
 
     def isRead(self, index):
         t = self.type(index)
-        return t != Registry.at and t != Registry.k
+        return t != RegistryEnum.at and t != RegistryEnum.k
 
     def isWrite(self, index):
         t = self.type(index)
-        return t != Registry.at and t != Registry.k and t != Registry.zero
+        return t != RegistryEnum.at and t != RegistryEnum.k and t != RegistryEnum.zero
 
     def __getitem__(self, index):
         if self.isWrite(index):
@@ -202,3 +209,42 @@ class Register:
         return self.__R__[31]
 
 
+def indexToStr(self, index):
+    if index < 0 or index > 31:
+        raise Exception("Registry: index out of bounds: {}".format(index))
+    return "$" + str(index)
+
+def tIndexToStr(self, index):
+    if index < 0 or index > 9:
+        raise Exception("Registry: index out of bounds: {}".format(index))
+    if index < 8:
+        return "$" + str(index + 8)
+    else:
+        return "$" + str(index + 16)
+
+def sIndexToStr(self, index):
+    if index < 0 or index > 7:
+        raise Exception("Registry: index out of bounds: {}".format(index))
+    return "$" + str(index + 16)
+
+def vIndexToStr(self, index):
+    if index < 0 or index > 1:
+        raise Exception("Registry: index out of bounds: {}".format(index))
+    return "$" + str(index + 2)
+
+def aIndexToStr(self, index):
+    if index < 0 or index > 3:
+        raise Exception("Registry: index out of bounds: {}".format(index))
+    return "$" + str(index + 4)
+
+def gpIndexToStr(self, index=0):
+    return "$" + str(28)
+
+def spIndexToStr(self, index=0):
+    return "$" + str(29)
+
+def fpIndexToStr(self, index=0):
+    return "$" + str(30)
+
+def raIndexToStr(self, index=0):
+    return "$" + str(31)

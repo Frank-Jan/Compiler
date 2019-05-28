@@ -44,7 +44,7 @@ class VarDefNode(ASTNode):
 
         if isinstance(self.children[0].getType(), ARRAY) and isinstance(self.children[1].getType(), ARRAY):
             if self.children[0].getType().array != self.children[1].getType().array:   # check if right array is long enough
-                printError("{} != {}".format(type(self.children[0].getType().array),type(self.children[1].getType().array)))
+                # printError("{} != {}".format(type(self.children[0].getType().array),type(self.children[1].getType().array)))
                 raise Exception("error: assigning two elements of different lenghts: {}[{}] and [{}]"
                                 .format(self.children[0].getName(), self.children[0].getType().array, self.children[1].getType().array))
 

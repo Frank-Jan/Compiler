@@ -14,7 +14,7 @@ class RvalueNode(ASTNode, Type):
             retNode = self.children[1].simplify(scope)  # simplify lvalue node
             retNode.type = REFERENCE(retNode.getType())
         else:
-            raise "error: unexpected number of children (" + len(self.children) + ") in: " + type(RvalueNode)
+            raise Exception("error: unexpected number of children (" + len(self.children) + ") in: " + type(RvalueNode))
             retNode = None
 
         if retNode in self.children:

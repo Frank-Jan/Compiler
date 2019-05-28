@@ -19,6 +19,7 @@ class Type:
 def compareTypes(A,B):
     return dereferenceType(A) == dereferenceType(B)
 
+
 def dereferenceType(node):
     if isinstance(node, Type):
         tmp = copy.copy(node.deref)

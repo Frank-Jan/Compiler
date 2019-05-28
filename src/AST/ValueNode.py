@@ -16,8 +16,10 @@ class ValueNode(ASTNode, Type):
         else:
             #*value
             retNode = self.children[1].simplify(scope)
-            if retNode is not self.children[1]:
-                self.AST.delNode(self.children[1])
+            if retNode is self.children[1]:
+                self.children.remove(retNode)
+            for c in self.children:
+                self.AST.delNode(c)
             self.children = []
             if not isinstance(retNode.getType(), POINTER):
                 raise Exception("Dereferencing non-pointer")
