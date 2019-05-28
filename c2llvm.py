@@ -5,7 +5,7 @@ from src.grammars.c_subsetParser import c_subsetParser
 from src.Listener import Listener
 import src.AST.init as AST
 from src.LLVMErrorListener import MyErrorListener
-import src.llvm2mips.llvmToAsm as mips
+import src.llvm2mips.llvmToMips as mips
 
 # from src.DebugListener import DebugListener
 
