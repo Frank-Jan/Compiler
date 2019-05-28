@@ -102,7 +102,8 @@ class FuncNode(ASTNode, Type):
         return stat + code
 
     def toLLVM(self):
-        retVar = varGen.getNewVar(varGen)
+        tmp = varGen.getNewVar(varGen)
+        self.returnVar = tmp
 
         args = []
         for arg in self.arguments:
@@ -112,10 +113,14 @@ class FuncNode(ASTNode, Type):
             else:
                 args.append(Arg(tmp[0], tmp[1], None, False))
 
-        stats = [LLVM.Call(retVar, self.getType(), self.name, args)]
-        for child in self.children:
-            if isinstance(child, VarNode):
-                stats += child.toLLVM(True)
+        stats = [LLVM.Call(self.returnVar, self.getType(), self.name, args)]
+        type = self.getType()
+        if isinstance(type, POINTER):
+            for niv in range(self.deref-1):
+                type = type.getBase()
+                self.returnVar = varGen.getNewVar(varGen)
+                stats.append(LLVM.Load(self.returnVar, type, tmp))
+                tmp = self.returnVar
 
         return stats
 

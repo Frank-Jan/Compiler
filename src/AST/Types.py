@@ -87,6 +87,18 @@ class CHAR(VOID):
     def toLLVM(self):
         return 'i8'
 
+    def getAdd(self):
+        return 'add'
+
+    def getSub(self):
+        return 'sub'
+
+    def getMul(self):
+        return 'mul'
+
+    def getDiv(self):
+        return 'div'
+
 
 class INT(VOID):
     def getType(self):
@@ -104,6 +116,17 @@ class INT(VOID):
     def toLLVM(self):
         return 'i32'
 
+    def getAdd(self):
+        return 'add'
+
+    def getSub(self):
+        return 'sub'
+
+    def getMul(self):
+        return 'mul'
+
+    def getDiv(self):
+        return 'div'
 
 class FLOAT(VOID):
     def getType(self):
@@ -121,6 +144,17 @@ class FLOAT(VOID):
     def toLLVM(self):
         return 'float'
 
+    def getAdd(self):
+        return 'fadd'
+
+    def getSub(self):
+        return 'fsub'
+
+    def getMul(self):
+        return 'fmul'
+
+    def getDiv(self):
+        return 'fdiv'
 
 class POINTER(VOID):
     def __init__(self, type=VOID()):

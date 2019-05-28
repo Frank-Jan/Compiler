@@ -168,23 +168,23 @@ class Arithmetic(LLVMInstr):
 class Add(Arithmetic):
 
     def __init__(self, result, _type, val1, val2, lit1=False, lit2=False):
-        Arithmetic.__init__(self, result, "add", _type, val1, val2, lit1, lit2)
+        Arithmetic.__init__(self, result, _type.getAdd(), _type, val1, val2, lit1, lit2)
 
 
 class Sub(Arithmetic):
 
     def __init__(self, result, _type, val1, val2, lit1=False, lit2=False):
-        Arithmetic.__init__(self, result, "sub", _type, val1, val2, lit1, lit2)
+        Arithmetic.__init__(self, result, _type.getSub(), _type, val1, val2, lit1, lit2)
 
 
-class Mull(Arithmetic):
+class Mul(Arithmetic):
 
     def __init__(self, result, _type, val1, val2, lit1=False, lit2=False):
-        Arithmetic.__init__(self, result, "mull", _type, val1, val2, lit1, lit2)
+        Arithmetic.__init__(self, result, _type.getMul(), _type, val1, val2, lit1, lit2)
 
 
 class Div(Arithmetic):
 
     def __init__(self, result, _type, val1, val2, lit1=False, lit2=False):
-        Arithmetic.__init__(self, result, "sdiv", _type, val1, val2, lit1, lit2)
+        Arithmetic.__init__(self, result, _type.getDiv(), _type, val1, val2, lit1, lit2)
 ########################################################################

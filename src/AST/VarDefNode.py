@@ -85,7 +85,7 @@ class VarDefNode(ASTNode):
         elif isinstance(node, FuncNode) or isinstance(node, ArOpNode):
             ll2 = node.toLLVM()
             stats += ll2
-            stats += [LLVM.Store(ll2[0].type, ll2[0].result, stats[0].result)]
+            stats += [LLVM.Store(ll2[len(ll2)-1].type, ll2[len(ll2)-1].result, stats[0].result)]
         else:
             stats += [LLVM.Store(ll[0], ll[1], stats[0].result, True)]
 
