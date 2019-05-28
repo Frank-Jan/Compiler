@@ -1,11 +1,11 @@
 from .llvmInstructionTable import LLVMInstructionsTable
-from .Register import Register, Registry
+from .Registry import Registry
 import src.llvm.LLVM as llvm
 
 class MIPSBuilder:
     def __init__(self, llvmInstructions):
         self.llvmTable = LLVMInstructionsTable()
-        self.register = Register()
+        self.register = Registry()
         self.llvmTable.addInstructions(llvmInstructions)
         self.mipsTable = []
 
@@ -33,7 +33,7 @@ class MIPSBuilder:
         if len(f) == 1:
             filename.append(".asm")
         elif len(f) == 2:
-            if f[1] != ".asm":
+            if f[1] != "asm":
                 error = "error: unknown file extention: {}".format(f[1])
                 raise Exception(error)
         else:
@@ -43,4 +43,12 @@ class MIPSBuilder:
         file = open(filename, "w+")
 
         for instr in self.mipsTable:
-            file += str(instr)
+            file.write(instr.__str__())
+
+    def defineToMips(self, defineInstruction):
+        # create label for function:
+        mips = str(defineInstruction.name) + ":"
+
+        # store content registers s0-s7
+        self.register.indexToStr(0)
+        return mips

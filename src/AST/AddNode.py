@@ -56,6 +56,7 @@ class AddNode(ArOpNode):
             raise Exception("error: trying to add two different types: "
                             "{} and {}".format(self.left.getType(), self.right.getType()))
         self.type = self.left.getType()
+        self.deref = self.left.deref
 
         self.AST.printDotDebug(str(self.getCount()) + "Addnode.dot")
         return self
