@@ -209,12 +209,13 @@ class Registry:
         return self.__R__[31]
 
 
-def indexToStr(self, index):
+def indexToStr(index):
     if index < 0 or index > 31:
         raise Exception("Registry: index out of bounds: {}".format(index))
     return "$" + str(index)
 
-def tIndexToStr(self, index):
+
+def tIndexToStr(index):
     if index < 0 or index > 9:
         raise Exception("Registry: index out of bounds: {}".format(index))
     if index < 8:
@@ -222,29 +223,46 @@ def tIndexToStr(self, index):
     else:
         return "$" + str(index + 16)
 
-def sIndexToStr(self, index):
+
+def sIndexToStr(index):
     if index < 0 or index > 7:
         raise Exception("Registry: index out of bounds: {}".format(index))
     return "$" + str(index + 16)
 
-def vIndexToStr(self, index):
+
+def vIndexToStr(index):
     if index < 0 or index > 1:
         raise Exception("Registry: index out of bounds: {}".format(index))
     return "$" + str(index + 2)
 
-def aIndexToStr(self, index):
+
+def aIndexToStr(index):
     if index < 0 or index > 3:
         raise Exception("Registry: index out of bounds: {}".format(index))
     return "$" + str(index + 4)
 
-def gpIndexToStr(self, index=0):
+
+def gpIndexToStr(index=0):
     return "$" + str(28)
 
-def spIndexToStr(self, index=0):
+
+def spIndexToStr(index=0):
     return "$" + str(29)
 
-def fpIndexToStr(self, index=0):
+
+def fpIndexToStr(index=0):
     return "$" + str(30)
 
-def raIndexToStr(self, index=0):
+
+def raIndexToStr(index=0):
     return "$" + str(31)
+
+
+def getTindices():
+    indices = list(range(8, 16)) + [24, 25]
+    return indices
+
+
+def getSindices():
+    indices = list(range(16, 24))
+    return indices

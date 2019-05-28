@@ -1,11 +1,12 @@
 from .llvmInstructionTable import LLVMInstructionsTable
-from .Registry import Registry
+import src.llvm2mips.Registry as R
 import src.llvm.LLVM as llvm
+import src.llvm2mips.MipsInstructions as MIPS
 
 class MIPSBuilder:
     def __init__(self, llvmInstructions):
         self.llvmTable = LLVMInstructionsTable()
-        self.register = Registry()
+        self.registry = R.Registry()
         self.llvmTable.addInstructions(llvmInstructions)
         self.mipsTable = []
 
@@ -45,10 +46,22 @@ class MIPSBuilder:
         for instr in self.mipsTable:
             file.write(instr.__str__())
 
-    def defineToMips(self, defineInstruction):
-        # create label for function:
-        mips = str(defineInstruction.name) + ":"
 
-        # store content registers s0-s7
-        self.register.indexToStr(0)
+    def defineToMips(self, instruction):
+        # create label for function:
+        mips = str(instruction.name) + ":\n"
+        # store content registers s0-s7, $fp, $ra
+        mips += MIPS.storeRegisters(self.registry, R.getSindices()+[R.fpIndexToStr(), R.raIndexToStr()]) + "\n"
+        # set frame pointer to stackpointer
+        mips += MIPS.M_move(R.fpIndexToStr(), R.spIndexToStr())
+
+        return mips
+
+    def endDefineToMips(self, instruction):
+        # restore s registers:
+        mips = MIPS.loadRegisters(self.registry, R.getSindices())
+        # set stack pointer to frame pointer
+        mips += MIPS.M_move(R.spIndexToStr(), R.fpIndexToStr())
+        # reload frame pointer
+        mips +=
         return mips
