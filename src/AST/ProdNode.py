@@ -60,6 +60,7 @@ class ProdNode(ArOpNode):
                             "{} and {}".format(self.left.getType(), self.right.getType()))
         self.type = self.left.getType()
         self.deref = self.left.deref
+
         return self
 
     def printLLVM(self):

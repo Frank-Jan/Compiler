@@ -1,6 +1,6 @@
 from .ScopeNode import ScopeNode
 
-DEBUG = True
+DEBUG = False
 
 
 class AST:
