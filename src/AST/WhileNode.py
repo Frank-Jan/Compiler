@@ -1,6 +1,7 @@
 from .ASTNode import ASTNode, varGen
 from .CodeBlockNode import CodeBlockNode
 from src.SymbolTable import SymbolTable
+import src.llvm.LLVM as LLVM
 
 class WhileNode(ASTNode):
 
@@ -44,3 +45,12 @@ class WhileNode(ASTNode):
         code += lbl2 + ":\n"
 
         return code
+
+    def toLLVM(self):
+        ll = self.cond.toLLVM() # eerste element is label obj
+
+        ifstats = self.block.toLLVM()
+
+        ll += [LLVM.Branch(ll[len(ll)-1].result, ifstats, [], ll[0])]
+
+        return ll
