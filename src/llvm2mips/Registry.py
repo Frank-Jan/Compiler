@@ -212,50 +212,73 @@ class Registry:
 def indexToStr(index):
     if index < 0 or index > 31:
         raise Exception("Registry: index out of bounds: {}".format(index))
-    return "$" + str(index)
-
+    #return "$" + str(index)
+    if index < 1:
+        return "$zero"
+    if index < 2:
+        return "$at"
+    if index < 4:
+        return "$v" + str(index-2)
+    if index < 8:
+        return "$a" + str(index - 4)
+    if index < 16:
+        return "$t" + str(index - 8)
+    if index < 24:
+        return "$s" + str(index - 16)
+    if index < 26:
+        return "$t" + str(index - 16)
+    if index < 28:
+        return "$k" + str(index - 26)
+    if index < 29:
+        return "$gp"
+    if index < 30:
+        return "$sp"
+    if index < 31:
+        return "$fp"
+    else:
+        return "$ra"
 
 def tIndexToStr(index):
     if index < 0 or index > 9:
         raise Exception("Registry: index out of bounds: {}".format(index))
     if index < 8:
-        return "$" + str(index + 8)
+        return "$t" + index
     else:
-        return "$" + str(index + 16)
+        return "$t" + index
 
 
 def sIndexToStr(index):
     if index < 0 or index > 7:
         raise Exception("Registry: index out of bounds: {}".format(index))
-    return "$" + str(index + 16)
+    return "$s" + index
 
 
 def vIndexToStr(index):
     if index < 0 or index > 1:
         raise Exception("Registry: index out of bounds: {}".format(index))
-    return "$" + str(index + 2)
+    return "$v" + index
 
 
 def aIndexToStr(index):
     if index < 0 or index > 3:
         raise Exception("Registry: index out of bounds: {}".format(index))
-    return "$" + str(index + 4)
+    return "$a" + index
 
 
 def gpIndexToStr(index=0):
-    return "$" + str(28)
+    return "$gp"
 
 
 def spIndexToStr(index=0):
-    return "$" + str(29)
+    return "$sp"
 
 
 def fpIndexToStr(index=0):
-    return "$" + str(30)
+    return "$fp"
 
 
 def raIndexToStr(index=0):
-    return "$" + str(31)
+    return "$ra"
 
 
 def getTindices():
@@ -266,3 +289,15 @@ def getTindices():
 def getSindices():
     indices = list(range(16, 24))
     return indices
+
+
+def spIndex():
+    return 29
+
+
+def fpIndex():
+    return 30
+
+
+def raIndex():
+    return 31

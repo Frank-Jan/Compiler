@@ -1,4 +1,5 @@
 import src.llvm.LLVM as llvm
+import src.AST.Types as Type
 from .llvmObject import *
 
 class LLVMInstructionsTable:
@@ -47,15 +48,21 @@ class LLVMInstructionsTable:
                 # add instruction to llvmVar
                 self.variables[instr.var].addInstruction(instr)
 
-                var = LLVMVariable(instr.result, instr._type, instr)
+                var = LLVMVariable(instr.result, instr.type, instr)
                 self.variables[var.getName()] = var
 
             elif isinstance(instr, llvm.Arithmetic):
                 self.variables[instr.val1].addInstruction(instr)
                 self.variables[instr.val1].addInstruction(instr)
 
-                var = LLVMVariable(instr.result, instr._type, instr)
+                var = LLVMVariable(instr.result, instr.type, instr)
                 self.variables[var.getName()] = var
+
+            elif isinstance(instr, llvm.Call):
+                if not isinstance(instr.type,Type.VOID):
+                    var = LLVMVariable(instr.result, instr.type, instr)
+                    self.variables[var.getName()] = var
+
             else:
                 error = "error: unknown llvm instruction: {} line: {}".format(type(instr), self.line)
                 raise Exception(error)

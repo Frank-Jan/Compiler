@@ -80,9 +80,9 @@ def testFile(argv):
     f.write(text)
 
     # give llvm code ll to mipsbuilder:
-    # mipsbuilder = mips.MIPSBuilder(ll)
-    # mipsbuilder.build()
-    # mipsbuilder.mipsToFile("test.asm")
+    mipsbuilder = mips.MIPSBuilder(ll)
+    mipsbuilder.build()
+    mipsbuilder.mipsToFile("test.asm")
 
 
     return 0
