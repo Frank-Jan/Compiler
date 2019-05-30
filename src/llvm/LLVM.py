@@ -9,6 +9,9 @@ class LLVMInstr:
     def __init__(self):
         self.line = 0
         self.function = None
+        
+    def setFunction(self, func):
+        self.function = func
 
 
 class Alloca(LLVMInstr):
@@ -60,6 +63,25 @@ class Load(LLVMInstr):
             self.var) + ", align " + str(self.align) + "\n"
 
 
+class Declare(LLVMInstr):
+
+    def __init__(self, _type, name, args):
+        LLVMInstr.__init__(self)
+        self.type = _type
+        self.name = name
+        self.args = args  # arg has _type, oldname and newname
+
+    def __str__(self):
+        tmpType = self.type.toLLVM()
+        ll = "declare " + str(tmpType) + " @" + str(self.name) + "("
+        for arg in self.args:
+            ll += str(arg.toLLVM()) + ", "
+        if len(self.args) != 0:
+            ll = ll[:-2]
+        ll += ")\n\n"
+        return ll
+
+
 class Define(LLVMInstr):
 
     def __init__(self, _type, name, args, stats):
@@ -89,7 +111,11 @@ class Define(LLVMInstr):
         self.stats = load + self.stats
 
         for stat in self.stats:
-            ll += str(stat)
+            stat.setFunction(self) # set function
+            if isinstance(stat, Str):
+                ll = str(stat) + ll
+            else:
+                ll += str(stat)
         ll += "}\n\n"
         return ll
 
@@ -126,6 +152,7 @@ class Call(LLVMInstr):  # %2 = call i32 @test()
 class Return(LLVMInstr):  # ret i32 %6
 
     def __init__(self, _type, var, lit=False):
+        LLVMInstr.__init__(self)
         self.type = _type
         self.var = var  # in case of void var = ""
         self.lit = lit
@@ -189,12 +216,15 @@ class Div(Arithmetic):
 
     def __init__(self, result, _type, val1, val2, lit1=False, lit2=False):
         Arithmetic.__init__(self, result, _type.getDiv(), _type, val1, val2, lit1, lit2)
+
+
 ########################################################################
 
 
-class Branch:
+class Branch(LLVMInstr):
 
     def __init__(self, result, stats1, stats2, label0=None):
+        LLVMInstr.__init__(self)
         self.result = result
         self.label0 = label0
         self.label1 = Label()
@@ -204,28 +234,29 @@ class Branch:
         self.stats2 = stats2
 
     def __str__(self):
-        #br i1 %5, label %6, label %7
+        # br i1 %5, label %6, label %7
         ll = "br i1 %" + str(self.result) + ", label %" + self.label1.label + ", label %" + self.label2.label + "\n\n"
 
         ll += str(self.label1)
         for stat in self.stats1:
             ll += str(stat)
         if self.label0 is None:
-            ll += "br label %"+ self.label3.label + "\n\n"
-        else:# while node
+            ll += "br label %" + self.label3.label + "\n\n"
+        else:  # while node
             ll += "br label %" + self.label0.label + "\n\n"
 
         ll += str(self.label2)
         for stat in self.stats2:
             ll += str(stat)
-        ll += "br label %"+ self.label3.label + "\n\n"
+        ll += "br label %" + self.label3.label + "\n\n"
         ll += str(self.label3)
         return ll
 
 
-class Icmp:
+class Icmp(LLVMInstr):
 
     def __init__(self, op, _type, val1, val2, lit1=False, lit2=False):
+        LLVMInstr.__init__(self)
         self.result = varGen.getNewVar(varGen)
         self.op = op
         self.type = _type
@@ -236,7 +267,7 @@ class Icmp:
         self.label0 = varGen.getNewLabel(varGen)
 
     def __str__(self):
-        #%5 = icmp eq i32 1, %4
+        # %5 = icmp eq i32 1, %4
         tmpType = self.type.toLLVM()
         lit1 = "%"
         lit2 = "%"
@@ -248,9 +279,11 @@ class Icmp:
             self.val1) + ", " + lit2 + str(self.val2) + "\n"
         return ll
 
-class Label:
+
+class Label(LLVMInstr):
 
     def __init__(self, br=False):
+        LLVMInstr.__init__(self)
         self.label = varGen.getNewLabel(varGen)
         self.br = br
 
@@ -260,3 +293,72 @@ class Label:
             ll += "\nbr label %" + self.label + "\n"
         ll += self.label + ":\n"
         return ll
+
+
+# For printf and scanf
+##############################################################################################
+class Str(LLVMInstr):
+
+    def __init__(self, name, string, count):
+        LLVMInstr.__init__(self)
+        self.name = name
+        self.string = string
+        self.count = count  # om wille van \00 einde -2 voor "c"" en -2 voor "\00
+
+    def __str__(self):
+        # @.str = private unnamed_addr constant [25 x i8] c"Hey a uis gelijk aan: %d\00", align 1
+        self.string = "c\"" + self.string + "\\00"
+        self.returnType = "[" + str(self.count) + " x i8]"
+        return "@." + self.name + " = private unnamed_addr constant " + self.returnType + " " + self.string + "\", align 1\n\n"
+
+
+class CallF(LLVMInstr):
+
+    def __init__(self, result, args, Str, printf=True):
+        LLVMInstr.__init__(self)
+        self.result = result
+        self.args = args
+        self.string = Str.name
+        self.count = Str.count
+        self.printf = printf
+
+    def __str__(self):
+        # %var-8 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([25 x i8], [25 x i8]* @.str, i32 0, i32 0), i32 %var-7)
+        op = "scanf"
+        if self.printf:
+            op = "printf"
+        ll = "%" + self.result + " = call i32 (i8*, ...) @" + op + "(i8* getelementptr inbounds ([" + str(
+            self.count) + " x i8], [" + str(
+            self.count) + " x i8]* @." + self.string + ", i32 0, i32 0)"
+
+        for arg in self.args:
+            ll += ", " + arg[0] + " %" + arg[1]
+
+        return ll + ")\n"
+
+
+class Sext(LLVMInstr):
+
+    def __init__(self, result, _type, var):
+        LLVMInstr.__init__(self)
+        self.result = result
+        self.type = _type
+        self.var = var
+
+    def __str__(self):
+        # %4 = sext i8 %3 to i32
+        tmpType = self.type.toLLVM()
+        return "%" + self.result + " = sext " + tmpType + " %" + str(self.var) + " to i32\n"
+
+class Fpext(LLVMInstr):
+
+    def __init__(self, result, _type, var):
+        LLVMInstr.__init__(self)
+        self.result = result
+        self.type = _type
+        self.var = var
+
+    def __str__(self):
+        # %7 = fpext float %6 to double
+        tmpType = self.type.toLLVM()
+        return "%" + self.result + " = fpext " + tmpType + " %" + str(self.var) + " to double\n"

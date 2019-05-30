@@ -1,6 +1,7 @@
 from .ASTNode import ASTNode, varGen
 from .FormatCharPrintNode import FormatCharPrintNode
 from .TerNode import TerNode
+import src.llvm.LLVM as LLVM
 
 
 class PrintFormatNode(ASTNode):
@@ -44,3 +45,11 @@ class PrintFormatNode(ASTNode):
         self.returnType = "[" + str(count) + " x i8]"
         return "@" + self.returnVar + " = private unnamed_addr constant " + self.returnType + " " + strings + "\", align 1\n"
 
+    def toLLVM(self):
+        self.returnVar = varGen.getNewVar(varGen)
+        deString = ""
+        count = 0  # om wille van \00 einde ,  -2 voor "c"" en -2 voor "\00
+        for child in self.children:
+            deString += child.toLLVM()
+            count += child.length
+        return LLVM.Str(self.returnVar, deString, count)

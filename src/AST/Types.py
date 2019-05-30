@@ -214,3 +214,12 @@ class ARRAY(POINTER):
 
     def toLLVM(self):
         return self.getBase().printLLVM() + "*"
+
+
+class PPP:
+
+    def __init__(self):
+        pass
+
+    def toLLVM(self):
+        return "..."

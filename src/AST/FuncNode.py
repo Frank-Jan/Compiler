@@ -3,8 +3,10 @@ from .Type import Type, POINTER, INT
 from .ValueNode import ValueNode
 from .PrintfNode import PrintfNode
 from .VarNode import VarNode
+from .ScanfNode import ScanfNode
 import src.llvm.LLVM as LLVM
 from .Arg import Arg
+from .TerNode import TerNode
 from .IntNode import IntNode
 
 
@@ -31,7 +33,7 @@ class FuncNode(ASTNode, Type):
     def simplify(self, scope):
         self.isSimplified = True
 
-        if isinstance(self.children[0], PrintfNode):
+        if isinstance(self.children[0], PrintfNode) or isinstance(self.children[0], ScanfNode):
             printf = self.children[0].simplify(scope)
             self.children.remove(printf)
             self.AST.delNode(self)
@@ -105,15 +107,18 @@ class FuncNode(ASTNode, Type):
         tmp = varGen.getNewVar(varGen)
         self.returnVar = tmp
 
+        stats = []
         args = []
         for arg in self.arguments:
-            tmp = arg.toLLVM()
-            if isinstance(arg, IntNode):
-                args.append(Arg(tmp[0], tmp[1], None, True))
+            if isinstance(arg, VarNode):
+                stats += arg.toLLVM(True)
+                stat = stats[len(stats)-1]
+                args.append(Arg(stat.type, stat.result, None, False))
             else:
-                args.append(Arg(tmp[0], tmp[1], None, False))
+                a = arg.toLLVM()
+                args.append(Arg(a[0], a[1], None, True))
 
-        stats = [LLVM.Call(self.returnVar, self.getType(), self.name, args)]
+        stats += [LLVM.Call(self.returnVar, self.getType(), self.name, args)]
         type = self.getType()
         if isinstance(type, POINTER):
             for niv in range(self.deref-1):

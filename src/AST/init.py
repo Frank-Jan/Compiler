@@ -11,6 +11,7 @@ from .CodeBlockNode import CodeBlockNode
 from .CondExpNode import CondExpNode
 from .FloatNode import FloatNode
 from .FormatCharPrintNode import FormatCharPrintNode
+from .FormatCharScanNode import FormatCharScanNode
 from .FuncDeclNode import FuncDeclNode
 from .FuncDefNode import FuncDefNode
 from .FuncNode import FuncNode
@@ -36,6 +37,7 @@ from .ProdNode import ProdNode
 from .ReturnStatNode import ReturnStatNode
 from .RootNode import RootNode
 from .RvalueNode import RvalueNode
+from .ScanfNode import ScanfNode
 from .ScopeNode import ScopeNode
 from .StdioNode import StdioNode
 from .StringNode import StringNode
