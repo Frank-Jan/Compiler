@@ -263,7 +263,7 @@ formatCharPrint
     ;
 
 string
-    : (~(FORMAT_CHAR_PRINT | ASCII ))+
+    : (~(FORMAT_CHAR_PRINT | '"'))+
     ;
 
 string_scan
@@ -275,7 +275,7 @@ ioArglist
     ;
 
 //Viable name compositions
-name : (LETTER | '_')(LETTER |ASCII| . | DIGIT | '_')*;
+name : (LETTER | '_')(LETTER | DIGIT | '_')*;
 
 //Things to skip:
 WhiteSpace
