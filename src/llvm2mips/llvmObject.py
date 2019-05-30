@@ -22,9 +22,9 @@ class LLVMFunction(LLVMObject):
 class LLVMVariable(LLVMObject):
     def __init__(self, name, _type, instruction):
         LLVMObject.__init__(self, name, _type)
-        self.storage = None         # Pointer to storage
-        self.inRegistry = False     # If in registry
-        self.uses = [instruction]              # The llvm instructions where it is used
+        self.storage = None         # Places from frame pointer
+        self.register = None
+        self.uses = [instruction]   # The llvm instructions where it is used
 
 
     def addInstruction(self, instruction):

@@ -28,7 +28,7 @@ DEFAULT : 'default';
 
 DIGIT : [0-9];
 LETTER : ( [a-z] | [A-Z] );
-ASCII: . ;
+ASCII: . | ' ' | '\n' | '\t' | ~'"';
 
 FORMAT_CHAR_SCAN : '%s' | '%i' | '%d' | '%c' ;
 
