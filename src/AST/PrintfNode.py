@@ -94,3 +94,8 @@ class PrintfNode(ASTNode, Type):
             code += self.argList.printLLVM(False)
         code += ")\n"
         return code
+
+    def toLLVM(self):
+        ll = self.format.toLLVM()
+        ll += self.argList.toLLVM()
+        return ll

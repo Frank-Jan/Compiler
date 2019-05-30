@@ -2,7 +2,7 @@ from .ASTNode import ASTNode, varGen
 from .TerNode import TerNode
 from .ValueNode import ValueNode
 from .VarNode import VarNode
-#from .FuncNode import FuncNode
+# from .FuncNode import FuncNode
 from .Type import POINTER, CHAR, FLOAT
 from .Types import llvmTypes
 
@@ -25,7 +25,7 @@ class IoArgListNode(ASTNode):
                     self.AST.delNode(c)
                 newChildren.append(retnode)
             elif isinstance(c, IoArgListNode):
-                #steal children
+                # steal children
                 c.simplify(scope)
                 newChildren.extend(c.stealChildren())
                 toDelete.append(c)
@@ -40,28 +40,30 @@ class IoArgListNode(ASTNode):
     def getInputTypes(self):
         pass
 
-    def printLLVM(self, cast = False):
+    def printLLVM(self, cast=False):
         code = ""
         if cast:
             for c in self.children:
-                if isinstance(c, VarNode): # or isinstance(c, FuncNode)
+                if isinstance(c, VarNode):  # or isinstance(c, FuncNode)
                     code += c.printLLVM(True)
                     type = c.getType()
                     if isinstance(type, POINTER):
-                        for niv in range(c.deref-1):
+                        for niv in range(c.deref - 1):
                             type = type.getBase()
                     if isinstance(type, CHAR):
                         self.returnVars[c] = varGen.getNewVar(varGen)
-                        code += self.returnVars[c] + " = sext " + llvmTypes[str(c.returnType)] +" "+ c.returnVar + " to i32\n" #  %4 = sext i8 %3 to i32
+                        code += self.returnVars[c] + " = sext " + llvmTypes[
+                            str(c.returnType)] + " " + c.returnVar + " to i32\n"  # %4 = sext i8 %3 to i32
                     elif isinstance(type, FLOAT):
                         self.returnVars[c] = varGen.getNewVar(varGen)
-                        code += self.returnVars[c] + " = fpext " + llvmTypes[str(c.returnType)] +" "+ c.returnVar + " to double\n"# %7 = fpext float %6 to double
+                        code += self.returnVars[c] + " = fpext " + llvmTypes[
+                            str(c.returnType)] + " " + c.returnVar + " to double\n"  # %7 = fpext float %6 to double
                     else:
                         self.returnVars[c] = c.returnVar
         else:
-            #i32 %5, double %7, i32 99
+            # i32 %5, double %7, i32 99
             for i in range(len(self.children)):
-                if isinstance(self.children[i], VarNode): # or isinstance(self.children[i], FuncNode):
+                if isinstance(self.children[i], VarNode):  # or isinstance(self.children[i], FuncNode):
                     if isinstance(self.children[i].getType(), FLOAT):
                         code += ", double " + self.returnVars[self.children[i]]
                     else:
@@ -72,3 +74,23 @@ class IoArgListNode(ASTNode):
                     else:
                         code += ", i32 " + self.children[i].printLLVM(True)
         return code
+
+    def toLLVM(self):
+        ll = []
+        for c in self.children:
+            type = c.getType()
+            if isinstance(type, POINTER):
+                for niv in range(c.deref - 1):
+                    type = type.getBase()
+
+            if isinstance(type, CHAR):
+                self.returnVars[c] = varGen.getNewVar(varGen)
+                # %4 = sext i8 %3 to i32
+            elif isinstance(type, FLOAT):
+                self.returnVars[c] = varGen.getNewVar(varGen)
+                code += self.returnVars[c] + " = fpext " + llvmTypes[
+                    str(c.returnType)] + " " + c.returnVar + " to double\n"  # %7 = fpext float %6 to double
+            else:
+                self.returnVars[c] = c.returnVar
+
+        return []

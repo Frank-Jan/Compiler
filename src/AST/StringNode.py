@@ -51,3 +51,20 @@ class StringNode(ASTNode, Type):
                 new += stukje
         self.length = count
         return new
+
+    def toLLVM(self):
+        new = ""
+        count = 0
+        stuk = self.getString()
+        if stuk == "":
+            return llvmStrings['']
+        for i in range(len(stuk)):
+            stukje = stuk[i]
+            try:
+                new += llvmStrings[stukje]
+                count += 1
+            except(KeyError):
+                count += 1
+                new += stukje
+        self.length = count
+        return new

@@ -5,6 +5,7 @@ from .PrintfNode import PrintfNode
 from .VarNode import VarNode
 import src.llvm.LLVM as LLVM
 from .Arg import Arg
+from .TerNode import TerNode
 from .IntNode import IntNode
 
 
@@ -105,15 +106,18 @@ class FuncNode(ASTNode, Type):
         tmp = varGen.getNewVar(varGen)
         self.returnVar = tmp
 
+        stats = []
         args = []
         for arg in self.arguments:
-            tmp = arg.toLLVM()
-            if isinstance(arg, IntNode):
-                args.append(Arg(tmp[0], tmp[1], None, True))
+            if isinstance(arg, VarNode):
+                stats += arg.toLLVM(True)
+                stat = stats[len(stats)-1]
+                args.append(Arg(stat.type, stat.result, None, False))
             else:
-                args.append(Arg(tmp[0], tmp[1], None, False))
+                a = arg.toLLVM()
+                args.append(Arg(a[0], a[1], None, True))
 
-        stats = [LLVM.Call(self.returnVar, self.getType(), self.name, args)]
+        stats += [LLVM.Call(self.returnVar, self.getType(), self.name, args)]
         type = self.getType()
         if isinstance(type, POINTER):
             for niv in range(self.deref-1):
