@@ -3,6 +3,7 @@ from .Type import Type, POINTER, INT
 from .ValueNode import ValueNode
 from .PrintfNode import PrintfNode
 from .VarNode import VarNode
+from .ScanfNode import ScanfNode
 import src.llvm.LLVM as LLVM
 from .Arg import Arg
 from .TerNode import TerNode
@@ -32,7 +33,7 @@ class FuncNode(ASTNode, Type):
     def simplify(self, scope):
         self.isSimplified = True
 
-        if isinstance(self.children[0], PrintfNode):
+        if isinstance(self.children[0], PrintfNode) or isinstance(self.children[0], ScanfNode):
             printf = self.children[0].simplify(scope)
             self.children.remove(printf)
             self.AST.delNode(self)

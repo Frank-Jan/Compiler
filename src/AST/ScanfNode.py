@@ -6,14 +6,14 @@ from .IoArgListNode import IoArgListNode
 import src.llvm.LLVM as LLVM
 
 
-class PrintfNode(ASTNode, Type):
+class ScanfNode(ASTNode, Type):
 
     def __init__(self, maxChildren, ast):
-        ASTNode.__init__(self, 'printf', maxChildren, ast)
+        ASTNode.__init__(self, 'scanf', maxChildren, ast)
         Type.__init__(self, INT())  # default return value of a function is integer
         self.format = None
         self.argList = None
-        self.name = "printf"
+        self.name = "scanf"
         self.returnVar = None
         self.strings = None
 
@@ -23,15 +23,15 @@ class PrintfNode(ASTNode, Type):
     def getFormat(self):
         if self.isSimplified:
             return self.format
-        raise Exception("printf getFormat() called before simplify")
+        raise Exception("scanf getFormat() called before simplify")
 
     def getArgList(self):
         if self.isSimplified:
             return self.argList
-        raise Exception("printf getArgList() called before simplify")
+        raise Exception("scanf getArgList() called before simplify")
 
     def getName(self):
-        return "printf"
+        return "scanf"
 
     def setType(self, type):  # set return type
         pass
@@ -42,10 +42,10 @@ class PrintfNode(ASTNode, Type):
     # give scope where function is defined
     def simplify(self, scope):
         self.isSimplified = True
-        #check if printf is defined:
-        value = scope.search("printf")
+        #check if scanf is defined:
+        value = scope.search("scanf")
         if value is None:
-            raise Exception("printf not declared, add #include <stdio.h>")
+            raise Exception("scanf not declared, add #include <stdio.h>")
 
         toDelete = []
         newChildren = []
@@ -76,7 +76,7 @@ class PrintfNode(ASTNode, Type):
 
     def checkInput(self):
         #check if all inputs are correct
-        # format = self.children[0].getFormat()    #printformat node
+        # format = self.children[0].getFormat()    #scanformat node
         # inputValues = self.children[1].getInputTypes()
         #
         pass
@@ -89,7 +89,7 @@ class PrintfNode(ASTNode, Type):
         if self.argList is not None:
             code += self.argList.printLLVM(True)
         stat = self.returnVar + " = call " + type + " "
-        code += stat + "(i8*, ...) @printf(i8* getelementptr inbounds ("+self.format.returnType+", "+self.format.returnType+"* " + \
+        code += stat + "(i8*, ...) @scanf(i8* getelementptr inbounds ("+self.format.returnType+", "+self.format.returnType+"* " + \
                "@"+self.format.returnVar +", i32 0, i32 0)"
         if self.argList is not None:
             code += self.argList.printLLVM(False)
@@ -99,10 +99,6 @@ class PrintfNode(ASTNode, Type):
     def toLLVM(self):
         llStr = self.format.toLLVM()
         ll = [llStr]
-        args = []
-        if self.argList is not None:
-            ll += self.argList.toLLVM()
-            args = self.argList.args
-
-        ll += [LLVM.CallF(varGen.getNewVar(varGen), args, llStr, True)]
+        ll += self.argList.toLLVM()
+        ll += [LLVM.CallF(varGen.getNewVar(varGen), self.argList.args, llStr, False)]
         return ll

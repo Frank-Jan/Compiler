@@ -21,7 +21,7 @@ class Listener(c_subsetListener):
         for i in range(len(children)):
             if isinstance(children[i], TerminalNode):
                 node = ast.TerNode(children[i].symbol.text, self.AST, pos)
-                if not(ast.toType(node.value) is None):
+                if not (ast.toType(node.value) is None):
                     node.isType = True
                 self.AST.addNode(node, i)
 
@@ -69,7 +69,7 @@ class Listener(c_subsetListener):
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#functionSignatureDefinition.
-    def enterFunctionSignatureDefinition(self, ctx:c_subsetParser.FunctionSignatureDefinitionContext):
+    def enterFunctionSignatureDefinition(self, ctx: c_subsetParser.FunctionSignatureDefinitionContext):
         self.AST.addNode(ast.FuncSignDefNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
@@ -94,7 +94,7 @@ class Listener(c_subsetListener):
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#assignRight.
-    def enterAssignRight(self, ctx:c_subsetParser.AssignRightContext):
+    def enterAssignRight(self, ctx: c_subsetParser.AssignRightContext):
         self.AST.addNode(ast.AssignRightNode(self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
@@ -149,22 +149,22 @@ class Listener(c_subsetListener):
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#value.
-    def enterValue(self, ctx:c_subsetParser.ValueContext):
+    def enterValue(self, ctx: c_subsetParser.ValueContext):
         self.AST.addNode(ast.ValueNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#lvalue.
-    def enterLvalue(self, ctx:c_subsetParser.LvalueContext):
+    def enterLvalue(self, ctx: c_subsetParser.LvalueContext):
         self.AST.addNode(ast.LvalueNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#arrayElement.
-    def enterArrayElement(self, ctx:c_subsetParser.ArrayElementContext):
+    def enterArrayElement(self, ctx: c_subsetParser.ArrayElementContext):
         self.AST.addNode(ast.ArrayElementNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#rvalue.
-    def enterRvalue(self, ctx:c_subsetParser.RvalueContext):
+    def enterRvalue(self, ctx: c_subsetParser.RvalueContext):
         self.AST.addNode(ast.RvalueNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
@@ -189,14 +189,14 @@ class Listener(c_subsetListener):
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#array.
-    def enterArray(self, ctx:c_subsetParser.ArrayContext):
+    def enterArray(self, ctx: c_subsetParser.ArrayContext):
         self.AST.addNode(ast.ArrayNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#char.
-    def enterChar(self, ctx:c_subsetParser.CharContext):
+    def enterChar(self, ctx: c_subsetParser.CharContext):
         self.AST.addNode(ast.CharNode(ctx.getText(), self.AST, (ctx.start.line, ctx.start.column)))
-        #self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+        # self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#integer.
     def enterInteger(self, ctx: c_subsetParser.IntegerContext):
@@ -206,17 +206,17 @@ class Listener(c_subsetListener):
     # Enter a parse tree produced by c_subsetParser#float_.
     def enterFloat_(self, ctx: c_subsetParser.Float_Context):
         self.AST.addNode(ast.FloatNode(ctx.getText(), self.AST, (ctx.start.line, ctx.start.column)))
-        #self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+        # self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#typeSpecBase.
-    def enterTypeSpecBase(self, ctx:c_subsetParser.TypeSpecBaseContext):
+    def enterTypeSpecBase(self, ctx: c_subsetParser.TypeSpecBaseContext):
         node = ast.TypeSpecBaseNode(ctx.getText(), len(ctx.children), self.AST)
-        node.type = ast.toType(ctx.children[0].symbol.text) #first child is always a type
+        node.type = ast.toType(ctx.children[0].symbol.text)  # first child is always a type
         self.AST.addNode(node)
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#typeSpecReference.
-    def enterTypeSpecReference(self, ctx:c_subsetParser.TypeSpecReferenceContext):
+    def enterTypeSpecReference(self, ctx: c_subsetParser.TypeSpecReferenceContext):
         self.AST.addNode(ast.TypeSpecReferenceNode(ctx.getText(), len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
@@ -231,42 +231,41 @@ class Listener(c_subsetListener):
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#typeSpecFunc.
-    def enterTypeSpecFunc(self, ctx:c_subsetParser.TypeSpecFuncContext):
+    def enterTypeSpecFunc(self, ctx: c_subsetParser.TypeSpecFuncContext):
         self.AST.addNode(ast.TypeSpecFuncNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#stdio.
-    def enterStdio(self, ctx:c_subsetParser.StdioContext):
+    def enterStdio(self, ctx: c_subsetParser.StdioContext):
         self.AST.addNode(ast.StdioNode(ctx.getText(), self.AST, (ctx.start.line, ctx.start.column)))
 
     # Enter a parse tree produced by c_subsetParser#printf.
     def enterPrintf(self, ctx: c_subsetParser.PrintfContext):
-        self.AST.addNode(ast.PrintfNode(len(ctx.children),self.AST))
+        self.AST.addNode(ast.PrintfNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#scanf.
     def enterScanf(self, ctx: c_subsetParser.ScanfContext):
-        # self.AST
-        raise Exception("Woops enter scanNode not implemented")
+        self.AST.addNode(ast.ScanfNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#printFormat.
-    def enterPrintFormat(self, ctx:c_subsetParser.PrintFormatContext):
+    def enterPrintFormat(self, ctx: c_subsetParser.PrintFormatContext):
         self.AST.addNode(ast.PrintFormatNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#formatChar.
-    def enterFormatCharScan(self, ctx:c_subsetParser.FormatCharScanContext):
-        raise Exception("Woops enter scanNode not implemented")
-        self.AST.addNode(ast.FormatCharPrintNode(len(ctx.children), self.AST))
+    def enterFormatCharScan(self, ctx: c_subsetParser.FormatCharScanContext):
+        self.AST.addNode(ast.FormatCharScanNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#formatChar.
-    def enterFormatCharPrint(self, ctx:c_subsetParser.FormatCharPrintContext):
+    def enterFormatCharPrint(self, ctx: c_subsetParser.FormatCharPrintContext):
         self.AST.addNode(ast.FormatCharPrintNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
     # Enter a parse tree produced by c_subsetParser#string.
-    def enterString(self, ctx:c_subsetParser.StringContext):
+    def enterString(self, ctx: c_subsetParser.StringContext):
         self.AST.addNode(ast.StringNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
@@ -283,4 +282,3 @@ class Listener(c_subsetListener):
     # def enterGeneralVarDefinition(self, ctx:c_subsetParser.GeneralVarDefinitionContext):
     #     self.AST.addNode(VarDefNode(len(ctx.children), self.AST))
     #     self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
-

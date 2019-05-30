@@ -3,15 +3,16 @@ from .TerNode import TerNode
 from .ValueNode import ValueNode
 from .VarNode import VarNode
 # from .FuncNode import FuncNode
-from .Type import POINTER, CHAR, FLOAT
+from .Type import POINTER, CHAR, FLOAT, REFERENCE
 from .Types import llvmTypes
+import src.llvm.LLVM as LLVM
 
 
 class IoArgListNode(ASTNode):
 
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'IoArgList', maxChildren, ast)
-        self.returnVars = {}
+        self.args = []
 
     def simplify(self, scope):
         newChildren = []
@@ -78,19 +79,34 @@ class IoArgListNode(ASTNode):
     def toLLVM(self):
         ll = []
         for c in self.children:
+            ll += c.toLLVM(True)
             type = c.getType()
+            arg = [None, None] # tupel with type and var as STRINGS
+            var = ""
+            if isinstance(type, REFERENCE):
+                tup = c.toLLVM()
+                arg[0] = tup[0].toLLVM()
+                arg[1] = tup[1]
+            else:
+                var = ll[len(ll)-1].result
+                arg[0] = type.toLLVM()
+                arg[1] = var
+
             if isinstance(type, POINTER):
                 for niv in range(c.deref - 1):
                     type = type.getBase()
 
             if isinstance(type, CHAR):
-                self.returnVars[c] = varGen.getNewVar(varGen)
                 # %4 = sext i8 %3 to i32
+                arg[0] = "i32"
+                arg[1] = varGen.getNewVar(varGen)
+                ll += [LLVM.Sext(arg[1], type, var)]
             elif isinstance(type, FLOAT):
-                self.returnVars[c] = varGen.getNewVar(varGen)
-                code += self.returnVars[c] + " = fpext " + llvmTypes[
-                    str(c.returnType)] + " " + c.returnVar + " to double\n"  # %7 = fpext float %6 to double
-            else:
-                self.returnVars[c] = c.returnVar
+                # %7 = fpext float %6 to double
+                arg[0] = "double"
+                arg[1] = varGen.getNewVar(varGen)
+                ll += [LLVM.Fpext(arg[1], type, var)]
 
-        return []
+            self.args.append(arg)
+
+        return ll

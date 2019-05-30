@@ -314,12 +314,12 @@ class Str(LLVMInstr):
 
 class CallF(LLVMInstr):
 
-    def __init__(self, result, args, string, count, printf=True):
+    def __init__(self, result, args, Str, printf=True):
         LLVMInstr.__init__(self)
         self.result = result
         self.args = args
-        self.string = string
-        self.count = count
+        self.string = Str.name
+        self.count = Str.count
         self.printf = printf
 
     def __str__(self):
@@ -329,21 +329,36 @@ class CallF(LLVMInstr):
             op = "printf"
         ll = "%" + self.result + " = call i32 (i8*, ...) @" + op + "(i8* getelementptr inbounds ([" + str(
             self.count) + " x i8], [" + str(
-            self.count) + " x i8]* " + self.string.name + ", i32 0, i32 0)"
+            self.count) + " x i8]* @." + self.string + ", i32 0, i32 0)"
 
         for arg in self.args:
-            ll += ", i32 %" + str(arg)
+            ll += ", " + arg[0] + " %" + arg[1]
 
         return ll + ")\n"
 
 
-class sext(LLVMInstr):
+class Sext(LLVMInstr):
 
-    def __init__(self, result, _type, retVar):
+    def __init__(self, result, _type, var):
+        LLVMInstr.__init__(self)
         self.result = result
         self.type = _type
-        self.retVar = retVar
+        self.var = var
 
     def __str__(self):
+        # %4 = sext i8 %3 to i32
         tmpType = self.type.toLLVM()
-        ll = "%" + self.result + " = sext " + tmpType + " " + str(retVar) + " to i32\n"
+        return "%" + self.result + " = sext " + tmpType + " %" + str(self.var) + " to i32\n"
+
+class Fpext(LLVMInstr):
+
+    def __init__(self, result, _type, var):
+        LLVMInstr.__init__(self)
+        self.result = result
+        self.type = _type
+        self.var = var
+
+    def __str__(self):
+        # %7 = fpext float %6 to double
+        tmpType = self.type.toLLVM()
+        return "%" + self.result + " = fpext " + tmpType + " %" + str(self.var) + " to double\n"
