@@ -25,7 +25,8 @@ functionStatement
         | returnStatement
         | variable
         | function
-        | literal )
+        | literal
+        )
         ';'
     ;
 
@@ -39,9 +40,26 @@ returnStatement
     | RETURN
     ;
 
+arrayDeclaration
+    : shortArrayDeclaration
+    | longArrayDeclaration
+    ;
+
+shortArrayDeclaration
+    : typeSpec variable '[' ']'
+    ;
+
+longArrayDeclaration
+    : typeSpec variable '['integer']'
+    ;
+
+arrayInitialiser
+    : '=' array
+    ;
 
 variableDefinition
     : variableDeclaration assignRight
+    | arrayDeclaration arrayInitialiser
     ;
 
 functionDefinition
@@ -63,7 +81,7 @@ generalVarDefinition
 
 variableDeclaration
     : typeSpec variable //normal variables and pointers
-    | typeSpec variable '['integer']'    //arrays
+    | longArrayDeclaration //arrays
     ;
 
 
@@ -158,7 +176,7 @@ rvalue
     | literal
     | '&' lvalue
     | arithmeticOperation
-    | array
+//    | array
     ;
 
 array
