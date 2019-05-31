@@ -3,6 +3,7 @@ from .Type import Type, POINTER, ARRAY, REFERENCE, compareTypes
 from .VarNode import VarNode
 from .FuncNode import FuncNode
 from .ArOpNode import ArOpNode
+from .ArrayInitialiser import ArrayInitNode
 from .VarDeclNode import VarDeclNode
 import src.llvm.LLVM as LLVM
 
@@ -26,7 +27,16 @@ class VarDefNode(ASTNode):
 
         # VarDecl simplify adds variable to node
         varDecl = self.children[0].simplify(scope)  # VarDeclNode
-        assignRight = self.children[1].simplify(scope)  # AssignRightNode
+        assignRight = self.children[1]  # AssignRightNode or ArrayINitNode
+
+        if isinstance(assignRight, ArrayInitNode):
+            children = assignRight.stealChildren()
+            self.AST.delNode(assignRight)
+            assignRight = children[1]
+            self.AST.delNode(children[0])
+
+        assignRight = assignRight.simplify(scope)  # AssignRightNode
+
         if assignRight is not self.children[1]:
             self.AST.delNode(self.children[1])
             self.children[1] = assignRight
@@ -43,14 +53,15 @@ class VarDefNode(ASTNode):
                                     "{} {} and {}".format(varDecl.getType(), varDecl.getName(), assignRight.getType()))
 
         if isinstance(self.children[0].getType(), ARRAY) and isinstance(self.children[1].getType(), ARRAY):
-            if self.children[0].getType().array != self.children[1].getType().array:   # check if right array is long enough
+            if self.children[0].size is None:
+                self.children[0].size = self.children[1].length
+            elif self.children[0].size < self.children[1].length:   # check if right array is long enough
                 # printError("{} != {}".format(type(self.children[0].getType().array),type(self.children[1].getType().array)))
-                raise Exception("error: assigning two elements of different lenghts: {}[{}] and [{}]"
+                raise Exception("error: assigning initialiser greater than array: {}[{}] and [{}]"
                                 .format(self.children[0].getName(), self.children[0].getType().array, self.children[1].getType().array))
 
-            elif isinstance(self.children[0].getType(), ARRAY) and isinstance(self.children[1].getType(), ARRAY):
-                if isinstance(self.children[1], VarNode):
-                    raise Exception("error: invalid initialisation: array and variable array")
+            if isinstance(self.children[1], VarNode):
+                raise Exception("error: invalid initialisation: array and variable array")
 
         self.AST.printDotDebug(str(self.getCount()) + "vardef.dot")
         return self

@@ -9,7 +9,7 @@ class ArrayNode(ASTNode, Type):
     def __init__(self, maxChildren, ast):
         ASTNode.__init__(self, 'Array', maxChildren, ast)
         Type.__init__(self, VOID())
-        self.length = 1
+        self.length = 0
 
     def getType(self):
         if self.isSimplified:
@@ -21,7 +21,7 @@ class ArrayNode(ASTNode, Type):
             return self.length
         raise Exception("error: ArrayPrintNode getLength called before simplify")
 
-    def simplify(self,scope):
+    def simplify(self, scope):
         self.isSimplified = True
         toDelete = []
         newChildren = []
@@ -69,9 +69,9 @@ class ArrayElementNode(VarNode):
         newChildren = []
         node = self.children[0].simplify(scope)
         self.name = node.getName()
-        #check if varnode is array
+        #check if varnode is pointer
         if not (isinstance(node.getType(), POINTER)):
-            raise Exception("error: used [] on non-array")
+            raise Exception("error: used [] on non-pointer")
 
         self.type = node.getType().getBase()
 

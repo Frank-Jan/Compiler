@@ -1,6 +1,9 @@
 from .AddNode import AddNode
 from .ArOpNode import ArOpNode
+from .ArrayDeclaration import ArrayDeclNode
+from .ArrayInitialiser import ArrayInitNode
 from .ArrayNode import ArrayNode
+from .ArrayNode import ArrayElementNode
 from .AssignNode import AssignNode
 from .AssignRightNode import AssignRightNode
 from .AST import AST
@@ -27,6 +30,7 @@ from .IfElseNode import IfElseNode
 from .IntNode import IntNode
 from .IoArgListNode import IoArgListNode
 from .LitNode import LitNode
+from .LongArrayDeclaration import LongArrayDeclNode
 from .LoopNode import LoopNode
 from .LvalueNode import LvalueNode
 from .NameNode import NameNode
@@ -39,6 +43,7 @@ from .RootNode import RootNode
 from .RvalueNode import RvalueNode
 from .ScanfNode import ScanfNode
 from .ScopeNode import ScopeNode
+from .ShortArrayDeclaration import ShortArrayDeclNode
 from .StdioNode import StdioNode
 from .StringNode import StringNode
 from .TerNode import TerNode

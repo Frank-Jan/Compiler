@@ -187,7 +187,7 @@ class REFERENCE(VOID):
         self.type = type
 
     def getType(self):
-        return self.__str__()
+        return self.type
 
     def getAlign(self):
         return "8"
@@ -202,7 +202,7 @@ class REFERENCE(VOID):
         return self.type.printLLVM() + "*"
 
     def __str__(self):
-        return "&" + self.type.__str__()
+        return "&" + str(self.type)
 
 
 class ARRAY(POINTER):
@@ -215,6 +215,8 @@ class ARRAY(POINTER):
     def toLLVM(self):
         return self.getBase().printLLVM() + "*"
 
+    def __str__(self):
+        return str(self.type)
 
 class PPP:
 

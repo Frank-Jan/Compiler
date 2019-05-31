@@ -282,3 +282,23 @@ class Listener(c_subsetListener):
     # def enterGeneralVarDefinition(self, ctx:c_subsetParser.GeneralVarDefinitionContext):
     #     self.AST.addNode(VarDefNode(len(ctx.children), self.AST))
     #     self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+
+    # Enter a parse tree produced by c_subsetParser#arrayDeclaration.
+    def enterArrayDeclaration(self, ctx: c_subsetParser.ArrayDeclarationContext):
+        self.AST.addNode(ast.ArrayDeclNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+
+    # Enter a parse tree produced by c_subsetParser#shortArrayDeclaration.
+    def enterShortArrayDeclaration(self, ctx: c_subsetParser.ShortArrayDeclarationContext):
+        self.AST.addNode(ast.ShortArrayDeclNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+
+    # Enter a parse tree produced by c_subsetParser#longArrayDeclaration.
+    def enterLongArrayDeclaration(self, ctx: c_subsetParser.LongArrayDeclarationContext):
+        self.AST.addNode(ast.LongArrayDeclNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+
+    # Enter a parse tree produced by c_subsetParser#arrayInitialiser.
+    def enterArrayInitialiser(self, ctx: c_subsetParser.ArrayInitialiserContext):
+        self.AST.addNode(ast.ArrayInitNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))

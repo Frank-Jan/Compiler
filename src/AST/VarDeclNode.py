@@ -30,6 +30,9 @@ class VarDeclNode(ASTNode, Type):
             self.type = self.children[0].simplify(scope)
             self.var = self.children[1].simplifyAsName(scope)
         else:
+            child = self.children[0]
+            self.children = child.stealChildren()
+            self.AST.delNode(child)
             self.size = int(self.children[3].value)
             self.type = ARRAY(self.children[0].simplify(scope))
             self.var = self.children[1].simplifyAsName(scope)

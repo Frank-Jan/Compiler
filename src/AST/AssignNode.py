@@ -28,22 +28,22 @@ class AssignNode(ASTNode):
         if isinstance(self.left.getType(), ARRAY):
             raise Exception("error: assignment to expression with array type")
 
-        #check if left side is declared/defined and a variable
+        # check if left side is declared/defined and a variable
         # check if declared or defined in symboltable:
         self.left.checkDeclaration(scope)
 
         # check if left and right have the same type:
         if not compareTypes(self.left, self.right):
             raise Exception("error: assigning two different types: "
-                            "{} {} and {} {}".format(self.left.getType().getBase(), self.left.value , self.right.getType(), self.right.value))
+                            "{} {} and {} {}".format(self.left.getType().getBase(), self.left.value,
+                                                     self.right.getType(), self.right.value))
 
         self.AST.printDotDebug(str(self.getCount()) + "Assign.dot")
         return self
 
-
     def printLLVM(self):
         code = ""
-        #self.returnVar = VarGen.getNewVar(varGen)
+        # self.returnVar = VarGen.getNewVar(varGen)
         # symbolTable = self.getSymbolTable()
         # record = symbolTable.search(self.left.value)
         # if record is None:
@@ -71,11 +71,11 @@ class AssignNode(ASTNode):
         if isinstance(right, VarNode):
             ll2 = right.toLLVM(True)
             stats += ll2
-            stats += [LLVM.Store(self.left.getType(), stats[len(stats)-1].result, ll[1])]
+            stats += [LLVM.Store(self.left.getType(), stats[len(stats) - 1].result, ll[1])]
         elif isinstance(right, FuncNode) or isinstance(right, ArOpNode):
             ll2 = right.toLLVM()
             stats += ll2
-            stats += [LLVM.Store(ll2[len(ll2)-1].type, stats[len(stats)-1].result, ll[1])]
+            stats += [LLVM.Store(ll2[len(ll2) - 1].type, stats[len(stats) - 1].result, ll[1])]
         else:
             stats += [LLVM.Store(lr[0], lr[1], left.toLLVM()[1], True)]
 
