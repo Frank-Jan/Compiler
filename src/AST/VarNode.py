@@ -95,8 +95,8 @@ class VarNode(ASTNode, Type):
         else:
             return "%" + self.value  # %6
 
-    def toLLVM(self, LLVMOBJ=False):
-        if LLVMOBJ:
+    def toLLVM(self, load=False):
+        if load:
             if isinstance(self.getType(), REFERENCE):
                 self.returnVar = self.value
                 return [] # geen load nodig

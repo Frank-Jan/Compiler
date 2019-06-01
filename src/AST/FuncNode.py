@@ -103,7 +103,7 @@ class FuncNode(ASTNode, Type):
                 self.returnType = self.returnType.getBase()
         return stat + code
 
-    def toLLVM(self):
+    def toLLVM(self, load=True):
         tmp = varGen.getNewVar(varGen)
         self.returnVar = tmp
 

@@ -55,12 +55,12 @@ class CondExpNode(ASTNode):
 
     def toLLVM(self):
         self.returnVar = varGen.getNewVar(varGen)
-        stats = [LLVM.Label(True)]
+        stats = []
         l = self.left.toLLVM()
         r = self.right.toLLVM()
         lit1 = True
         lit2 = True
-        _type = None
+        type = self.left.getType()
         if isinstance(self.left, VarNode):
             lit1 = False
             stats += self.left.toLLVM(True)
@@ -87,6 +87,6 @@ class CondExpNode(ASTNode):
 
         op = opTypes[self.value]
 
-        stats += [LLVM.Icmp(op, _type, l, r, lit1, lit2)]
+        stats += [LLVM.Icmp(op, type, l, r, lit1, lit2)]
 
         return stats

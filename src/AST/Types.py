@@ -97,7 +97,7 @@ class CHAR(VOID):
         return 'mul'
 
     def getDiv(self):
-        return 'div'
+        return 'sdiv'
 
 
 class INT(VOID):
@@ -126,7 +126,7 @@ class INT(VOID):
         return 'mul'
 
     def getDiv(self):
-        return 'div'
+        return 'sdiv'
 
 class FLOAT(VOID):
     def getType(self):

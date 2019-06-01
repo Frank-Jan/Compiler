@@ -82,14 +82,21 @@ class IfElseNode(ASTNode):
         return code
 
     def toLLVM(self):
+
+        label1 = LLVM.Label()
+        label2 = LLVM.Label()
+        label3 = LLVM.Label()
+
         ll = self.cond.toLLVM()
+        icmp = ll[-1]
+        condBranch = LLVM.Branch(label1, label2, icmp.result)
 
         ifstats = self.ifBlock.toLLVM()
+        ifBranch = LLVM.Branch(label3)
 
         elstats = []
         if self.elseBlock is not None:
             elstats += self.elseBlock.toLLVM()
+        elseBranch = LLVM.Branch(label3)
 
-        ll += [LLVM.Branch(ll[len(ll)-1].result, ifstats, elstats)]
-
-        return ll
+        return ll + [condBranch, label1] + ifstats + [ifBranch, label2] + elstats + [elseBranch, label3]

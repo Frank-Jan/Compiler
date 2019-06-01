@@ -85,7 +85,7 @@ class AddNode(ArOpNode):
         code += self.returnVar + " = " + op + " " + l + ", " + r + "\n"
         return code
 
-    def toLLVM(self):
+    def toLLVM(self, load=True):
         self.returnVar = varGen.getNewVar(varGen)
         stats = []
         l = self.left.toLLVM()

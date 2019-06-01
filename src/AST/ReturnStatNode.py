@@ -6,7 +6,9 @@ from .IntNode import IntNode
 from .FloatNode import FloatNode
 from .FuncNode import FuncNode
 from .CharNode import CharNode
+from .TerNode import TerNode
 import src.llvm.LLVM as LLVM
+
 
 class ReturnStatNode(ASTNode, Type):
 
@@ -59,16 +61,31 @@ class ReturnStatNode(ASTNode, Type):
         return code
 
     def toLLVM(self):
-        if (self.child == None):
-            return [LLVM.Return(self.getType(), "", True)]
-        if isinstance(self.child, IntNode):
-            tmp = self.child.toLLVM()
-            return [LLVM.Return(tmp[0], tmp[1], True)]
+        # ret i32 %6 | ret i32 0 | ret void
+        ll = []
+        type = self.getType()
+        var = ""
+        lit = True
+
+        node = self.child
+
+        # IntNode, FloatNode, CharNode
+        if isinstance(node, TerNode):
+            typVal = node.toLLVM()
+            type = typVal[0]
+            var = typVal[1]
+            return [LLVM.Return(typVal[0], typVal[1], True)]
+        # funcNodes, addNodes, varNodes,...
         else:
-            ll = []
-            if isinstance(self.child, VarNode):
-                ll = self.child.toLLVM(True)
-            if len(ll) == 0:
-                self.child.toLLVM()
-            ll.append(LLVM.Return(self.child.getType(), self.child.returnVar))
-            return ll
+            ll += node.toLLVM(True)
+            lit = False
+
+            # reference
+            if ll == []:
+                var = node.value
+            else:
+                var = ll[-1].result
+
+        ret = LLVM.Return(type, var, lit)
+        ll += [ret]
+        return ll

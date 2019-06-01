@@ -1,5 +1,7 @@
 from .ScopeNode import ScopeNode
 from .ASTNode import ASTNode
+from .Type import Type, VOID
+import src.llvm.LLVM as LLVM
 
 
 class CodeBlockNode(ScopeNode):
@@ -47,4 +49,6 @@ class CodeBlockNode(ScopeNode):
         stats = []
         for child in self.children:
             stats += child.toLLVM()
+        if stats == []:
+            stats += [LLVM.Return(VOID(), "", True)]
         return stats

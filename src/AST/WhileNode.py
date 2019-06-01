@@ -3,6 +3,7 @@ from .CodeBlockNode import CodeBlockNode
 from src.SymbolTable import SymbolTable
 import src.llvm.LLVM as LLVM
 
+
 class WhileNode(ASTNode):
 
     def __init__(self, maxChildren, ast):
@@ -47,10 +48,18 @@ class WhileNode(ASTNode):
         return code
 
     def toLLVM(self):
-        ll = self.cond.toLLVM() # eerste element is label obj
 
-        ifstats = self.block.toLLVM()
+        label1 = LLVM.Label()
+        label2 = LLVM.Label()
+        label3 = LLVM.Label()
 
-        ll += [LLVM.Branch(ll[len(ll)-1].result, ifstats, [], ll[0])]
+        firstBranch = LLVM.Branch(label1)
 
-        return ll
+        ll = self.cond.toLLVM()
+        icmp = ll[-1]
+        condBranch = LLVM.Branch(label2, label3, icmp.result)
+
+        stats = self.block.toLLVM()
+        backBranch = LLVM.Branch(label1)
+
+        return [firstBranch, label1] + ll + [condBranch, label2] + stats + [backBranch, label3]

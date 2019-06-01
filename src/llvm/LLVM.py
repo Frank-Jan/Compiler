@@ -153,7 +153,8 @@ class Call(LLVMInstr):  # %2 = call i32 @test()
         return ll
 
 
-class Return(LLVMInstr):  # ret i32 %6
+# ret i32 %6 | ret i32 0 | ret void
+class Return(LLVMInstr):
 
     def __init__(self, _type, var, lit=False):
         LLVMInstr.__init__(self)
@@ -224,39 +225,24 @@ class Div(Arithmetic):
 
 ########################################################################
 
-
+# br i1 %5, label %6, label %7 | br label %9
 class Branch(LLVMInstr):
 
-    def __init__(self, result, stats1, stats2, label0=None):
+    def __init__(self, label1, label2=None, var=None):
         LLVMInstr.__init__(self)
-        self.result = result
-        self.label0 = label0
-        self.label1 = Label()
-        self.label2 = Label()
-        self.label3 = Label()
-        self.stats1 = stats1
-        self.stats2 = stats2
+        self.var = var
+        self.label1 = label1
+        self.label2 = label2
 
     def __str__(self):
-        # br i1 %5, label %6, label %7
-        ll = "br i1 %" + str(self.result) + ", label %" + self.label1.label + ", label %" + self.label2.label + "\n\n"
-
-        ll += str(self.label1)
-        for stat in self.stats1:
-            ll += str(stat)
-        if self.label0 is None:
-            ll += "br label %" + self.label3.label + "\n\n"
-        else:  # while node
-            ll += "br label %" + self.label0.label + "\n\n"
-
-        ll += str(self.label2)
-        for stat in self.stats2:
-            ll += str(stat)
-        ll += "br label %" + self.label3.label + "\n\n"
-        ll += str(self.label3)
-        return ll
+        if self.var is None and self.label2 is None:
+            return "br label %" + str(self.label1.label) + "\n"
+        else:
+            return "br i1 %" + str(self.var) + ", label %" + str(self.label1.label) + ", label %" + str(
+                self.label2.label) + "\n"
 
 
+# %4 = icmp slt i32 %3, 3
 class Icmp(LLVMInstr):
 
     def __init__(self, op, _type, val1, val2, lit1=False, lit2=False):
@@ -284,19 +270,15 @@ class Icmp(LLVMInstr):
         return ll
 
 
+# LabelName:
 class Label(LLVMInstr):
 
-    def __init__(self, br=False):
+    def __init__(self):
         LLVMInstr.__init__(self)
         self.label = varGen.getNewLabel(varGen)
-        self.br = br
 
     def __str__(self):
-        ll = ""
-        if self.br:
-            ll += "\nbr label %" + self.label + "\n"
-        ll += self.label + ":\n"
-        return ll
+        return "\n" + self.label + ":\n"
 
 
 # For printf and scanf
@@ -311,9 +293,9 @@ class Str(LLVMInstr):
 
     def __str__(self):
         # @.str = private unnamed_addr constant [25 x i8] c"Hey a uis gelijk aan: %d\00", align 1
-        self.string = "c\"" + self.string + "\\00"
+        tmpString = "c\"" + self.string + "\\00"
         self.returnType = "[" + str(self.count) + " x i8]"
-        return "@." + self.name + " = private unnamed_addr constant " + self.returnType + " " + self.string + "\", align 1\n\n"
+        return "@." + self.name + " = private unnamed_addr constant " + self.returnType + " " + tmpString + "\", align 1\n\n"
 
 
 class CallF(LLVMInstr):
