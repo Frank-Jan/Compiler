@@ -9,7 +9,7 @@ class LLVMInstr:
     def __init__(self):
         self.line = 0
         self.function = None
-        
+
     def setFunction(self, func):
         self.function = func
 
@@ -24,8 +24,12 @@ class Alloca(LLVMInstr):
 
     def __str__(self):
         tmpType = self.type.toLLVM()
-
-        return "%" + str(self.result) + " = alloca " + str(tmpType) + ", align " + str(self.align) + "\n"
+        if not isinstance(tmpType, ARRAY):
+            return "%" + str(self.result) + " = alloca " + str(tmpType) + ", align " + str(self.align) + "\n"
+        else:
+            # %6 = alloca [5 x i32], align 16
+            return "%" + str(self.result) + " = alloca " + str(tmpType) + ", align " + (self.type.size - 1) * str(
+                self.align) + "\n"
 
 
 class Store(LLVMInstr):
@@ -111,8 +115,8 @@ class Define(LLVMInstr):
         self.stats = load + self.stats
 
         for stat in self.stats:
-            stat.setFunction(self) # set function
-            if isinstance(stat, Str):
+            stat.setFunction(self)  # set function
+            if isinstance(stat, Str) or isinstance(stat, Array):
                 ll = str(stat) + ll
             else:
                 ll += str(stat)
@@ -350,6 +354,7 @@ class Sext(LLVMInstr):
         tmpType = self.type.toLLVM()
         return "%" + self.result + " = sext " + tmpType + " %" + str(self.var) + " to i32\n"
 
+
 class Fpext(LLVMInstr):
 
     def __init__(self, result, _type, var):
@@ -362,3 +367,81 @@ class Fpext(LLVMInstr):
         # %7 = fpext float %6 to double
         tmpType = self.type.toLLVM()
         return "%" + self.result + " = fpext " + tmpType + " %" + str(self.var) + " to double\n"
+
+
+# ARRAYS
+#####################################################################################################
+class Array(LLVMInstr):
+
+    def __init__(self, name, length, _type, elements):
+        LLVMInstr.__init__(self)
+        self.name = name
+        self.length = length
+        self.type = _type
+        self.type.size = self.length
+        self.elements = elements
+        for i in range(len(elements), self.length):
+            self.elements.append(0)
+
+    def __str__(self):
+        # @main.arr1 = private unnamed_addr constant [5 x i32] [i32 1, i32 2, i32 3, i32 4, i32 5], align 16
+        tmpType = self.type.getBase().toLLVM()
+        ll = "@." + self.name + " = private unnamed_addr constant [" + str(self.length) + " x " + tmpType + "] ["
+
+        for el in self.elements:
+            ll += tmpType + " " + str(el) + ", "
+        ll = ll[:-2]
+        ll += "], align " + str(self.type.getAlign()) + "\n\n"
+        return ll
+
+
+class Bitcast(LLVMInstr):
+
+    def __init__(self, result, _type, var):
+        LLVMInstr.__init__(self)
+        self.result = result
+        self.type = _type
+        self.var = var
+
+    def __str__(self):
+        #  %4 = bitcast [2 x i32]* %3 to i8*
+        tmpType = self.type.toLLVM()
+        return "%" + self.result + " = bitcast " + tmpType + "* %" + self.var + " to i8*\n"
+
+
+class CallA(LLVMInstr):
+
+    def __init__(self, var, type, arrayName):
+        LLVMInstr.__init__(self)
+        self.var = var
+        self.type = type
+        self.arrayName = arrayName
+
+    def __str__(self):
+        #  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %5, i8* bitcast ([2 x i32]* @main.arr2 to i8*), i64 8, i32 4, i1 false)
+        tmpType = self.type.toLLVM()
+        ll = "call void @llvm.memcpy.p0i8.p0i8.i64(i8* %" + str(
+            self.var) + ", i8* bitcast (" + str(tmpType) + "* @." + self.arrayName + " to i8*), i64 8, i32 4, i1 false)"
+        return ll + "\n"
+
+
+class Memcpy(LLVMInstr):
+
+    def __str__(self):
+        return "declare void @llvm.memcpy.p0i8.p0i8.i64(i8* nocapture writeonly, i8* nocapture readonly, i64, i32, i1)\n\n"
+
+
+class Getel(LLVMInstr):
+
+    def __init__(self, result, type, var, position):
+        LLVMInstr.__init__(self)
+        self.result = result
+        self.type = type
+        self.var = var
+        self.position = position
+
+    def __str__(self):
+        # %8 = getelementptr inbounds [3 x i32], [3 x i32]* %2, i64 0, i64 1
+        tmpType = self.type.toLLVM()
+        return "%" + str(self.result) + " = getelementptr inbounds " + str(tmpType) + ", " + str(tmpType) + "* %" + str(
+            self.var) + ", i64 0, i64 " + str(self.position) + "\n"

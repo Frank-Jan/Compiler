@@ -5,6 +5,8 @@ from .FuncNode import FuncNode
 from .ArOpNode import ArOpNode
 from .ArrayInitialiser import ArrayInitNode
 from .VarDeclNode import VarDeclNode
+from .ArrayDeclaration import ArrayDeclNode
+from .ArrayNode import ArrayNode
 import src.llvm.LLVM as LLVM
 
 class VarDefNode(ASTNode):
@@ -54,7 +56,8 @@ class VarDefNode(ASTNode):
 
         if isinstance(self.children[0].getType(), ARRAY) and isinstance(self.children[1].getType(), ARRAY):
             if self.children[0].size is None:
-                self.children[0].size = self.children[1].length
+                self.children[0].setSize(self.children[1].length)
+
             elif self.children[0].size < self.children[1].length:   # check if right array is long enough
                 # printError("{} != {}".format(type(self.children[0].getType().array),type(self.children[1].getType().array)))
                 raise Exception("error: assigning initialiser greater than array: {}[{}] and [{}]"
@@ -87,12 +90,18 @@ class VarDefNode(ASTNode):
 
     def toLLVM(self):
         node = self.children[1]
+        if isinstance(node, ArrayNode):
+            node.length = self.children[0].size
+            self.children[0].arrayInit = node
         ll = node.toLLVM()
         stats = self.children[0].toLLVM(True)
+
         if isinstance(node, VarNode):
             ll2 = node.toLLVM(True)
             stats += ll2
             stats += [LLVM.Store(self.getType(), node.returnVar, stats[0].result)]
+        elif isinstance(node, ArrayNode):
+            stats += ll
         elif isinstance(node, FuncNode) or isinstance(node, ArOpNode):
             ll2 = node.toLLVM()
             stats += ll2

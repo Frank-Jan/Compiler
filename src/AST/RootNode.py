@@ -1,6 +1,8 @@
 from .ScopeNode import ScopeNode
 from .GenStatNode import GenStatNode
 from src.SymbolTable import SymbolTable
+import src.llvm.LLVM as LLVM
+
 
 class RootNode(ScopeNode):
     def __init__(self, value, maxChildren, ast):
@@ -27,7 +29,7 @@ class RootNode(ScopeNode):
         return self
 
     def toLLVM(self):
-        stats = []
+        stats = [LLVM.Memcpy()]
         for child in self.children:
             stats += child.toLLVM()
         return stats

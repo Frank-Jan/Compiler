@@ -34,7 +34,7 @@ class VarDeclNode(ASTNode, Type):
             self.children = child.stealChildren()
             self.AST.delNode(child)
             self.size = int(self.children[3].value)
-            self.type = ARRAY(self.children[0].simplify(scope))
+            self.type = ARRAY(self.size, self.children[0].simplify(scope))
             self.var = self.children[1].simplifyAsName(scope)
 
             self.type.array = int(self.children[3].value)

@@ -1,7 +1,8 @@
-from .ASTNode import ASTNode
-from .Type import Type, POINTER, INT, VOID, ARRAY
+from .ASTNode import ASTNode, varGen
+from .Type import Type, POINTER, INT, VOID, ARRAY, REFERENCE
 from .VarNode import VarNode
 from .TerNode import TerNode
+import src.llvm.LLVM as LLVM
 
 
 class ArrayNode(ASTNode, Type):
@@ -10,6 +11,7 @@ class ArrayNode(ASTNode, Type):
         ASTNode.__init__(self, 'Array', maxChildren, ast)
         Type.__init__(self, VOID())
         self.length = 0
+        self.name = varGen.getNewVar(varGen)
 
     def getType(self):
         if self.isSimplified:
@@ -45,10 +47,16 @@ class ArrayNode(ASTNode, Type):
                 raise Exception("error: types in array don't match: {} and {}".format(self.type, c.getType()))
 
         self.length = len(newChildren)
-        self.type = ARRAY(self.type)
+        self.type = ARRAY(self.length, self.type)
         self.type.array = self.length
         self.children = newChildren
         return self
+
+    def toLLVM(self, vardef=False):
+        els = []
+        for child in self.children:
+            els.append(child.toLLVM()[1])
+        return [LLVM.Array(self.name, self.length, self.getType(), els)]
 
 class ArrayElementNode(VarNode):
 
@@ -73,7 +81,7 @@ class ArrayElementNode(VarNode):
         if not (isinstance(node.getType(), POINTER)):
             raise Exception("error: used [] on non-pointer")
 
-        self.type = node.getType().getBase()
+        self.type = node.getType()
 
         self.number = self.children[2].simplify(scope)  #VarNode/functionNode/LitNode
 
@@ -85,7 +93,7 @@ class ArrayElementNode(VarNode):
             raise Exception("error: didn't use integer or return integer for accessing array element")
 
         self.children[2] = self.number
-        self.value = str(self.name) + "[" + str(self.number.value) + "]"
+        self.value = str(self.name)
 
         self.AST.delNode(self.children[3])
         self.AST.delNode(self.children[1])
@@ -93,3 +101,26 @@ class ArrayElementNode(VarNode):
         self.children.remove(self.children[3])
         self.children.remove(self.children[1])
         return self
+
+    def toLLVM(self, LLVMOBJ=False):
+
+        #%7 = getelementptr inbounds [3 x i32], [3 x i32]* %2, i64 0, i64 0
+        #store i32 24, i32* %7, align 4
+        getel = LLVM.Getel(varGen.getNewVar(varGen), self.getType(), self.value, self.number.toLLVM()[1])
+        if LLVMOBJ:
+            if isinstance(self.getType(), REFERENCE):
+                self.returnVar = self.value
+                return []  # geen load nodig
+            else:  # pointer of normal
+                ll = [getel]
+                type = self.getType().getBase()
+                tmp = varGen.getNewVar(varGen)
+                self.returnVar = tmp
+                ll.append(LLVM.Load(tmp, type, getel.result))
+                for niv in range(self.deref - 1):
+                    type = type.getBase()
+                    self.returnVar = varGen.getNewVar(varGen)
+                    ll.append(LLVM.Load(self.returnVar, type, tmp))
+                    tmp = self.returnVar
+                return ll
+        return [getel]

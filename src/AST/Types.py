@@ -206,14 +206,21 @@ class REFERENCE(VOID):
 
 
 class ARRAY(POINTER):
-    def __init__(self, type=VOID()):
+    def __init__(self, size, type=VOID()):
         POINTER.__init__(self, type)
+        self.size = size
 
     def printLLVM(self):
         return self.getBase().printLLVM() + "*"
 
-    def toLLVM(self):
-        return self.getBase().printLLVM() + "*"
+    def toLLVM(self): #[5 x i32]
+        return "[" + str(self.size) + " x " + self.getBase().printLLVM() + "]"
+
+    def getAlign(self):
+        if self.size < 4:
+            return 4
+        else:
+            return 16
 
     def __str__(self):
         return str(self.type)

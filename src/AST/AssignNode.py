@@ -3,6 +3,7 @@ from .VarNode import VarNode
 from .ArOpNode import ArOpNode
 from .FuncNode import FuncNode
 from .Type import Type, compareTypes, ARRAY
+from .ArrayNode import ArrayElementNode
 import src.llvm.LLVM as LLVM
 
 
@@ -25,8 +26,9 @@ class AssignNode(ASTNode):
         self.left.parent = self
         self.right.parent = self
 
-        if isinstance(self.left.getType(), ARRAY):
-            raise Exception("error: assignment to expression with array type")
+        # lexer prevents this case
+        # if isinstance(self.left.getType(), ARRAY):
+        #     raise Exception("error: assignment to expression with array type")
 
         # check if left side is declared/defined and a variable
         # check if declared or defined in symboltable:
@@ -76,7 +78,10 @@ class AssignNode(ASTNode):
             ll2 = right.toLLVM()
             stats += ll2
             stats += [LLVM.Store(ll2[len(ll2) - 1].type, stats[len(stats) - 1].result, ll[1])]
+        elif isinstance(left, ArrayElementNode):
+            stats += ll
+            stats += [LLVM.Store(lr[0], lr[1], ll[len(ll) - 1].result, True)]
         else:
-            stats += [LLVM.Store(lr[0], lr[1], left.toLLVM()[1], True)]
+            stats += [LLVM.Store(lr[0], lr[1], ll[1], True)]
 
         return stats

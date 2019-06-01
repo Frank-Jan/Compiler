@@ -3,7 +3,7 @@ from .TerNode import TerNode
 from .ValueNode import ValueNode
 from .VarNode import VarNode
 # from .FuncNode import FuncNode
-from .Type import POINTER, CHAR, FLOAT, REFERENCE
+from .Type import POINTER, CHAR, FLOAT, REFERENCE, ARRAY
 from .Types import llvmTypes
 import src.llvm.LLVM as LLVM
 
@@ -83,6 +83,8 @@ class IoArgListNode(ASTNode):
             type = c.getType()
             arg = [None, None] # tupel with type and var as STRINGS
             var = ""
+            if isinstance(type, ARRAY):
+                type = type.getBase()
             if isinstance(type, REFERENCE):
                 tup = c.toLLVM()
                 arg[0] = tup[0].toLLVM()
