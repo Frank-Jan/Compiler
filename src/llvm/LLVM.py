@@ -1,14 +1,20 @@
-from src.AST.Arg import Arg
+# from src.AST.Arg import Arg
 from src.AST.Types import *
 from src.AST.ASTNode import varGen
-import copy
-
+# import copy
+import src.llvm2mips.MipsInstructions as MIPS
+# import src.llvm2mips.Registry as R
+# import src.llvm2mips.llvmToMips as llvm2mips
 
 class LLVMInstr:
 
     def __init__(self):
         self.line = 0
         self.function = None
+
+    def toMips(self, builder):
+        print("Warning: toMips not yet implemented for llvm object: {}".format(type(self)))
+        return None
 
     def setFunction(self, func):
         self.function = func
@@ -57,6 +63,15 @@ class Alloca(LLVMInstr):
         self.type = _type
         self.align = _type.getAlign()
 
+    def toMips(self, builder):
+        mips = ["# Alloca\n"]
+        r_result, code = builder.GetSavedRegister(str(self.result), self.line)
+        mips += code
+        mips += MIPS.moveSP(builder.registry, 1)
+        mips += MIPS.M_move(r_result, 29)
+        # code += mips.M_sw(r_result, R.SPtoIndex(), 0) # only allocate space
+        return mips
+
     def __str__(self):
         tmpType = self.type.toLLVM()
         if not isinstance(tmpType, ARRAY):
@@ -77,6 +92,19 @@ class Store(LLVMInstr):
         self.align = _type.getAlign()
         self.lit = lit
 
+    def toMips(self, builder):
+        mips = ["# Store\n"]
+        r_to, code = builder.GetVariable(str(self._to), self.line)
+        mips += code
+        if self.lit:
+            r_from = builder.GetTemporaryRegister()
+            mips += MIPS.M_addi(0, self._from, r_from)
+        else:
+            r_from, code = builder.GetVariable(str(self._from), self.line)
+            mips += code
+        mips += MIPS.M_sw(r_from, r_to, 0)
+        return mips
+
     def __str__(self):
         tmpType = self.type.toLLVM()
         if self.lit:
@@ -95,6 +123,16 @@ class Load(LLVMInstr):
         self.type = _type
         self.var = var
         self.align = _type.getAlign()
+
+    def toMips(self, builder):
+        mips = ["# Load\n"]
+        r_result, code = builder.GetSavedRegister(str(self.result), self.line)
+        mips += code
+        # mips += MIPS.M_lw(r_result,29 , 0) # only allocate space
+        r_var, code = builder.GetVariable(str(self.var), self.line)
+        mips += code
+        mips += MIPS.M_lw(r_result, r_var, 0)
+        return mips
 
     def __str__(self):
         tmpType = self.type.toLLVM()

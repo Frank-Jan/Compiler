@@ -93,17 +93,6 @@ def testFile(argv):
     f = open(llFile, "w+")
     text = ""
 
-    # for node in ast:
-    #
-    #     if isinstance(node, AST.FuncDeclNode) or isinstance(node, AST.FuncDefNode) or isinstance(node, AST.StdioNode):
-    #         text += node.printLLVM() + "\n\n"
-    #     # elif isinstance(node, IfElseNode):
-    #     #     text += node.printLLVM() + "\n\n"
-    #     elif isinstance(node, AST.TerNode):
-    #         pass
-    #     elif isinstance(node, AST.PrintfNode):
-    #         text = node.getStrings() + text
-
     ll = ast.root.toLLVM()
     for obj in ll:
         text += str(obj)
@@ -111,9 +100,9 @@ def testFile(argv):
     f.write(text)
 
     # give llvm code ll to mipsbuilder:
-    # mipsbuilder = mips.MIPSBuilder(ll)
-    # mipsbuilder.build()
-    # mipsbuilder.mipsToFile("test.asm")
+    mipsbuilder = mips.GlobalBuilder(ll)
+    mipsbuilder.build()
+    mipsbuilder.mipsToFile("test.asm")
 
     return 0
 

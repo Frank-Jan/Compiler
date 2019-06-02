@@ -43,7 +43,7 @@ class AST:
             self.finalize()    #final check
 
     def finalize(self):
-        #TODOremove unused functions
+        #TODO: remove unused functions
         #TODO: remove unused variables
         #check if used functions are defined
         #check if main is defined
@@ -68,7 +68,6 @@ class AST:
                                     print("\033[1;31;48m", "Warning: main does not return INTEGER")
         if not mainFound:
             raise Exception("error: main is not found")
-
 
     def addNode(self, ASTnode, pos=None):
         prevNode = None
