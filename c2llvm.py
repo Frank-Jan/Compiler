@@ -41,7 +41,7 @@ def testFile(argv):
         text_file.write(original)
         text_file.close()
     except Exception as e:
-        print("Error loading file:\n", e)
+        print("\033[1;31;48m", "Error loading file:\n", e)
         exit(1)
 
     try:
@@ -62,7 +62,7 @@ def testFile(argv):
             print("Parser error: somewhere: {}", e)
             exit(1)
     except Exception as e:
-        print("Error parsing syntax:\n", e)
+        print("\033[1;31;48m", "Error parsing syntax:\n", e)
         exit(2)
 
     try:
@@ -72,7 +72,7 @@ def testFile(argv):
         walker.walk(listener, tree)
         ast = listener.getAST()
     except Exception as e:
-        print(e)
+        print("\033[1;31;48m", e)
         exit(3)
 
     try:
@@ -80,7 +80,7 @@ def testFile(argv):
         ast.simplify()
         ast.printDot("AST.dot")
     except Exception as e:
-        print(e)
+        print("\033[1;31;48m", e)
         exit(4)
 
     # ast.printDot("derivationTree.dot")
@@ -113,7 +113,6 @@ def testFile(argv):
     # mipsbuilder = mips.MIPSBuilder(ll)
     # mipsbuilder.build()
     # mipsbuilder.mipsToFile("test.asm")
-
 
     return 0
 
