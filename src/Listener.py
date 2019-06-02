@@ -73,6 +73,11 @@ class Listener(c_subsetListener):
         self.AST.addNode(ast.FuncSignDefNode(len(ctx.children), self.AST))
         self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
 
+    # Enter a parse tree produced by c_subsetParser#generalVarDefinition.
+    def enterGeneralVarDefinition(self, ctx:c_subsetParser.GeneralVarDefinitionContext):
+        self.AST.addNode(ast.GenDefNode(len(ctx.children), self.AST))
+        self.addTerminals(ctx.children, (ctx.start.line, ctx.start.column))
+
     # Enter a parse tree produced by c_subsetParser#generalDefinition.
     def enterGeneralDefinition(self, ctx: c_subsetParser.GeneralDefinitionContext):
         self.AST.addNode(ast.GenDefNode(len(ctx.children), self.AST))

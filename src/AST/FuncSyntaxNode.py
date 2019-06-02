@@ -49,7 +49,7 @@ class FuncSyntaxNode(ASTNode):
                 self.AST.delNode(c)
                 continue
             else:
-                print("Forgot something in FuncSyntax simplify: ", type(c))
+                print(str(self.pos[0]) + ":" + str(self.pos[1]) + ":Forgot something in FuncSyntax simplify: ", type(c))
         self.children = new_children
         self.AST.printDotDebug(str(self.getCount()) + "FuncSyntax.dot")
         return self

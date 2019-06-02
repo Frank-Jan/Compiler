@@ -45,7 +45,7 @@ class PrintfNode(ASTNode, Type):
         #check if printf is defined:
         value = scope.search("printf")
         if value is None:
-            raise Exception("printf not declared, add #include <stdio.h>")
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + ":printf not declared, add #include <stdio.h>")
 
         toDelete = []
         newChildren = []

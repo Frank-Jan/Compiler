@@ -14,6 +14,41 @@ class LLVMInstr:
         self.function = func
 
 
+# @ppg = global float** @pg, align 8 | @i = common global i32 0, align 4
+class CommonGlobal(LLVMInstr):  # global var decl
+    def __init__(self, result, _type, defVal):
+        LLVMInstr.__init__(self)
+        self.result = result
+        self.type = _type
+        self.align = _type.getAlign()
+        self.defVal = defVal
+
+    def __str__(self):
+        tmpType = self.type.toLLVM()
+        if not isinstance(tmpType, ARRAY):
+            return "@" + str(self.result) + " = common global " + str(tmpType) + " " + str(
+                self.defVal) + ", align " + str(self.align) + "\n"
+
+
+# @ppg = global float** @pg, align 8 | @i = common global i32 0, align 4
+class Global(LLVMInstr):  # global var def
+    def __init__(self, result, _type, var, lit):
+        LLVMInstr.__init__(self)
+        self.result = result
+        self.type = _type
+        self.align = _type.getAlign()
+        self.var = var
+        self.lit = lit
+
+    def __str__(self):
+        tmpType = self.type.toLLVM()
+        addr = " @"
+        if self.lit:
+            addr = " "
+        return "@" + str(self.result) + " = global " + str(tmpType) + addr + str(
+                self.var) + ", align " + str(self.align) + "\n"
+
+
 class Alloca(LLVMInstr):
 
     def __init__(self, result, _type):
@@ -100,7 +135,7 @@ class Define(LLVMInstr):
 
     def __str__(self):
         tmpType = self.type.toLLVM()
-        ll = "define " + str(tmpType) + " @" + str(self.name) + "("
+        ll = "\ndefine " + str(tmpType) + " @" + str(self.name) + "("
         for arg in self.args:
             ll += str(arg.type.toLLVM()) + " %" + str(arg.tempName) + ", "
         if len(self.args) != 0:

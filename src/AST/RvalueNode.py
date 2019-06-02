@@ -1,6 +1,7 @@
 from .ASTNode import ASTNode
 from .Type import Type, REFERENCE
 
+
 class RvalueNode(ASTNode, Type):
 
     def __init__(self, maxChildren, ast):
@@ -14,7 +15,8 @@ class RvalueNode(ASTNode, Type):
             retNode = self.children[1].simplify(scope)  # simplify lvalue node
             retNode.type = REFERENCE(retNode.getType())
         else:
-            raise Exception("error: unexpected number of children (" + len(self.children) + ") in: " + type(RvalueNode))
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: unexpected number of children (" + len(
+                self.children) + ") in: " + type(RvalueNode))
             retNode = None
 
         if retNode in self.children:

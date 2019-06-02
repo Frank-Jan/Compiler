@@ -28,7 +28,7 @@ class FuncSignDefNode(ASTNode):
         self.name = self.children[0].simplifyAsName(functionscope).getName()
 
         if self.name in buildinFunctions:
-            raise Exception("error: {} already a built-in function".format(self.name))
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: {} already a built-in function".format(self.name))
 
         toDelete = []  # delete useless Ternodes ('(' ')' ',' variable)
         for c in self.children[1:]:

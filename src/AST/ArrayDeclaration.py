@@ -49,7 +49,7 @@ class ArrayDeclNode(ASTNode, Type):
         self.AST.delNode(self.children[3])  # Number or ']'
 
         if self.size is not None and self.size < 0:
-            raise Exception("error: array size is negative")
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: array size is negative")
 
         self.AST.delNode(self.children[0])
         self.AST.delNode(self.children[1])

@@ -10,6 +10,7 @@ class VarDeclNode(ASTNode, Type):
         Type.__init__(self)
         # self.type = None  # Types
         self.var = None  # VarNode itself
+        self.glob = False
         self.size = 0
 
     def getName(self):
@@ -24,6 +25,10 @@ class VarDeclNode(ASTNode, Type):
 
     def simplify(self, scope):
         self.isSimplified = True
+
+        if scope.parent is None:
+            self.glob = True
+
         if len(self.children) == 2:
             # no array
             self.size = 1
@@ -43,7 +48,7 @@ class VarDeclNode(ASTNode, Type):
             self.AST.delNode(self.children[4])  # ')'
 
             if self.size < 0:
-                raise Exception("error: array size is negative")
+                raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + "error: array size is negative")
 
         self.AST.delNode(self.children[0])
         self.AST.delNode(self.children[1])
@@ -55,7 +60,7 @@ class VarDeclNode(ASTNode, Type):
 
     def buildSymbolTable(self, symbolTable):
         if not symbolTable.insertVariable(self.var.value, self.type):
-            raise Exception("error: {} already defined/declared in local scope".format(self.var.value))
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + "error: {} already defined/declared in local scope".format(self.var.value))
 
     def printLLVM(self, init=True):
         type = self.getType()
@@ -71,12 +76,24 @@ class VarDeclNode(ASTNode, Type):
         return code
 
     def toLLVM(self, vardef = False):
-        #% 2 = alloca i32, align 4
-        ll = [LLVM.Alloca(self.var.value, self.getType())]
-        #initilize 0
-        if not vardef and not isinstance(self.getType(), POINTER):
-            waarde = 0
-            if isinstance(self.getType(), FLOAT):
-                waarde = 0.000000e+00
-            ll.append(LLVM.Store(self.getType(), waarde, self.var.value, True))
-        return ll
+        if self.glob:
+            # initilize 0
+            ll = []
+            if not vardef:
+                waarde = 0
+                if isinstance(self.getType(), FLOAT):
+                    waarde = 0.000000e+00
+                elif isinstance(self.getType(), POINTER):
+                    waarde = "null"
+                ll = [LLVM.CommonGlobal(self.var.value, self.getType(), waarde)]
+            return ll
+        else:
+            #% 2 = alloca i32, align 4
+            ll = [LLVM.Alloca(self.var.value, self.getType())]
+            #initilize 0
+            if not vardef and not isinstance(self.getType(), POINTER):
+                waarde = 0
+                if isinstance(self.getType(), FLOAT):
+                    waarde = 0.000000e+00
+                ll.append(LLVM.Store(self.getType(), waarde, self.var.value, True))
+            return ll

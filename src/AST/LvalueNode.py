@@ -12,7 +12,7 @@ class LvalueNode(ASTNode, Type):
         elif len(self.children) == 2:
             retNode = self.children[1].simplify(scope)
             if not isinstance(retNode.getType(), POINTER):
-                raise Exception("error: dereferencing non-pointer")
+                raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: dereferencing non-pointer")
                 # printError("error: dereferencing non-pointer")
                 return
             retNode.deref += 1

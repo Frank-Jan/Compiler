@@ -80,6 +80,7 @@ def testFile(argv):
         ast.simplify()
         ast.printDot("AST.dot")
     except Exception as e:
+        # raise e
         print("\033[1;31;48m", e)
         exit(4)
 

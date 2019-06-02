@@ -41,7 +41,9 @@ class ReturnStatNode(ASTNode, Type):
                 del self.children[0]
                 self.children.append(node)
             else:
-                raise "ReturnStatNode forgot something: {}".format(type(node))
+                raise Exception(
+                    str(self.pos[0]) + ":" + str(self.pos[1]) + ":ReturnStatNode forgot something: {}".format(
+                        type(node)))
             self.type = node.getType()
             self.child = node
 

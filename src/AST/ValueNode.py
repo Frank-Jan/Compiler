@@ -22,7 +22,7 @@ class ValueNode(ASTNode, Type):
                 self.AST.delNode(c)
             self.children = []
             if not isinstance(retNode.getType(), POINTER):
-                raise Exception("Dereferencing non-pointer")
+                raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + "Dereferencing non-pointer")
             retNode.deref += 1
 
         self.AST.printDotDebug(str(self.getCount()) + "value" + ".dot")

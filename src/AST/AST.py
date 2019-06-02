@@ -1,5 +1,5 @@
 from .ScopeNode import ScopeNode
-
+from .Type import INT
 DEBUG = False
 
 
@@ -38,9 +38,9 @@ class AST:
         return self.nodes[self.currentNode - 1]
 
     def simplify(self):
-        if self.root is not None:
-            self.root.simplify()
-        self.finalize()    #final check
+            if self.root is not None:
+                self.root.simplify()
+            self.finalize()    #final check
 
     def finalize(self):
         #TODOremove unused functions
@@ -64,6 +64,8 @@ class AST:
                                 raise Exception(error)
                             else:
                                 mainFound = True
+                                if not isinstance(record.type, INT):
+                                    print("\033[1;31;48m", "Warning: main does not return INTEGER")
         if not mainFound:
             raise Exception("error: main is not found")
 

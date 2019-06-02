@@ -48,12 +48,12 @@ class FuncDefNode(ASTNode, Type):
         # check if returnstatements are correct:
         if self.type != VOID() and len(self.block.returnStatements) == 0:
             # expected return statements:
-            error = "error: Expected return statements in {}".format(self.getName())
+            error = str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: Expected return statements in {}".format(self.getName())
             raise Exception(error)
 
         for r in self.block.returnStatements:
             if not compareTypes(r, self):
-                error = "error: Wrong return type in function {}: returns: {}, expected {}".format(self.getName(), str(r.getType()), str(self.getType()))
+                error = str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: Wrong return type in function {}: returns: {}, expected {}".format(self.getName(), str(r.getType()), str(self.getType()))
                 raise Exception(error)
 
         self.AST.printDotDebug(str(self.getCount()) + "FuncDef.dot")

@@ -37,7 +37,7 @@ class FormatCharPrintNode(ASTNode, Type):
         elif self.value == "%f":
             self.type = FLOAT()
         else:
-            raise Exception("error: unknown format specifier {}".format(self.value))
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: unknown format specifier {}".format(self.value))
 
         self.AST.delNode(self.children[0])
         self.children = []

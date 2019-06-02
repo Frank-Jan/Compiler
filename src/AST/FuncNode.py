@@ -55,9 +55,9 @@ class FuncNode(ASTNode, Type):
         # check if exist in scope:
         value = scope.search(self.name)
         if value is None:
-            raise Exception("error: function {} called before declaration".format(self.name))
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: function {} called before declaration".format(self.name))
         if value.isVar():
-            raise Exception("error: {} is a variable not a function".format(self.name))
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: {} is a variable not a function".format(self.name))
         value.isUsed = True
         self.record = value
         self.type = self.record.getType()

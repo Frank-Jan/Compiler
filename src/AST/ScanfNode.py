@@ -45,7 +45,7 @@ class ScanfNode(ASTNode, Type):
         #check if scanf is defined:
         value = scope.search("scanf")
         if value is None:
-            raise Exception("scanf not declared, add #include <stdio.h>")
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + "scanf not declared, add #include <stdio.h>")
 
         toDelete = []
         newChildren = []

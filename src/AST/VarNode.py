@@ -28,9 +28,9 @@ class VarNode(ASTNode, Type):
         value = scope.search(self.getName())
 
         if value is None:
-            raise Exception("Variable {} used before declaration".format(self.getName()))
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + "Variable {} used before declaration".format(self.getName()))
         if not value.isVar():
-            raise Exception("{} is a function not a variable".format(self.getName()))
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + "{} is a function not a variable".format(self.getName()))
         self.type = value.getType()
         value.isUsed = True
         self.record = value
@@ -51,9 +51,9 @@ class VarNode(ASTNode, Type):
         self.value = self.name
         record = scope.search(self.name)
         if record is None:
-            raise Exception("{} not yet declared".format(self.name))
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + "{} not yet declared".format(self.name))
         if not record.isVar():
-            raise Exception("{} called as var but is function".format(self.name))
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + "{} called as var but is function".format(self.name))
 
         self.type = record.getType()
 

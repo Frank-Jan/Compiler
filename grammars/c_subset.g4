@@ -76,7 +76,7 @@ generalDefinition
     ;
 
 generalVarDefinition
-    : variableDeclaration '=' literal
+    : variableDefinition
     ;
 
 variableDeclaration

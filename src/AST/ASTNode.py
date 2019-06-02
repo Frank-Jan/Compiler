@@ -1,12 +1,10 @@
 from src.VarGen import VarGen
 
-
 varGen = VarGen()
 
 counter = 0  # counter to make sure all print debug filenames are unique
 
 buildinFunctions = ["printf", "scanf"]
-
 
 
 class ASTNode:
@@ -18,6 +16,7 @@ class ASTNode:
         self.maxChildren = maxChildren  # max aantal children
         self.AST = ast
         self.id = 0
+        self.pos = [None, None]
         self.isSimplified = False
         for i in range(self.maxChildren):
             self.children.append(None)
@@ -73,3 +72,13 @@ class ASTNode:
 
     def getSymbolTable(self):
         return self.parent.getSymbolTable()
+
+    def searchPos(self):
+        for child in self.children:
+            if child.pos[0] is not None:
+                self.pos = child.pos
+                return self.pos
+            else:
+                self.pos = child.searchPos()
+                return self.pos
+

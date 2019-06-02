@@ -44,7 +44,7 @@ class ArrayNode(ASTNode, Type):
             self.type = newChildren[0].getType()
         for c in newChildren:
             if c.getType() != self.type:
-                raise Exception("error: types in array don't match: {} and {}".format(self.type, c.getType()))
+                raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: types in array don't match: {} and {}".format(self.type, c.getType()))
 
         self.length = len(newChildren)
         self.type = ARRAY(self.length, self.type)

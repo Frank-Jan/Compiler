@@ -57,7 +57,7 @@ class ProdNode(ArOpNode):
 
         # check left and right types:
         if not compareTypes(self.left, self.right):
-            raise Exception("error: trying to multiply two different types: "
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: trying to multiply two different types: "
                             "{} and {}".format(self.left.getType(), self.right.getType()))
         self.type = self.left.getType()
         self.deref = self.left.deref

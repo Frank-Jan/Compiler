@@ -21,7 +21,8 @@ class WhileNode(ASTNode):
             self.returnStatements = self.block.simplify(localScope)
             self.endCode = self.block.endCode
         else:
-            raise "Forgot something in while simplify: " + str(type(self.block))
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + "Forgot something in while simplify: " + str(
+                type(self.block)))
 
         self.AST.delNode(self.children[0])
         self.AST.delNode(self.children[1])

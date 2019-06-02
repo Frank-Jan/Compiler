@@ -36,7 +36,7 @@ class AssignNode(ASTNode):
 
         # check if left and right have the same type:
         if not compareTypes(self.left, self.right):
-            raise Exception("error: assigning two different types: "
+            raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: assigning two different types: "
                             "{} {} and {} {}".format(self.left.getType().getBase(), self.left.value,
                                                      self.right.getType(), self.right.value))
 
