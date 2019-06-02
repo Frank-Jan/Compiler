@@ -99,11 +99,16 @@ def testFile(argv):
 
     f.write(text)
 
-    # give llvm code ll to mipsbuilder:
-    # mipsbuilder = mips.GlobalBuilder(ll)
-    # mipsbuilder.build()
-    # asmFile = argv[1].replace(".c", ".asm")
-    # mipsbuilder.mipsToFile(asmFile)
+    try:
+        # give llvm code ll to mipsbuilder:
+        mipsbuilder = mips.GlobalBuilder(ll)
+        mipsbuilder.build()
+        asmFile = argv[1].replace(".c", ".asm")
+        mipsbuilder.mipsToFile(asmFile)
+    except Exception as e:
+        # raise e
+        print("\033[1;31;48m", e)
+        exit(5)
 
     return 0
 
