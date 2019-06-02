@@ -102,7 +102,7 @@ class ProdNode(ArOpNode):
         elif isinstance(self.left, FuncNode) or isinstance(self.left, ArOpNode):
             lit1 = False
             stats += l
-            l = l[len(r) - 1].result
+            l = l[-1].result
         else:
             l = l[1]
 

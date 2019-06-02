@@ -2,7 +2,7 @@ from .ASTNode import ASTNode, varGen
 from .FuncNode import FuncNode
 from .VarNode import VarNode
 from .ArOpNode import ArOpNode
-from .Types import opTypes
+from .Types import opIntTypes, opFlTypes, FLOAT, CHAR
 import src.llvm.LLVM as LLVM
 
 class CondExpNode(ASTNode):
@@ -61,10 +61,17 @@ class CondExpNode(ASTNode):
         lit1 = True
         lit2 = True
         type = self.left.getType()
+        op = opIntTypes[self.value]
+
         if isinstance(self.left, VarNode):
             lit1 = False
             stats += self.left.toLLVM(True)
-            l = stats[len(stats) - 1].result
+            if isinstance(type, FLOAT):
+                op = opFlTypes[self.value]
+                stats += [LLVM.Fpext(varGen.getNewVar(varGen), type, stats[-1].result)]
+            elif isinstance(type, CHAR):
+                stats += [LLVM.Sext(varGen.getNewVar(varGen), type, stats[-1].result)]
+            l = stats[-1].result
         elif isinstance(self.left, FuncNode) or isinstance(self.left, ArOpNode):
             lit1 = False
             stats += l
@@ -76,7 +83,12 @@ class CondExpNode(ASTNode):
         if isinstance(self.right, VarNode):
             lit2 = False
             stats += self.right.toLLVM(True)
-            r = stats[len(stats) - 1].result
+            if isinstance(type, FLOAT):
+                op = opFlTypes[self.value]
+                stats += [LLVM.Fpext(varGen.getNewVar(varGen), type, stats[-1].result)]
+            elif isinstance(type, CHAR):
+                stats += [LLVM.Sext(varGen.getNewVar(varGen), type, stats[-1].result)]
+            r = stats[-1].result
         elif isinstance(self.right, FuncNode) or isinstance(self.right, ArOpNode):
             lit2 = False
             stats += r
@@ -85,7 +97,6 @@ class CondExpNode(ASTNode):
             _type = r[0]
             r = r[1]
 
-        op = opTypes[self.value]
 
         stats += [LLVM.Icmp(op, type, l, r, lit1, lit2)]
 

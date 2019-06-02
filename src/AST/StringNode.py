@@ -55,7 +55,7 @@ class StringNode(ASTNode, Type):
     def toLLVM(self):
         # om wille van \00 einde -2 voor "c"" en -2 voor "\00
         new = ""
-        count = 1
+        count = 0
         stuk = self.getString()
         if stuk == "":
             return llvmStrings['']

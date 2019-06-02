@@ -48,7 +48,7 @@ class PrintFormatNode(ASTNode):
     def toLLVM(self):
         self.returnVar = varGen.getNewVar(varGen)
         deString = ""
-        count = 0  # om wille van \00 einde ,  -2 voor "c"" en -2 voor "\00
+        count = 1  # om wille van \00 einde ,  -2 voor "c"" en -2 voor "\00
         for child in self.children:
             deString += child.toLLVM()
             count += child.length

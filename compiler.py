@@ -100,9 +100,10 @@ def testFile(argv):
     f.write(text)
 
     # give llvm code ll to mipsbuilder:
-    mipsbuilder = mips.GlobalBuilder(ll)
-    mipsbuilder.build()
-    mipsbuilder.mipsToFile("test.asm")
+    # mipsbuilder = mips.GlobalBuilder(ll)
+    # mipsbuilder.build()
+    # asmFile = argv[1].replace(".c", ".asm")
+    # mipsbuilder.mipsToFile(asmFile)
 
     return 0
 

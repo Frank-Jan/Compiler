@@ -66,6 +66,8 @@ class AST:
                                 mainFound = True
                                 if not isinstance(record.type, INT):
                                     print("\033[1;31;48m", "Warning: main does not return INTEGER")
+                                    print("\033[0;30;48m")
+
         if not mainFound:
             raise Exception("error: main is not found")
 

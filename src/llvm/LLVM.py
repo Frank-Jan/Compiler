@@ -331,14 +331,22 @@ class Icmp(LLVMInstr):
 
     def __str__(self):
         # %5 = icmp eq i32 1, %4
+        #special cases in conditional
         tmpType = self.type.toLLVM()
+        i = "i"
+        if isinstance(self.type, FLOAT):
+            tmpType = "double"
+            i = "f"
+        elif isinstance(self.type, CHAR):
+            tmpType = "i32"
+
         lit1 = "%"
         lit2 = "%"
         if self.lit1:
             lit1 = ""
         if self.lit2:
             lit2 = ""
-        ll = "%" + str(self.result) + " = icmp " + str(self.op) + " " + str(tmpType) + " " + lit1 + str(
+        ll = "%" + str(self.result) + " = " + i +"cmp " + str(self.op) + " " + str(tmpType) + " " + lit1 + str(
             self.val1) + ", " + lit2 + str(self.val2) + "\n"
         return ll
 
@@ -436,7 +444,10 @@ class Array(LLVMInstr):
         self.type.size = self.length
         self.elements = elements
         for i in range(len(elements), self.length):
-            self.elements.append(0)
+            if isinstance(_type.getBase(), FLOAT):
+                self.elements.append(0.0)
+            else:
+                self.elements.append(0)
 
     def __str__(self):
         # @main.arr1 = private unnamed_addr constant [5 x i32] [i32 1, i32 2, i32 3, i32 4, i32 5], align 16

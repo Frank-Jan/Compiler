@@ -51,7 +51,8 @@ from .Type import Type, compareTypes, dereferenceType
 from .Types import llvmStrings, \
     llvmTypes, \
     pythonStrings, \
-    opTypes, \
+    opIntTypes, \
+    opFlTypes, \
     printTypes, \
     toType, \
     VOID, \

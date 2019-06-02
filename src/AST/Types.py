@@ -21,9 +21,13 @@ llvmStrings = {'\n': '\\0A',
                '\w': ' ',
                '': 'zeroinitializer'}
 
-opTypes = {'==': 'eq',
-           '>': 'sgt',
-           '<': 'slt'}
+opIntTypes = {'==': 'eq',
+              '>': 'sgt',
+              '<': 'slt'}
+
+opFlTypes = {'==': 'eq',
+             '>': 'ogt',
+             '<': 'olt'}
 
 printTypes = {'int': '@str-i',
               'float': '@str-f',
