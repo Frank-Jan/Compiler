@@ -41,8 +41,8 @@ def testFile(argv):
         text_file.write(original)
         text_file.close()
     except Exception as e:
-        print("Error loading file:\n", sys.exc_info()[0])
-        return 1
+        print("Error loading file:\n", e)
+        exit(1)
 
     try:
         lexer = c_subsetLexer(input_stream)
@@ -56,12 +56,14 @@ def testFile(argv):
         parser.buildParseTrees = True
         try:
             tree = parser.cSyntax()
+            if parser._syntaxErrors > 0:
+                exit(1)
         except Exception as e:
-            print("Parser error: somewhere: {}".format(e))
-            return 1
+            print("Parser error: somewhere: {}", e)
+            exit(1)
     except Exception as e:
-        print("Error parsing syntax:\n", sys.exc_info()[0])
-        return 2
+        print("Error parsing syntax:\n", e)
+        exit(2)
 
     try:
 
@@ -70,16 +72,16 @@ def testFile(argv):
         walker.walk(listener, tree)
         ast = listener.getAST()
     except Exception as e:
-        raise  e
-        return 3
+        print(e)
+        exit(3)
 
     try:
         ast.printDot("derivationTree.dot")
         ast.simplify()
         ast.printDot("AST.dot")
     except Exception as e:
-        raise e
-        return 4
+        print(e)
+        exit(4)
 
     # ast.printDot("derivationTree.dot")
     # ast.simplify()
