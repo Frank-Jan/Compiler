@@ -11,7 +11,7 @@ It also has some helper functions to assist in easy storing/loading
 # stores registers in registerList to stack
 # with registers as indices
 def storeRegisters(registry, registerList):
-    mips = "# store registries:\n"
+    mips = ["# store registries:\n"]
     mips += moveSP(registry, len(registerList))
     for i in range(len(registerList)):
         mips += M_sw(registerList[i], SPtoIndex(), 4*i)
@@ -19,7 +19,7 @@ def storeRegisters(registry, registerList):
 
 
 def loadRegisters(registry, registerList):
-    mips = "# load registries:\n"
+    mips = ["# load registries:\n"]
     for i in range(len(registerList)):
         mips += M_lw(registerList[i], SPtoIndex(), 4*i)
     mips += moveSP(registry, -1*len(registerList))
@@ -35,8 +35,7 @@ def moveSP(registry, spaces):
     bits = -spaces*4
     registry.setSP(registry.getSP() + -spaces)
     mips = "addi " + SPToStr() + ", " + SPToStr() + ", " + str(bits) + "\n"
-    return mips
-
+    return [mips]
 
 def base3input(r1, r2, result):
     return indexToStr(result) + ", " + indexToStr(r1) + ", " + indexToStr(r2) + "\n"
@@ -48,7 +47,7 @@ def base2immInput(r1, imm, result):
 
 def M_move(dest, src):
     mips = "move " + indexToStr(dest) + ", " + indexToStr(src) + "\n"
-    return mips
+    return [mips]
 
 
 def M_add(r1, r2, result):
@@ -57,8 +56,8 @@ def M_add(r1, r2, result):
 
 
 def M_addi(r1, imm, result):
-    mips = "addi " + base2immInput(r1,imm,result)
-    return mips
+    mips = "addi " + indexToStr(result) + ", " + indexToStr(r1) + ", " + imm + "\n"
+    return [mips]
 
 
 def M_addiu(r1, imm, result):
@@ -105,7 +104,6 @@ def M_blez(r1, offset):
     mips = "blez " + indexToStr(r1) + ", " + str(offset) + "\n"
     return mips
 
-
 def M_bltz(r1, offset):
     mips = "bltz " + indexToStr(r1) + ", " + str(offset) + "\n"
     return mips
@@ -140,25 +138,25 @@ def M_jump(target):
 # target is immediate address
 def M_jal(target):
     mips = "jal " + target + "\n"
-    return mips
+    return [mips]
 
 
 # jump register
 def M_jr(r):
     mips = "jr " + indexToStr(r) + "\n"
-    return mips
+    return [mips]
 
 
 # load upper immediate in register r
 def M_liu(r, imm):
-    mips = "lui " + indexToStr(r) + "\n"
-    return mips
+    mips = "lui " + indexToStr(r) + str(imm) + "\n"
+    return [mips]
 
 
 # load word
 def M_lw(load, address, offset):
     mips = "lw " + indexToStr(load) + ", " + str(offset) + "(" + indexToStr(address) + ")\n"
-    return mips
+    return [mips]
 
 
 def M_mult(r1, r2, result):
@@ -168,7 +166,7 @@ def M_mult(r1, r2, result):
 
 def M_or(r1, r2, result):
     mips = "or " + base3input(r1,r2, result)
-    return mips
+    return [mips]
 
 
 def M_ori(r1, result, imm):
@@ -184,9 +182,9 @@ def M_sub(r1, r2, result):
 # saves strored to place+offset [offset in places]
 def M_sw(stored, address, offset):
     mips = "sw " + indexToStr(stored) + ", " + str(offset) + "(" + indexToStr(address) + ")\n"
-    return mips
+    return [mips]
 
 
 def M_syscall():
     mips = "syscall\n"
-    return mips
+    return [mips]
