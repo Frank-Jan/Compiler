@@ -56,7 +56,7 @@ def M_add(r1, r2, result):
 
 
 def M_addi(r1, imm, result):
-    mips = "addi " + indexToStr(result) + ", " + indexToStr(r1) + ", " + imm + "\n"
+    mips = "addi " + indexToStr(result) + ", " + indexToStr(r1) + ", " + str(imm) + "\n"
     return [mips]
 
 

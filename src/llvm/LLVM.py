@@ -29,11 +29,13 @@ class Alloca(LLVMInstr):
         self.align = _type.getAlign()
 
     def toMips(self, builder):
+        mips = ["# Alloca\n"]
         r_result, code = builder.GetSavedRegister(str(self.result), self.line)
-        code += MIPS.moveSP(builder.registry, 1)
-        code += MIPS.M_move(r_result, 29)
+        mips += code
+        mips += MIPS.moveSP(builder.registry, 1)
+        mips += MIPS.M_move(r_result, 29)
         # code += mips.M_sw(r_result, R.SPtoIndex(), 0) # only allocate space
-        return code
+        return mips
 
     def __str__(self):
         tmpType = self.type.toLLVM()
@@ -56,7 +58,7 @@ class Store(LLVMInstr):
         self.lit = lit
 
     def toMips(self, builder):
-        mips = []
+        mips = ["# Store\n"]
         r_to, code = builder.GetVariable(str(self._to), self.line)
         mips += code
         if self.lit:
@@ -87,8 +89,15 @@ class Load(LLVMInstr):
         self.var = var
         self.align = _type.getAlign()
 
-    # def toMips(self, builder):
-    #
+    def toMips(self, builder):
+        mips = ["# Load\n"]
+        r_result, code = builder.GetSavedRegister(str(self.result), self.line)
+        mips += code
+        # mips += MIPS.M_lw(r_result,29 , 0) # only allocate space
+        r_var, code = builder.GetVariable(str(self.var), self.line)
+        mips += code
+        mips += MIPS.M_lw(r_result, r_var, 0)
+        return mips
 
     def __str__(self):
         tmpType = self.type.toLLVM()
