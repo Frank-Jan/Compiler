@@ -1,4 +1,5 @@
 import sys
+import copy
 from antlr4 import *
 from src.grammars.c_subsetLexer import c_subsetLexer
 from src.grammars.c_subsetParser import c_subsetParser
@@ -13,10 +14,36 @@ import src.llvm.LLVM as LLVM
 
 def testFile(argv):
     try:
-        input_stream = FileStream(argv[1])
+        file = argv[1]
+        input_stream = FileStream(file)
+        original = str(input_stream)
+        text = copy.deepcopy(original)
+
+        # quick solve for spacing
+        replace = False
+        for i in range(len(text)):
+            c = text[i]
+            if c == '"':
+                if replace:
+                    replace = False
+                else:
+                    replace = True
+            elif replace and c == ' ':
+               text = text[:i] + '\w' + text[i+1:]
+
+        text_file = open(file, "w")
+        text_file.write(text)
+        text_file.close()
+
+        input_stream = FileStream(file)
+
+        text_file = open(file, "w")
+        text_file.write(original)
+        text_file.close()
     except Exception as e:
         print("Error loading file:\n", sys.exc_info()[0])
         return 1
+
     try:
         lexer = c_subsetLexer(input_stream)
 

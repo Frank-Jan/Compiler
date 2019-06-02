@@ -6,18 +6,20 @@ llvmTypes = {'int': 'i32',
              'void': 'void'}
 
 pythonStrings = {'n': '\n',
-             'r': '\r',
-             't': '\t',
-             'f': '\f',
-             'b': '\b'}
+                 'r': '\r',
+                 't': '\t',
+                 'f': '\f',
+                 'b': '\b',
+                 'w': ' '}
 
 llvmStrings = {'\n': '\\0A',
-             '\r': '\\0D',
-             '\t': '\\09',
-             '\f': '\\0C',
-             '\b': '\\08',
-             '\\': '\\5C',
-             '': 'zeroinitializer'}
+               '\r': '\\0D',
+               '\t': '\\09',
+               '\f': '\\0C',
+               '\b': '\\08',
+               '\\': '\\5C',
+               '\w': ' ',
+               '': 'zeroinitializer'}
 
 opTypes = {'==': 'eq',
            '>': 'sgt',
@@ -128,6 +130,7 @@ class INT(VOID):
     def getDiv(self):
         return 'sdiv'
 
+
 class FLOAT(VOID):
     def getType(self):
         return 3
@@ -156,6 +159,7 @@ class FLOAT(VOID):
     def getDiv(self):
         return 'fdiv'
 
+
 class POINTER(VOID):
     def __init__(self, type=VOID()):
         self.type = type
@@ -169,7 +173,7 @@ class POINTER(VOID):
     def getDepth(self):
         return self.type.getDepth() + 1
 
-    def getBase(self): # get dereference
+    def getBase(self):  # get dereference
         return self.type
 
     def __str__(self):
@@ -213,7 +217,7 @@ class ARRAY(POINTER):
     def printLLVM(self):
         return self.getBase().printLLVM() + "*"
 
-    def toLLVM(self): #[5 x i32]
+    def toLLVM(self):  # [5 x i32]
         return "[" + str(self.size) + " x " + self.getBase().printLLVM() + "]"
 
     def getAlign(self):
@@ -224,6 +228,7 @@ class ARRAY(POINTER):
 
     def __str__(self):
         return str(self.type)
+
 
 class PPP:
 

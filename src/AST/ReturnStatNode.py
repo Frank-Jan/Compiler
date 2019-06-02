@@ -69,8 +69,10 @@ class ReturnStatNode(ASTNode, Type):
 
         node = self.child
 
+        if node is None:
+            pass
         # IntNode, FloatNode, CharNode
-        if isinstance(node, TerNode):
+        elif isinstance(node, TerNode):
             typVal = node.toLLVM()
             type = typVal[0]
             var = typVal[1]
