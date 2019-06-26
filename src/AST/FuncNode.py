@@ -58,6 +58,18 @@ class FuncNode(ASTNode, Type):
             raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: function {} called before declaration".format(self.name))
         if value.isVar():
             raise Exception(str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: {} is a variable not a function".format(self.name))
+
+        # check if argument types are correct
+        if len(self.arguments) != len(value.argumentList):
+            raise Exception(
+                str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: {} has a different signature".format(self.name))
+        for i in range(len(self.arguments)):
+            if value.argumentList[i] != self.arguments[i].getType():
+                raise Exception(
+                    str(self.pos[0]) + ":" + str(self.pos[1]) + ":error: {} has a different signature".format(
+                        self.name))
+
+
         value.isUsed = True
         self.record = value
         self.type = self.record.getType()

@@ -90,7 +90,7 @@ class SymbolTable:
             raise Exception("Function: {} already declared or defined as variable")
         elif value.defined:
             # functions is already defined
-            raise Exception("Function: already declared in this scope")
+            raise Exception("Function: already defined in this scope")
         else:
             if self.parent == None:
                 #global scope: allow multiple declarations with one definition:
