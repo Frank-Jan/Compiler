@@ -13,9 +13,9 @@ void main(){
     float f = 0.0123;
 
     if(f > 3.0123){
-        printf("f is groter dan 3.0123\n");
+        printf("f (%f) is groter dan 3.0123\n", f);
     } else {
-        printf("f is kleiner dan 3.0123\n");
+        printf("f (%f) is kleiner dan 3.0123\n", f);
     }
 
 

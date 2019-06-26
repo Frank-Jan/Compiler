@@ -4,13 +4,13 @@ declare i32 @printf(i8*, ...)
 
 declare i32 @scanf(i8*, ...)
 
-@.var-32 = private unnamed_addr constant [15 x i8] c"while is done\0A\00", align 1
+@.var-36 = private unnamed_addr constant [15 x i8] c"while is done\0A\00", align 1
 
-@.var-30 = private unnamed_addr constant [11 x i8] c"c changed\0A\00", align 1
+@.var-34 = private unnamed_addr constant [11 x i8] c"c changed\0A\00", align 1
 
-@.var-20 = private unnamed_addr constant [25 x i8] c"f is kleiner dan 3.0123\0A\00", align 1
+@.var-22 = private unnamed_addr constant [30 x i8] c"f (%f) is kleiner dan 3.0123\0A\00", align 1
 
-@.var-18 = private unnamed_addr constant [24 x i8] c"f is groter dan 3.0123\0A\00", align 1
+@.var-18 = private unnamed_addr constant [29 x i8] c"f (%f) is groter dan 3.0123\0A\00", align 1
 
 @.var-8 = private unnamed_addr constant [19 x i8] c"i is groter dan 3\0A\00", align 1
 
@@ -38,31 +38,35 @@ store float 0x3f8930be00000000, float* %f, align 4
 br i1 %var-16, label %Label10, label %Label11
 
 Label10:
-%var-19 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([24 x i8], [24 x i8]* @.var-18, i32 0, i32 0))
+%var-19 = load float, float* %f, align 4
+%var-20 = fpext float %var-19 to double
+%var-21 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([29 x i8], [29 x i8]* @.var-18, i32 0, i32 0), double %var-20)
 br label %Label12
 
 Label11:
-%var-21 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([25 x i8], [25 x i8]* @.var-20, i32 0, i32 0))
+%var-23 = load float, float* %f, align 4
+%var-24 = fpext float %var-23 to double
+%var-25 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([30 x i8], [30 x i8]* @.var-22, i32 0, i32 0), double %var-24)
 br label %Label12
 
 Label12:
 %c = alloca i8, align 1
 store i8 99, i8* %c, align 1
-br label %Label22
+br label %Label26
 
-Label22:
-%var-26 = load i8, i8* %c, align 1
-%var-27 = sext i8 %var-26 to i32
-%var-28 = icmp eq i32 %var-27, 99
-br i1 %var-28, label %Label23, label %Label24
+Label26:
+%var-30 = load i8, i8* %c, align 1
+%var-31 = sext i8 %var-30 to i32
+%var-32 = icmp eq i32 %var-31, 99
+br i1 %var-32, label %Label27, label %Label28
 
-Label23:
+Label27:
 store i8 97, i8* %c, align 1
-%var-31 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([11 x i8], [11 x i8]* @.var-30, i32 0, i32 0))
-br label %Label22
+%var-35 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([11 x i8], [11 x i8]* @.var-34, i32 0, i32 0))
+br label %Label26
 
-Label24:
-%var-33 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.var-32, i32 0, i32 0))
+Label28:
+%var-37 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.var-36, i32 0, i32 0))
 ret void 
 }
 
