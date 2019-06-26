@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-int 3332main(){
+int main(){
     int arr1[1];
 
     int Iarr[] = {2,3,4,5}; //determines length through initialiser
