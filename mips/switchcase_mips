@@ -1,0 +1,53 @@
+#Ooms Mathias
+
+.data
+nl: .asciiz "\n"
+spatie: .asciiz " "
+i: .word 1 # integer i = 1
+a: .word 0  # integer i = 0
+jumptable: .word case_0, case_1, case_2 # jumptable with three different adresses
+.text
+
+main:
+	lw $t0, i # loadword i in $t0
+	lw $t1, a # loadword a in $t1
+	la $t2, jumptable # loadadress jumptable in $t2
+	la $t3, nl # load adress from nl in $a0
+	
+	bltz $t0, default # when i is lower than 0 it is a default case
+	bgtu $t0, 2, default #when i is greater than 2 it's also a default case
+	
+	mul $t0, $t0, 4 # to iterate correctly over the adresses (size)
+	add $t4, $t0, $t2 # to iterate over the adresses
+	
+	lw $t4, ($t4) # to get the case adress of the $t3 in $t3
+	jr $t4 # to jump into the right case
+	
+
+case_0:
+	li $t1, 9  # load 9 in $t1 (a)
+	j exit
+	
+case_1:
+	li $t1, 6  # load 6 in $t1 (a)
+	#HERE NO JUMP, BECAUSE OF EXAMPLE CODE IN C++
+	
+case_2:
+	li $t1, 8  # load 8 in $t1 (a)
+	j exit
+	
+default:
+	li $t1, 7  # load 7 in $t1 (a)
+	j exit
+	
+exit:
+	move $a0, $t1
+	li $v0, 1
+	syscall # printing a
+		
+	add $a0, $t3, 0  #same as move
+	li $v0, 4
+	syscall # printing a newline
+	
+	li $v0, 10
+	syscall 
